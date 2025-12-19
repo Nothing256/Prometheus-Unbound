@@ -18,6 +18,11 @@ mkdir -p "$WORK_ROOT"
 
 # ================= 核心：项目特性“配置中心” (The Brain) =================
 case "$PROJ" in
+    "JxPath")
+        TEMPLATE_FILE="pom.template.jxpath.xml"
+        BUILD_XML_PATH="build.xml"
+        SPECIAL_NOTE="**Project Note:** This is \`Commons JXPath\`. It uses legacy directory structure (\`src/java\`) and depends on \`JDOM\` and \`Servlet\` APIs. The provided POM handles these."
+        ;;
     "Codec")
         TEMPLATE_FILE="pom.template.codec.xml" 
         BUILD_XML_PATH="build.xml"
