@@ -1,18 +1,18 @@
 #!/bin/bash
 
-# # ================= 密钥加载区 (Security Area) =================
-# # 1. 尝试从当前目录或工作目录加载 .env 文件
+# ================= 密钥加载区 (Security Area) =================
+# 1. 尝试从当前目录或工作目录加载 .env 文件
 # if [ -f ".env" ]; then
 #     source .env
-# elif [ -f "$HOME/workspace/prometheus_workdir/.env" ]; then
-#     source "$HOME/workspace/prometheus_workdir/.env"
+# elif [ -f "$HOME/workspace/prometheus_workdir_qwen/.env" ]; then
+#     source "$HOME/workspace/prometheus_workdir_qwen/.env"
 # fi
 
 # # 2. 最终检查：确保密钥已存在
-# if [ -z "$GEMINI_API_KEY" ]; then
-#     echo ">>> [CRITICAL ERROR] GEMINI_API_KEY is not set!"
+# if [ -z "$OPENAI_API_KEY=" ]; then
+#     echo ">>> [CRITICAL ERROR] OPENAI_API_KEY= is not set!"
 #     echo ">>> Please export it in your shell OR create a .env file."
-#     echo ">>> Example: export GEMINI_API_KEY='sk-...'"
+#     echo ">>> Example: export OPENAI_API_KEY=='sk-...'"
 #     exit 1
 # else
 #     echo ">>> [Conductor] API Key detected. Engine ready."
