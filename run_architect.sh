@@ -86,9 +86,11 @@ The generated requirement file must:
 3.  **Explicitly address the bug.** One scenario must clearly define the correct behavior for the input that is currently causing the failure.
 4.  **Keep it MINIMAL.** Focus **ONLY** on the specific logic needed to fix the bug. **DO NOT** describe or imply general refactoring, code cleanup, or stylistic changes.
 
-**FINAL INSTRUCTION:**
-Once you have generated and saved the \`requirement.feature\` file, **STOP**.
-**DO NOT** attempt to create test runners, step definitions, or fix the code yet. Your job in this phase is **ONLY** to define the requirement.
+**FINAL INSTRUCTION (CRITICAL):**
+1.  Generate the \`requirement.feature\` file.
+2.  **STOP IMMEDIATELY.**
+3.  **DO NOT** propose a fix.
+4.  Your job is **ONLY** to be the Architect, not the Engineer.
 
 Please proceed.
 EOF
