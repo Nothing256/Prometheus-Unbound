@@ -15,6 +15,11 @@ mkdir -p "$WORK_ROOT"
 
 # ================= 核心：项目特性“配置中心” (The Brain) =================
 case "$PROJ" in
+    "Codec")
+        TEMPLATE_FILE="pom.template.codec.xml" 
+        BUILD_XML_PATH="build.xml"
+        SPECIAL_NOTE="**Project Note:** This is \`Commons Codec\`. Note that it relies on \`Commons Lang3\` for some tests. The provided POM already includes this dependency."
+        ;;
     "Time")
         TEMPLATE_FILE="pom.template.time.xml"
         BUILD_XML_PATH="build.xml"
