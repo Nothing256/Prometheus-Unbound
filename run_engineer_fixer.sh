@@ -177,34 +177,73 @@ EOF
 echo ">>> [Engineer] Qwen is building..."
 qwen -y --output-format stream-json -p "$(cat engineer_prompt.txt)" > "$ENG_LOG"
 
-# 检查 Engineer 产出
-if [ ! -f "${TEST_ROOT}/${TARGET_PACKAGE_DIR}/CucumberTest.java" ]; then
-    echo ">>> [Conductor] Engineer Failed! No Test Runner found."
+# 检查 Engineer 产出（使用 find，因为聪明的 Agent 可能会为了适配 Maven 而移动目录）
+echo ">>> [Conductor] Verifying Engineer output..."
+FOUND_RUNNER=$(find "$ENG_DIR/$TEST_ROOT" -name "CucumberTest.java" | head -n 1)
+
+if [ -z "$FOUND_RUNNER" ]; then
+    echo ">>> [Conductor] Engineer Failed! No Test Runner found in $ENG_DIR/$TEST_ROOT"
     exit 1
+else
+    echo ">>> [Conductor] Confirmed: Test Runner found at [${FOUND_RUNNER#$ENG_DIR/}]"
 fi
 
 # -----------------------------------------------------------------------------
-# 阶段三：修复师 (The Fixer)
+# 阶段三：修复师 (The Fixer) 准备工作
 # -----------------------------------------------------------------------------
 echo ">>> [Conductor] Phase 3: Fixer (The Enlightened Repair)..."
 
 rm -rf "$FIX_DIR"
+# 1. 检出代码
 defects4j checkout -p "$PROJ" -v "${ID}b" -w "$FIX_DIR"
+
+# 2. 继承工程师的核心配置 (pom.xml)
+echo ">>> [Conductor] Inheriting POM configuration from Engineer..."
 cp "$ENG_DIR/pom.xml" "$FIX_DIR/"
 
-# 动态复制测试代码 (Chart/Lang 兼容)
-# 注意：TEST_ROOT 可能是 src/test/java 或 tests
-# 为了保持结构，我们先创建父目录
-FIX_TEST_PARENT=$(dirname "$FIX_DIR/$TEST_ROOT")
-mkdir -p "$FIX_TEST_PARENT"
-# 直接把 Engineer 里的 TEST_ROOT 目录整个拷过来
-cp -r "$ENG_DIR/$TEST_ROOT" "$FIX_TEST_PARENT/"
+# 3. 核心手术：同步测试目录结构 (Smart Test Sync)
+# 我们不再盲目信任 $TEST_ROOT，而是看工程师最后把代码跑通时，目录在哪
+echo ">>> [Conductor] Synchronizing test environment from Engineer..."
 
-# 复制活文档
-mkdir -p "$FIX_DIR/src/test/resources"
-cp -r "$ENG_DIR/src/test/resources/requirement.feature" "$FIX_DIR/src/test/resources/"
+# [情况 A] 如果工程师为了 Maven 建立了 src/test/java 结构
+if [ -d "$ENG_DIR/src/test/java" ]; then
+    echo "    Detected evolved structure: src/test/java"
+    mkdir -p "$FIX_DIR/src/test"
+    # 先清理掉 Fixer 里的旧结构防止目录冲突，再拷贝整个 java 目录
+    rm -rf "$FIX_DIR/src/test/java"
+    cp -r "$ENG_DIR/src/test/java" "$FIX_DIR/src/test/"
+fi
+
+# [情况 B] 同步测试资源目录 (requirement.feature 往往在这)
+if [ -d "$ENG_DIR/src/test/resources" ]; then
+    echo "    Syncing test resources..."
+    mkdir -p "$FIX_DIR/src/test"
+    rm -rf "$FIX_DIR/src/test/resources"
+    cp -r "$ENG_DIR/src/test/resources" "$FIX_DIR/src/test/"
+fi
+
+# [情况 C] 兼容性兜底：如果是 legacy 结构（如 Chart 这种不带 java/ 的）
+# 且我们刚才没做过“搬运”操作，则执行原有的复制逻辑
+if [ ! -d "$ENG_DIR/src/test/java" ]; then
+    echo "    Falling back to standard TEST_ROOT sync..."
+    FIX_TEST_PARENT=$(dirname "$FIX_DIR/$TEST_ROOT")
+    mkdir -p "$FIX_TEST_PARENT"
+    # 确保不出现目录嵌套目录的情况 (e.g., src/test/test)
+    cp -rf "$ENG_DIR/$TEST_ROOT/." "$FIX_DIR/$TEST_ROOT/"
+fi
+
+# 4. 最后检查一下活文档 (requirement.feature)
+# 这一步是为了防止某些特殊情况下文件没被拷贝到 resources 下
+if [ ! -f "$FIX_DIR/src/test/resources/requirement.feature" ]; then
+    echo "    Warning: requirement.feature not in resources, checking root..."
+    if [ -f "$ENG_DIR/requirement.feature" ]; then
+        mkdir -p "$FIX_DIR/src/test/resources"
+        cp "$ENG_DIR/requirement.feature" "$FIX_DIR/src/test/resources/"
+    fi
+fi
 
 cd "$FIX_DIR" || exit
+echo ">>> [Conductor] Fixer environment ready. Workspace: $(pwd)"
 
 cat <<EOF > fixer_prompt.txt
 Hello, Qwen. You are an expert software engineer.
