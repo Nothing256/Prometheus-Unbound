@@ -37,6 +37,9 @@ mkdir -p "$WORK_ROOT"
 # ================= 核心：项目特性“情报中心” (The Intelligence Hub) =================
 # 虽然盲测不需要 pom 模版，但它需要知道“环境特性”
 case "$PROJ" in
+    "Gson")
+        SPECIAL_NOTE="**Project Context:** This is \`Google Gson\`. Note that the project structure is nested under a \`gson/\` directory. Please respect the file paths provided."
+        ;;
     "Time")
         SPECIAL_NOTE="**Project Context:** This is the \`Joda-Time\` project. It deals heavily with dates, times, and timezones. Be aware of time-related logic."
         ;;
