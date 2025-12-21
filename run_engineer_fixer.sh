@@ -13,36 +13,51 @@ fi
 WORK_ROOT=~/workspace/prometheus_workdir_enlightened
 mkdir -p "$WORK_ROOT"
 
+PROJ_SUBDIR=""
+
+
 # ================= 核心：项目特性“配置中心” (The Brain) =================
 case "$PROJ" in
+    "Gson")
+        TEMPLATE_FILE="pom.template.standard.xml" 
+        BUILD_XML_PATH="gson/maven-build.xml"     
+        PROJ_SUBDIR="gson"                        
+        SPECIAL_NOTE="**Project Note:** This project has a nested structure. Source code and POM are in the \`gson/\` subdirectory. The build script \`gson/maven-build.xml\` controls the classpath."
+        ;;
     "JxPath")
         TEMPLATE_FILE="pom.template.jxpath.xml"
         BUILD_XML_PATH="build.xml"
+        PROJ_SUBDIR=""
         SPECIAL_NOTE="**Project Note:** This is \`Commons JXPath\`. It uses legacy directory structure (\`src/java\`) and depends on \`JDOM\` and \`Servlet\` APIs. The provided POM handles these."
         ;;
     "Codec")
         TEMPLATE_FILE="pom.template.codec.xml" 
         BUILD_XML_PATH="build.xml"
+        PROJ_SUBDIR=""
         SPECIAL_NOTE="**Project Note:** This is \`Commons Codec\`. Note that it relies on \`Commons Lang3\` for some tests. The provided POM already includes this dependency."
         ;;
     "Time")
         TEMPLATE_FILE="pom.template.time.xml"
         BUILD_XML_PATH="build.xml"
+        PROJ_SUBDIR=""
         SPECIAL_NOTE="**Build Note:** This project uses \`Joda-Time\`. Ensure resources (like timezone data) are correctly handled. The provided POM handles \`maven-antrun-plugin\` for this purpose."
         ;;
     "Chart")
         TEMPLATE_FILE="pom.template.chart.xml"
         BUILD_XML_PATH="ant/build.xml"
+        PROJ_SUBDIR=""
         SPECIAL_NOTE="**Structure Note:** This is a legacy project. Source code is in \`source/\` and tests are in \`tests/\`. The build script is located at \`ant/build.xml\`."
         ;;
     "Math")
         TEMPLATE_FILE="pom.template.standard.xml"
         BUILD_XML_PATH="build.xml"
+        PROJ_SUBDIR=""
         SPECIAL_NOTE="**Build Note:** The project uses a shared \`pom.xml\` template. You may notice mismatching Artifact IDs (e.g., commons-lang3). Please IGNORE these mismatches."
         ;;
     *)
         TEMPLATE_FILE="pom.template.standard.xml"
         BUILD_XML_PATH="build.xml"
+        PROJ_SUBDIR=""
         SPECIAL_NOTE=""
         ;;
 esac
@@ -189,61 +204,64 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# 阶段三：修复师 (The Fixer) 准备工作
+# 阶段三：修复师 (The Fixer) 准备工作 - 全兼容版 (支持 Gson 嵌套)
 # -----------------------------------------------------------------------------
 echo ">>> [Conductor] Phase 3: Fixer (The Enlightened Repair)..."
 
 rm -rf "$FIX_DIR"
-# 1. 检出代码
 defects4j checkout -p "$PROJ" -v "${ID}b" -w "$FIX_DIR"
 
-# 2. 继承工程师的核心配置 (pom.xml)
-echo ">>> [Conductor] Inheriting POM configuration from Engineer..."
-cp "$ENG_DIR/pom.xml" "$FIX_DIR/"
+# 【关键点 1】定义锚点目录
+# 如果 PROJ_SUBDIR 有值(如 gson)，则锚点在子目录；否则就在根目录
+FIX_ANCHOR="${FIX_DIR}/${PROJ_SUBDIR:-.}"
+ENG_ANCHOR="${ENG_DIR}/${PROJ_SUBDIR:-.}"
 
-# 3. 核心手术：同步测试目录结构 (Smart Test Sync)
-# 我们不再盲目信任 $TEST_ROOT，而是看工程师最后把代码跑通时，目录在哪
-echo ">>> [Conductor] Synchronizing test environment from Engineer..."
+# 1. 继承核心配置 (pom.xml)
+echo ">>> [Conductor] Inheriting POM from ${PROJ_SUBDIR:-root}..."
+cp "${ENG_ANCHOR}/pom.xml" "${FIX_ANCHOR}/"
 
-# [情况 A] 如果工程师为了 Maven 建立了 src/test/java 结构
-if [ -d "$ENG_DIR/src/test/java" ]; then
+# 2. 同步测试环境 (全路径感知)
+echo ">>> [Conductor] Synchronizing test environment..."
+
+# [情况 A] 工程师建立了 src/test/java 结构 (无论是在根部还是嵌套子目录)
+if [ -d "${ENG_ANCHOR}/src/test/java" ]; then
     echo "    Detected evolved structure: src/test/java"
-    mkdir -p "$FIX_DIR/src/test"
-    # 先清理掉 Fixer 里的旧结构防止目录冲突，再拷贝整个 java 目录
-    rm -rf "$FIX_DIR/src/test/java"
-    cp -r "$ENG_DIR/src/test/java" "$FIX_DIR/src/test/"
+    mkdir -p "${FIX_ANCHOR}/src/test"
+    rm -rf "${FIX_ANCHOR}/src/test/java"
+    cp -r "${ENG_ANCHOR}/src/test/java" "${FIX_ANCHOR}/src/test/"
 fi
 
-# [情况 B] 同步测试资源目录 (requirement.feature 往往在这)
-if [ -d "$ENG_DIR/src/test/resources" ]; then
+# [情况 B] 同步测试资源 (requirement.feature)
+if [ -d "${ENG_ANCHOR}/src/test/resources" ]; then
     echo "    Syncing test resources..."
-    mkdir -p "$FIX_DIR/src/test"
-    rm -rf "$FIX_DIR/src/test/resources"
-    cp -r "$ENG_DIR/src/test/resources" "$FIX_DIR/src/test/"
+    mkdir -p "${FIX_ANCHOR}/src/test"
+    rm -rf "${FIX_ANCHOR}/src/test/resources"
+    cp -r "${ENG_ANCHOR}/src/test/resources" "${FIX_ANCHOR}/src/test/"
 fi
 
-# [情况 C] 兼容性兜底：如果是 legacy 结构（如 Chart 这种不带 java/ 的）
-# 且我们刚才没做过“搬运”操作，则执行原有的复制逻辑
-if [ ! -d "$ENG_DIR/src/test/java" ]; then
-    echo "    Falling back to standard TEST_ROOT sync..."
-    FIX_TEST_PARENT=$(dirname "$FIX_DIR/$TEST_ROOT")
-    mkdir -p "$FIX_TEST_PARENT"
-    # 确保不出现目录嵌套目录的情况 (e.g., src/test/test)
+# [情况 C] 兼容性：处理非 java/ 结构的项目 (如 Lang/Math/Chart)
+if [ ! -d "${ENG_ANCHOR}/src/test/java" ]; then
+    # 注意：这里的 $TEST_ROOT 是 defects4j 导出的路径，已经包含了子目录(如 gson/src/test)
+    echo "    Syncing standard TEST_ROOT: $TEST_ROOT"
+    # 使用 ./ 指令防止 cp 产生嵌套目录
+    mkdir -p "$FIX_DIR/$TEST_ROOT"
     cp -rf "$ENG_DIR/$TEST_ROOT/." "$FIX_DIR/$TEST_ROOT/"
 fi
 
-# 4. 最后检查一下活文档 (requirement.feature)
-# 这一步是为了防止某些特殊情况下文件没被拷贝到 resources 下
-if [ ! -f "$FIX_DIR/src/test/resources/requirement.feature" ]; then
-    echo "    Warning: requirement.feature not in resources, checking root..."
-    if [ -f "$ENG_DIR/requirement.feature" ]; then
-        mkdir -p "$FIX_DIR/src/test/resources"
-        cp "$ENG_DIR/requirement.feature" "$FIX_DIR/src/test/resources/"
+# 3. 活文档保底机制
+# 无论如何，我们要确保 requirement.feature 出现在 Fixer 需要的地方
+if [ ! -f "${FIX_ANCHOR}/src/test/resources/requirement.feature" ]; then
+    echo "    Checking for misplaced requirement.feature..."
+    # 递归搜索整个工程目录找这个文件，这招最狠！
+    FEAT_LOC=$(find "$ENG_DIR" -name "requirement.feature" | head -n 1)
+    if [ -n "$FEAT_LOC" ]; then
+        mkdir -p "${FIX_ANCHOR}/src/test/resources"
+        cp "$FEAT_LOC" "${FIX_ANCHOR}/src/test/resources/"
     fi
 fi
 
 cd "$FIX_DIR" || exit
-echo ">>> [Conductor] Fixer environment ready. Workspace: $(pwd)"
+echo ">>> [Conductor] Fixer environment ready for project: ${PROJ}"
 
 cat <<EOF > fixer_prompt.txt
 Hello, Qwen. You are an expert software engineer.
