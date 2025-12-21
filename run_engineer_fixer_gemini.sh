@@ -21,6 +21,12 @@ PROJ_SUBDIR=""
 
 # ================= 核心：项目特性“配置中心” (The Brain) =================
 case "$PROJ" in
+    "Mockito")
+        TEMPLATE_FILE="pom.template.mockito.xml"
+        BUILD_XML_PATH="build.xml" 
+        PROJ_SUBDIR=""
+        SPECIAL_NOTE="**Project Note:** This is \`Mockito\`. It has complex dependencies (Objenesis, Hamcrest, ASM). The provided POM handles them. It also excludes some legacy tests that fail to compile on modern Java."
+        ;;
     "Gson")
         TEMPLATE_FILE="pom.template.standard.xml" 
         BUILD_XML_PATH="gson/maven-build.xml"     
