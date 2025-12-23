@@ -21,6 +21,12 @@ PROJ_SUBDIR=""
 
 # ================= 核心：项目特性“配置中心” (The Brain) =================
 case "$PROJ" in
+    "Jsoup")
+        TEMPLATE_FILE="pom.template.jsoup.xml"
+        BUILD_XML_PATH="maven-build.xml" 
+        PROJ_SUBDIR=""
+        SPECIAL_NOTE="**Project Note:** This is \`Jsoup\`. It depends on \`commons-lang\`. The provided POM handles this."
+        ;;
     "Mockito")
         TEMPLATE_FILE="pom.template.mockito.xml"
         BUILD_XML_PATH="build.xml" 
