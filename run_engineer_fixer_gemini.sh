@@ -21,6 +21,12 @@ PROJ_SUBDIR=""
 
 # ================= 核心：项目特性“配置中心” (The Brain) =================
 case "$PROJ" in
+    "JacksonXml")
+        TEMPLATE_FILE="pom.template.jackson_xml.xml"
+        BUILD_XML_PATH="maven-build.xml"
+        PROJ_SUBDIR=""
+        SPECIAL_NOTE="**Project Note:** This is \`JacksonXml\`. It depends on \`JacksonDatabind\` and XML libs (Stax, Woodstox). The provided POM handles these.\n**CRITICAL:** If you encounter 'Duplicate Class' errors for \`PackageVersion.java\`, delete the one in \`src/main/java\` or disable the replacer plugin."
+        ;;
     "JacksonDatabind")
         TEMPLATE_FILE="pom.template.jackson_databind.xml"
         BUILD_XML_PATH="build.xml"
