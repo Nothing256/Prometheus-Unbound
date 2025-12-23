@@ -18,6 +18,12 @@ PROJ_SUBDIR=""
 
 # ================= 核心：项目特性“配置中心” (The Brain) =================
 case "$PROJ" in
+    "JacksonDatabind")
+        TEMPLATE_FILE="pom.template.jackson_databind.xml"
+        BUILD_XML_PATH="build.xml"
+        PROJ_SUBDIR=""
+        SPECIAL_NOTE="**CRITICAL ENV NOTE:** \n1. **Java 6 Target:** This project targets Java 6. STRICTLY NO diamond operators \`<>\`, try-with-resources, or lambdas. Use explicit types.\n2. **Troubleshooting:** If you encounter a 'Duplicate Class' error regarding \`PackageVersion.java\` during compilation, it means the generated source conflicts with the existing source. **ACTION:** Delete the file in \`src/main/java/.../PackageVersion.java\` to resolve it."
+        ;;
     "Jsoup")
         TEMPLATE_FILE="pom.template.jsoup.xml"
         BUILD_XML_PATH="maven-build.xml" 
