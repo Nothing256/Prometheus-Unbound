@@ -31,11 +31,11 @@ Prometheus bridges this gap by deploying a multi-agent system to:
 *   **🧠 The Architect (Intent Inference):** Uses Chain-of-Thought reasoning to transform vague issue reports into precise, executable `.feature` files (Gherkin).
 *   **🛡️ The Engineer (RQA Loop):** A novel "Sandwich Verification" mechanism. It uses the ground truth (fixed code) as a proxy oracle to validate the generated specification, ensuring the agent is solving the *correct* problem.
 *   **🛠️ The Fixer (Enlightened Repair):** A coding agent that operates under strict BDD constraints. It supports an **"Unbound"** strategy, capable of performing multi-file, system-level refactoring (e.g., fixing `Gson-4` across Reader and Writer).
-*   **📊 Defects4J-BDD Dataset:** We release a dataset of **600+ reverse-engineered BDD specifications** for the Defects4J benchmark, serving as a new asset for the community.
+*   **📊 Defects4J-BDD Dataset:** We release a dataset of **160+ reverse-engineered BDD specifications** for the Defects4J benchmark, serving as a new asset for the community.
 
 ## 📈 Results
 
-Evaluated on **680 defects** across 17 projects in Defects4J (v1.2 & v2.0):
+Evaluated on **680 defects** across 16 projects in Defects4J (v3.0.1):
 
 | Metric             | Result     | Description                                                  |
 | :----------------- | :--------- | :----------------------------------------------------------- |
