@@ -10,7 +10,11 @@ if [ -z "$PROJ" ] || [ -z "$ID" ]; then
     exit 1
 fi
 
-WORK_ROOT=~/workspace/prometheus_workdir_enlightened
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")" 
+
+WORK_ROOT=${HOME}/prometheus_workdir_enlightened
 mkdir -p "$WORK_ROOT"
 
 PROJ_SUBDIR=""
@@ -86,7 +90,7 @@ case "$PROJ" in
         ;;
 esac
 
-TEMPLATE_PATH="${WORK_ROOT}/${TEMPLATE_FILE}"
+TEMPLATE_PATH="${PROJECT_ROOT}/templates/${TEMPLATE_FILE}"
 
 if [ ! -f "$TEMPLATE_PATH" ]; then
     echo ">>> [Error] Template file not found: $TEMPLATE_PATH"

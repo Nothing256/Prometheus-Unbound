@@ -14,7 +14,11 @@ if [ -z "$PROJ" ] || [ -z "$ID" ]; then
     exit 1
 fi
 
-WORK_ROOT=~/workspace/prometheus_workdir
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")" 
+
+WORK_ROOT=${HOME}/prometheus_workdir
 mkdir -p "$WORK_ROOT"
 
 # ================= 核心：项目特性“配置中心” (The Brain) =================
@@ -43,7 +47,7 @@ case "$PROJ" in
         ;;
 esac
 
-TEMPLATE_PATH="${WORK_ROOT}/${TEMPLATE_FILE}"
+TEMPLATE_PATH="${PROJECT_ROOT}/templates/${TEMPLATE_FILE}"
 
 # 检查模版是否存在
 if [ ! -f "$TEMPLATE_PATH" ]; then

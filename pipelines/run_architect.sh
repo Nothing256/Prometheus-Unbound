@@ -14,7 +14,11 @@ if [ -z "$PROJ" ] || [ -z "$ID" ]; then
     exit 1
 fi
 
-WORK_ROOT=~/workspace/prometheus_workdir_enlightened
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")" 
+
+WORK_ROOT=${HOME}/prometheus_workdir_enlightened
 mkdir -p "$WORK_ROOT"
 
 

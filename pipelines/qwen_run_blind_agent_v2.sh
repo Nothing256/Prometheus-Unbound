@@ -1,24 +1,5 @@
 #!/bin/bash
 
-# ================= 密钥加载区 (Security Area) =================
-# 1. 尝试从当前目录或工作目录加载 .env 文件
-# if [ -f ".env" ]; then
-#     source .env
-# elif [ -f "$HOME/workspace/prometheus_workdir_qwen/.env" ]; then
-#     source "$HOME/workspace/prometheus_workdir_qwen/.env"
-# fi
-
-# # 2. 最终检查：确保密钥已存在
-# if [ -z "$OPENAI_API_KEY=" ]; then
-#     echo ">>> [CRITICAL ERROR] OPENAI_API_KEY= is not set!"
-#     echo ">>> Please export it in your shell OR create a .env file."
-#     echo ">>> Example: export OPENAI_API_KEY=='sk-...'"
-#     exit 1
-# else
-#     echo ">>> [Conductor] API Key detected. Engine ready."
-# fi
-# # ============================================================
-
 # export https_proxy=http://127.0.0.1:7890 http_proxy=http://127.0.0.1:7890 all_proxy=socks5://127.0.0.1:7890
 # echo ">>> [Conductor] Magic Proxy Activated!"
 
@@ -31,7 +12,12 @@ if [ -z "$PROJ" ] || [ -z "$ID" ]; then
     exit 1
 fi
 
-WORK_ROOT=~/workspace/prometheus_workdir_qwen
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")" 
+
+
+WORK_ROOT=${HOME}/prometheus_workdir_qwen
 mkdir -p "$WORK_ROOT"
 
 # ================= 核心：项目特性“情报中心” (The Intelligence Hub) =================
