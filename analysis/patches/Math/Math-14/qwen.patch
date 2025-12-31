@@ -1,0 +1,24 @@
+diff --git a/src/main/java/org/apache/commons/math3/optim/nonlinear/vector/jacobian/AbstractLeastSquaresOptimizer.java b/src/main/java/org/apache/commons/math3/optim/nonlinear/vector/jacobian/AbstractLeastSquaresOptimizer.java
+index d12ebeaf0..08d85993b 100644
+--- a/src/main/java/org/apache/commons/math3/optim/nonlinear/vector/jacobian/AbstractLeastSquaresOptimizer.java
++++ b/src/main/java/org/apache/commons/math3/optim/nonlinear/vector/jacobian/AbstractLeastSquaresOptimizer.java
+@@ -264,7 +264,17 @@ public abstract class AbstractLeastSquaresOptimizer
+      * @return the square-root of the weight matrix.
+      */
+     private RealMatrix squareRoot(RealMatrix m) {
+-            final EigenDecomposition dec = new EigenDecomposition(m);
+-            return dec.getSquareRoot();
++        final EigenDecomposition dec = new EigenDecomposition(m);
++        final double[] eigenValues = dec.getRealEigenvalues();
++        final RealMatrix v = dec.getV();
++        final RealMatrix vt = dec.getVT();
++        final RealMatrix d = v.createMatrix(eigenValues.length, eigenValues.length);
++        for (int i = 0; i < eigenValues.length; i++) {
++            // Ensure that we don't have negative values that would cause Math.sqrt to fail
++            // This handles numerical precision issues that can occur with large samples
++            final double positiveValue = Math.max(0, eigenValues[i]);
++            d.setEntry(i, i, Math.sqrt(positiveValue));
++        }
++        return v.multiply(d).multiply(vt);
+     }
+ }

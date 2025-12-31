@@ -1,0 +1,72 @@
+diff --git a/src/main/java/org/joda/time/format/DateTimeParserBucket.java b/src/main/java/org/joda/time/format/DateTimeParserBucket.java
+index b985cefd..761956c7 100644
+--- a/src/main/java/org/joda/time/format/DateTimeParserBucket.java
++++ b/src/main/java/org/joda/time/format/DateTimeParserBucket.java
+@@ -336,6 +336,7 @@ public class DateTimeParserBucket {
+             iSavedFieldsShared = false;
+         }
+         sort(savedFields, count);
++
+         if (count > 0) {
+             // alter base year for parsing if first field is month or day
+             DurationField months = DurationFieldType.months().getField(iChrono);
+@@ -477,16 +478,56 @@ public class DateTimeParserBucket {
+          * The field with the longer range duration is ordered first, where
+          * null is considered infinite. If the ranges match, then the field
+          * with the longer duration is ordered first.
++         * Special handling is added for week-based fields (weekyear and weekOfWeekyear)
++         * to ensure proper parsing of patterns like "xxxx-MM-ww" where week-year
++         * calendar logic should take precedence.
+          */
+         public int compareTo(SavedField obj) {
+-            DateTimeField other = obj.iField;
++            DateTimeField otherField = obj.iField;
++
++            // Get field types to identify week-based fields
++            DateTimeFieldType thisType = iField.getType();
++            DateTimeFieldType otherType = otherField.getType();
++
++            // Identify if fields are week-based
++            boolean thisIsWeekBased = isWeekBasedField(thisType);
++            boolean otherIsWeekBased = isWeekBasedField(otherType);
++
++            // If both are week-based fields, use standard comparison
++            if (thisIsWeekBased && otherIsWeekBased) {
++                int result = compareReverse
++                    (iField.getRangeDurationField(), otherField.getRangeDurationField());
++                if (result != 0) {
++                    return result;
++                }
++                return compareReverse
++                    (iField.getDurationField(), otherField.getDurationField());
++            }
++
++            // If one is week-based and the other is not, give priority to week-based fields
++            // This ensures weekyear and weekOfWeekyear are processed before other fields
++            // when mixed in the same pattern
++            if (thisIsWeekBased && !otherIsWeekBased) {
++                return -1;  // this (week-based) comes first
++            }
++            if (!thisIsWeekBased && otherIsWeekBased) {
++                return 1;   // other (week-based) comes first
++            }
++
++            // For non-week-based fields, use the original comparison logic
+             int result = compareReverse
+-                (iField.getRangeDurationField(), other.getRangeDurationField());
++                (iField.getRangeDurationField(), otherField.getRangeDurationField());
+             if (result != 0) {
+                 return result;
+             }
+             return compareReverse
+-                (iField.getDurationField(), other.getDurationField());
++                (iField.getDurationField(), otherField.getDurationField());
++        }
++
++        private boolean isWeekBasedField(DateTimeFieldType type) {
++            return type == DateTimeFieldType.weekyear() ||
++                   type == DateTimeFieldType.weekyearOfCentury() ||
++                   type == DateTimeFieldType.weekOfWeekyear();
+         }
+     }
+ 

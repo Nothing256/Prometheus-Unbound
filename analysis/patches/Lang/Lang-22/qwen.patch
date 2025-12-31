@@ -1,0 +1,29 @@
+diff --git a/src/main/java/org/apache/commons/lang3/math/Fraction.java b/src/main/java/org/apache/commons/lang3/math/Fraction.java
+index b36a156a4..b90735856 100644
+--- a/src/main/java/org/apache/commons/lang3/math/Fraction.java
++++ b/src/main/java/org/apache/commons/lang3/math/Fraction.java
+@@ -222,6 +222,11 @@ public final class Fraction extends Number implements Comparable<Fraction> {
+         if (denominator==Integer.MIN_VALUE && (numerator&1)==0) {
+             numerator/=2; denominator/=2;
+         }
++        // allow -2^31/2^k as a valid fraction (where k>0) - fix for LANG-662
++        if (numerator==Integer.MIN_VALUE && (denominator&1)==0) {
++            // Reduce before potential negation operations to avoid overflow
++            return getReducedFraction(numerator/2, denominator/2);
++        }
+         if (denominator < 0) {
+             if (numerator==Integer.MIN_VALUE ||
+                     denominator==Integer.MIN_VALUE) {
+@@ -475,6 +480,12 @@ public final class Fraction extends Number implements Comparable<Fraction> {
+         if (numerator == 0) {
+             return equals(ZERO) ? this : ZERO;
+         }
++        // Handle the special case where numerator is Integer.MIN_VALUE to avoid overflow in GCD
++        if (numerator == Integer.MIN_VALUE && (denominator & 1) == 0) {
++            // If both numerator is Integer.MIN_VALUE and denominator is even,
++            // divide both by 2 first to prevent overflow in GCD computation
++            return new Fraction(numerator / 2, denominator / 2).reduce();
++        }
+         int gcd = greatestCommonDivisor(Math.abs(numerator), denominator);
+         if (gcd == 1) {
+             return this;

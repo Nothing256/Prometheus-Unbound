@@ -1,0 +1,30 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/tar/TarUtils.java b/src/main/java/org/apache/commons/compress/archivers/tar/TarUtils.java
+index d60c4de3..dc823fce 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/tar/TarUtils.java
++++ b/src/main/java/org/apache/commons/compress/archivers/tar/TarUtils.java
+@@ -570,10 +570,10 @@ public class TarUtils {
+      * <blockquote>
+      * The checksum is calculated by taking the sum of the unsigned byte values
+      * of the header block with the eight checksum bytes taken to be ascii
+-     * spaces (decimal value 32). It is stored as a six digit octal number with
++     * spaces (decimal value 32). It is stored as a six or seven digit octal number with
+      * leading zeroes followed by a NUL and then a space. Various
+      * implementations do not adhere to this format. For better compatibility,
+-     * ignore leading and trailing whitespace, and get the first six digits. In
++     * ignore leading and trailing whitespace, and get the first six or seven digits. In
+      * addition, some historic tar implementations treated bytes as signed.
+      * Implementations typically calculate the checksum both ways, and treat it
+      * as good if either the signed or unsigned sum matches the included
+@@ -599,10 +599,10 @@ public class TarUtils {
+         for (int i = 0; i < header.length; i++) {
+             byte b = header[i];
+             if (CHKSUM_OFFSET  <= i && i < CHKSUM_OFFSET + CHKSUMLEN) {
+-                if ('0' <= b && b <= '7' && digits++ < 6) {
++                if ('0' <= b && b <= '7' && digits++ < 7) {
+                     storedSum = storedSum * 8 + b - '0';
+                 } else if (digits > 0) {
+-                    digits = 6;
++                    digits = 7;
+                 }
+                 b = ' ';
+             }

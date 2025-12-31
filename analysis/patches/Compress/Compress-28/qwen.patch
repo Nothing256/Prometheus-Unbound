@@ -1,0 +1,13 @@
+--- a/src/main/java/org/apache/commons/compress/archivers/tar/TarArchiveInputStream.java
++++ b/src/main/java/org/apache/commons/compress/archivers/tar/TarArchiveInputStream.java
+@@ -585,9 +585,11 @@
+         totalRead = is.read(buf, offset, numToRead);
+         count(totalRead);
+ 
+         if (totalRead == -1) {
++            if (entryOffset < entrySize) {
++                throw new IOException("Truncated TAR archive entry (EOF before expected end of entry)");
++            }
+             hasHitEOF = true;
+         } else {
+             entryOffset += totalRead;

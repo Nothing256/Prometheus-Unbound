@@ -1,0 +1,64 @@
+diff --git a/src/main/java/org/apache/commons/cli/CommandLine.java b/src/main/java/org/apache/commons/cli/CommandLine.java
+index 81d89dd..47f10ce 100644
+--- a/src/main/java/org/apache/commons/cli/CommandLine.java
++++ b/src/main/java/org/apache/commons/cli/CommandLine.java
+@@ -102,7 +102,7 @@ public class CommandLine implements Serializable
+     }
+ 
+     /**
+-     * Return a version of this <code>Option</code> converted to a particular type. 
++     * Return a version of this <code>Option</code> converted to a particular type.
+      *
+      * @param opt the name of the option
+      * @return the value parsed into a particular object
+@@ -114,12 +114,18 @@ public class CommandLine implements Serializable
+     {
+         String res = getOptionValue(opt);
+         Option option = resolveOption(opt);
+-        
++
+         if (option == null || res == null)
+         {
+             return null;
+         }
+-        
++
++        // If no type is specified, return the string value directly
++        if (option.getType() == null)
++        {
++            return res;
++        }
++
+         return TypeHandler.createValue(res, option.getType());
+     }
+ 
+diff --git a/src/main/java/org/apache/commons/cli/Option.java b/src/main/java/org/apache/commons/cli/Option.java
+index 11a3685..a065592 100644
+--- a/src/main/java/org/apache/commons/cli/Option.java
++++ b/src/main/java/org/apache/commons/cli/Option.java
+@@ -624,12 +624,12 @@ public class Option implements Cloneable, Serializable
+     }
+ 
+     /**
+-     * A rather odd clone method - due to incorrect code in 1.0 it is public 
+-     * and in 1.1 rather than throwing a CloneNotSupportedException it throws 
+-     * a RuntimeException so as to maintain backwards compat at the API level. 
++     * A rather odd clone method - due to incorrect code in 1.0 it is public
++     * and in 1.1 rather than throwing a CloneNotSupportedException it throws
++     * a RuntimeException so as to maintain backwards compat at the API level.
+      *
+-     * After calling this method, it is very likely you will want to call 
+-     * clearValues(). 
++     * After calling this method, it is very likely you will want to call
++     * clearValues().
+      *
+      * @throws RuntimeException
+      */
+@@ -639,6 +639,7 @@ public class Option implements Cloneable, Serializable
+         {
+             Option option = (Option) super.clone();
+             option.values = new ArrayList(values);
++            option.type = type;
+             return option;
+         }
+         catch (CloneNotSupportedException cnse)

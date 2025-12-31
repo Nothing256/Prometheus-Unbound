@@ -1,0 +1,22 @@
+diff --git a/src/main/java/org/jsoup/nodes/FormElement.java b/src/main/java/org/jsoup/nodes/FormElement.java
+index 3949f22d..096daa0b 100644
+--- a/src/main/java/org/jsoup/nodes/FormElement.java
++++ b/src/main/java/org/jsoup/nodes/FormElement.java
+@@ -62,7 +62,7 @@ public class FormElement extends Element {
+     public Connection submit() {
+         String action = hasAttr("action") ? absUrl("action") : baseUri();
+         Validate.notEmpty(action, "Could not determine a form action URL for submit. Ensure you set a base URI when parsing.");
+-        Connection.Method method = attr("method").toUpperCase().equals("POST") ?
++        Connection.Method method = attr("method").toUpperCase(java.util.Locale.ENGLISH).equals("POST") ?
+                 Connection.Method.POST : Connection.Method.GET;
+ 
+         return Jsoup.connect(action)
+@@ -99,7 +99,7 @@ public class FormElement extends Element {
+                     if (option != null)
+                         data.add(HttpConnection.KeyVal.create(name, option.val()));
+                 }
+-            } else if ("checkbox".equalsIgnoreCase(type) || "radio".equalsIgnoreCase(type)) {
++            } else if (("checkbox".equals(type.toLowerCase(java.util.Locale.ENGLISH)) || "radio".equals(type.toLowerCase(java.util.Locale.ENGLISH)))) {
+                 // only add checkbox or radio if they have the checked attribute
+                 if (el.hasAttr("checked")) {
+                     final String val = el.val().length() >  0 ? el.val() : "on";

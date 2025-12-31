@@ -1,0 +1,15 @@
+diff --git a/src/main/java/org/jsoup/nodes/Element.java b/src/main/java/org/jsoup/nodes/Element.java
+index f87ffcb6..ef283cfe 100644
+--- a/src/main/java/org/jsoup/nodes/Element.java
++++ b/src/main/java/org/jsoup/nodes/Element.java
+@@ -1098,7 +1098,9 @@ public class Element extends Node {
+     public String html() {
+         StringBuilder accum = new StringBuilder();
+         html(accum);
+-        return accum.toString().trim();
++        String html = accum.toString();
++        Document.OutputSettings outputSettings = ownerDocument() != null ? ownerDocument().outputSettings() : (new Document("")).outputSettings();
++        return outputSettings.prettyPrint() ? html.trim() : html;
+     }
+ 
+     private void html(StringBuilder accum) {

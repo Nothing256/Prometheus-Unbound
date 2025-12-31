@@ -1,0 +1,87 @@
+diff --git a/src/main/java/com/fasterxml/jackson/dataformat/xml/ser/ToXmlGenerator.java b/src/main/java/com/fasterxml/jackson/dataformat/xml/ser/ToXmlGenerator.java
+index 63e42a19..1898e936 100644
+--- a/src/main/java/com/fasterxml/jackson/dataformat/xml/ser/ToXmlGenerator.java
++++ b/src/main/java/com/fasterxml/jackson/dataformat/xml/ser/ToXmlGenerator.java
+@@ -16,6 +16,8 @@ import com.fasterxml.jackson.core.*;
+ import com.fasterxml.jackson.core.base.GeneratorBase;
+ import com.fasterxml.jackson.core.io.IOContext;
+ import com.fasterxml.jackson.core.json.JsonWriteContext;
++import com.fasterxml.jackson.core.Base64Variant;
++import com.fasterxml.jackson.core.Base64Variants;
+ import com.fasterxml.jackson.dataformat.xml.XmlPrettyPrinter;
+ import com.fasterxml.jackson.dataformat.xml.util.DefaultXmlPrettyPrinter;
+ import com.fasterxml.jackson.dataformat.xml.util.StaxUtil;
+@@ -824,6 +826,9 @@ public final class ToXmlGenerator
+             } else if (checkNextIsUnwrapped()) {
+             	// should we consider pretty-printing or not?
+                 _xmlWriter.writeBinary(data, offset, len);
++            } else if (len == 0) {
++                // When binary data length is 0, write an empty element instead of start/end pair
++                _xmlWriter.writeEmptyElement(_nextName.getNamespaceURI(), _nextName.getLocalPart());
+             } else {
+                 if (_xmlPrettyPrinter != null) {
+                     _xmlPrettyPrinter.writeLeafElement(_xmlWriter,
+@@ -840,16 +845,58 @@ public final class ToXmlGenerator
+         }
+     }
+ 
+-                // Stax2 API only has 'full buffer' write method:
+-              // should we consider pretty-printing or not?
++    @Override
++    public void writeBinary(byte[] data, int offset, int len) throws IOException
++    {
++        // Delegate to the method with Base64Variant, using the default variant
++        writeBinary(Base64Variants.getDefaultVariant(), data, offset, len);
++    }
+ 
++    @Override
++    public void writeBinary(byte[] data) throws IOException
++    {
++        writeBinary(data, 0, data.length);
++    }
++
++    @Override
++    public int writeBinary(InputStream data, int length) throws IOException
++    {
++        // Convert the input stream to a byte array and then delegate to writeBinary with default variant
++        if (data == null) {
++            writeNull();
++            return 0;
++        }
++        _verifyValueWrite("write Binary value");
++        if (_nextName == null) {
++            handleMissingName();
++        }
+ 
++        // Handle zero-length case specially to create empty element (this handles 0-byte binary data)
++        if (length == 0) {
++            try {
++                _xmlWriter.writeEmptyElement(_nextName.getNamespaceURI(), _nextName.getLocalPart());
++            } catch (XMLStreamException e) {
++                StaxUtil.throwAsGenerationException(e, this);
++            }
++            return 0;
++        }
+ 
+-        // base64 encodes up to 3 bytes into a 4 bytes string
++        // Convert the input stream to a byte array
++        byte[] buffer = new byte[length];
++        int totalRead = 0;
++        while (totalRead < length) {
++            int count = data.read(buffer, totalRead, length - totalRead);
++            if (count < 0) {
++                break; // End of stream
++            }
++            totalRead += count;
++        }
+ 
+-        // we still have < 3 bytes in the buffer
++        // Now write the binary data that we read using the main method with default variant
++        writeBinary(Base64Variants.getDefaultVariant(), buffer, 0, totalRead);
++        return totalRead;
++    }
+ 
+-    
+     private byte[] toFullBuffer(byte[] data, int offset, int len)
+     {
+         // might already be ok:

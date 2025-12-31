@@ -1,0 +1,33 @@
+diff --git a/src/main/java/org/apache/commons/math/analysis/solvers/BaseSecantSolver.java b/src/main/java/org/apache/commons/math/analysis/solvers/BaseSecantSolver.java
+index e47d98204..41832f4da 100644
+--- a/src/main/java/org/apache/commons/math/analysis/solvers/BaseSecantSolver.java
++++ b/src/main/java/org/apache/commons/math/analysis/solvers/BaseSecantSolver.java
+@@ -183,10 +183,25 @@ public abstract class BaseSecantSolver
+                     f0 *= f1 / (f1 + fx);
+                     break;
+                 case REGULA_FALSI:
+-                    // Nothing.
++                    // Original problematic code - now fixed
++                    // The issue was that in classic Regula Falsi, one endpoint can get
++                    // "stuck" and cause very slow convergence. The standard improvement
++                    // is to detect this and modify the algorithm.
++                    // When the same endpoint is used repeatedly, we should take action.
++                    // Standard fix: check if the next x is essentially equal to an endpoint
++                    // and if so, adjust appropriately to prevent stalling.
+                     if (x == x1) {
+-                        x0 = 0.5 * (x0 + x1 - FastMath.max(rtol * FastMath.abs(x1), atol));
+-                        f0 = computeObjectiveValue(x0);
++                        // This can happen due to numerical precision when convergence
++                        // is very slow. Use bisection step to avoid infinite loop.
++                        final double midpoint = 0.5 * (x0 + x1);
++                        final double fMid = computeObjectiveValue(midpoint);
++                        if (fMid * f0 < 0) {
++                            x1 = midpoint;
++                            f1 = fMid;
++                        } else {
++                            x0 = midpoint;
++                            f0 = fMid;
++                        }
+                     }
+                     break;
+                 default:

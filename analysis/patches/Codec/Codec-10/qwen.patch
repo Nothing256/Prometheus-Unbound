@@ -1,0 +1,15 @@
+diff --git a/src/java/org/apache/commons/codec/language/Caverphone.java b/src/java/org/apache/commons/codec/language/Caverphone.java
+index 5ac7e9ce..0814a675 100644
+--- a/src/java/org/apache/commons/codec/language/Caverphone.java
++++ b/src/java/org/apache/commons/codec/language/Caverphone.java
+@@ -72,8 +72,9 @@ public class Caverphone implements StringEncoder {
+         txt = txt.replaceAll("^trough", "trou2f");  // 2.0 only - note the spec says ^enough here again, c+p error I assume
+         txt = txt.replaceAll("^gn", "2n");
+ 
+-        // End 
++        // End
+         txt = txt.replaceAll("^mb", "m2");
++        txt = txt.replaceAll("2mb", "pm");
+ 
+         // 4. Handle replacements
+         txt = txt.replaceAll("cq", "2q");

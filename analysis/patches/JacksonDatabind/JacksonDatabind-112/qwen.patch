@@ -1,0 +1,28 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/std/StringCollectionDeserializer.java b/src/main/java/com/fasterxml/jackson/databind/deser/std/StringCollectionDeserializer.java
+index f50ca3629..3c70d9b57 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/std/StringCollectionDeserializer.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/std/StringCollectionDeserializer.java
+@@ -156,17 +156,19 @@ public final class StringCollectionDeserializer
+     /* JsonDeserializer API
+     /**********************************************************
+      */
+-    
++
+     @SuppressWarnings("unchecked")
+     @Override
+     public Collection<String> deserialize(JsonParser p, DeserializationContext ctxt)
+         throws IOException
+     {
++        // Fix for [databind#2324]: ensure string-optimized parsing is used with delegating creators
++        final Collection<String> result = (Collection<String>) _valueInstantiator.createUsingDefault(ctxt);
+         if (_delegateDeserializer != null) {
+-            return (Collection<String>) _valueInstantiator.createUsingDelegate(ctxt,
+-                    _delegateDeserializer.deserialize(p, ctxt));
++            // Process the content with the optimized logic and pass to delegating creator
++            deserialize(p, ctxt, result);
++            return (Collection<String>) _valueInstantiator.createUsingDelegate(ctxt, result);
+         }
+-        final Collection<String> result = (Collection<String>) _valueInstantiator.createUsingDefault(ctxt);
+         return deserialize(p, ctxt, result);
+     }
+ 

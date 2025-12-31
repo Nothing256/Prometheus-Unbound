@@ -1,0 +1,63 @@
+diff --git a/src/main/java/com/fasterxml/jackson/core/base/ParserBase.java b/src/main/java/com/fasterxml/jackson/core/base/ParserBase.java
+index 1e52b9e0..24ad6071 100644
+--- a/src/main/java/com/fasterxml/jackson/core/base/ParserBase.java
++++ b/src/main/java/com/fasterxml/jackson/core/base/ParserBase.java
+@@ -884,25 +884,25 @@ public abstract class ParserBase extends ParserMinimalBase
+             // Let's verify it's lossless conversion by simple roundtrip
+             int result = (int) _numberLong;
+             if (((long) result) != _numberLong) {
+-                _reportError("Numeric value ("+getText()+") out of range of int");
++                _reportInputCoercion("Numeric value (" + getText() + ") out of range of int", _currToken, Integer.TYPE);
+             }
+             _numberInt = result;
+         } else if ((_numTypesValid & NR_BIGINT) != 0) {
+-            if (BI_MIN_INT.compareTo(_numberBigInt) > 0 
++            if (BI_MIN_INT.compareTo(_numberBigInt) > 0
+                     || BI_MAX_INT.compareTo(_numberBigInt) < 0) {
+-                reportOverflowInt();
++                _reportInputCoercion("Numeric value (" + getText() + ") out of range of int", _currToken, Integer.TYPE);
+             }
+             _numberInt = _numberBigInt.intValue();
+         } else if ((_numTypesValid & NR_DOUBLE) != 0) {
+             // Need to check boundaries
+             if (_numberDouble < MIN_INT_D || _numberDouble > MAX_INT_D) {
+-                reportOverflowInt();
++                _reportInputCoercion("Numeric value (" + getText() + ") out of range of int", _currToken, Integer.TYPE);
+             }
+             _numberInt = (int) _numberDouble;
+         } else if ((_numTypesValid & NR_BIGDECIMAL) != 0) {
+-            if (BD_MIN_INT.compareTo(_numberBigDecimal) > 0 
++            if (BD_MIN_INT.compareTo(_numberBigDecimal) > 0
+                 || BD_MAX_INT.compareTo(_numberBigDecimal) < 0) {
+-                reportOverflowInt();
++                _reportInputCoercion("Numeric value (" + getText() + ") out of range of int", _currToken, Integer.TYPE);
+             }
+             _numberInt = _numberBigDecimal.intValue();
+         } else {
+@@ -916,21 +916,21 @@ public abstract class ParserBase extends ParserMinimalBase
+         if ((_numTypesValid & NR_INT) != 0) {
+             _numberLong = (long) _numberInt;
+         } else if ((_numTypesValid & NR_BIGINT) != 0) {
+-            if (BI_MIN_LONG.compareTo(_numberBigInt) > 0 
++            if (BI_MIN_LONG.compareTo(_numberBigInt) > 0
+                     || BI_MAX_LONG.compareTo(_numberBigInt) < 0) {
+-                reportOverflowLong();
++                _reportInputCoercion("Numeric value (" + getText() + ") out of range of long", _currToken, Long.TYPE);
+             }
+             _numberLong = _numberBigInt.longValue();
+         } else if ((_numTypesValid & NR_DOUBLE) != 0) {
+             // Need to check boundaries
+             if (_numberDouble < MIN_LONG_D || _numberDouble > MAX_LONG_D) {
+-                reportOverflowLong();
++                _reportInputCoercion("Numeric value (" + getText() + ") out of range of long", _currToken, Long.TYPE);
+             }
+             _numberLong = (long) _numberDouble;
+         } else if ((_numTypesValid & NR_BIGDECIMAL) != 0) {
+-            if (BD_MIN_LONG.compareTo(_numberBigDecimal) > 0 
++            if (BD_MIN_LONG.compareTo(_numberBigDecimal) > 0
+                 || BD_MAX_LONG.compareTo(_numberBigDecimal) < 0) {
+-                reportOverflowLong();
++                _reportInputCoercion("Numeric value (" + getText() + ") out of range of long", _currToken, Long.TYPE);
+             }
+             _numberLong = _numberBigDecimal.longValue();
+         } else {

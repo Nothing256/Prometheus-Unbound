@@ -1,0 +1,29 @@
+--- /tmp/PolygonsSet_original.java	2025-12-16 14:10:37
++++ /Users/nothing/workspace/prometheus_workdir_qwen/math_32_blind_auto/src/main/java/org/apache/commons/math3/geometry/euclidean/twod/PolygonsSet.java	2025-12-16 14:09:46
+@@ -303,14 +303,14 @@
+         // is this an open or a closed loop ?
+         final boolean open = segment.getStart() == null;
+ 
+-        while ((end != null) && (open || (globalStart.distance(end) > 1.0e-10))) {
++        while ((end != null) && (open || (globalStart.distance(end) > 1.0e-6))) {
+ 
+             // search the sub-hyperplane starting where the previous one ended
+             AVLTree<ComparableSegment>.Node selectedNode = null;
+             ComparableSegment       selectedSegment  = null;
+             double                  selectedDistance = Double.POSITIVE_INFINITY;
+-            final ComparableSegment lowerLeft        = new ComparableSegment(end, -1.0e-10, -1.0e-10);
+-            final ComparableSegment upperRight       = new ComparableSegment(end, +1.0e-10, +1.0e-10);
++            final ComparableSegment lowerLeft        = new ComparableSegment(end, -1.0e-6, -1.0e-6);
++            final ComparableSegment upperRight       = new ComparableSegment(end, +1.0e-6, +1.0e-6);
+             for (AVLTree<ComparableSegment>.Node n = sorted.getNotSmaller(lowerLeft);
+                  (n != null) && (n.getElement().compareTo(upperRight) <= 0);
+                  n = n.getNext()) {
+@@ -323,7 +323,7 @@
+                 }
+             }
+ 
+-            if (selectedDistance > 1.0e-10) {
++            if (selectedDistance > 1.0e-6) {
+                 // this is a degenerated loop, it probably comes from a very
+                 // tiny region with some segments smaller than the threshold, we
+                 // simply ignore it

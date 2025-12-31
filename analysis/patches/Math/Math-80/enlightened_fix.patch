@@ -1,0 +1,24 @@
+diff --git a/src/main/java/org/apache/commons/math/linear/EigenDecompositionImpl.java b/src/main/java/org/apache/commons/math/linear/EigenDecompositionImpl.java
+index 3fc328d8b..da799ae12 100644
+--- a/src/main/java/org/apache/commons/math/linear/EigenDecompositionImpl.java
++++ b/src/main/java/org/apache/commons/math/linear/EigenDecompositionImpl.java
+@@ -697,7 +697,9 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+         for (int i = 0; i < secondary.length; ++i) {
+             final double absDPrevious = absDCurrent;
+             absDCurrent = Math.abs(main[i + 1]);
+-            final double max = splitTolerance * Math.sqrt(absDPrevious * absDCurrent);
++            // Protect against numerical precision issues that can result in negative
++            // values under the sqrt, which would produce NaN
++            final double max = splitTolerance * Math.sqrt(Math.max(0, absDPrevious * absDCurrent));
+             if (Math.abs(secondary[i]) <= max) {
+                 list.add(i + 1);
+                 secondary[i] = 0;
+@@ -705,7 +707,7 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+             }
+         }
+ 
+-        list.add(secondary.length + 1);
++        list.add(main.length);
+         return list;
+ 
+     }

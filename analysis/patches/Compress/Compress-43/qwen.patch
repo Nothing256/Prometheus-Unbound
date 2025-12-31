@@ -1,0 +1,57 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveOutputStream.java b/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveOutputStream.java
+index df1f63ce..edebee6c 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveOutputStream.java
++++ b/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveOutputStream.java
+@@ -150,6 +150,11 @@ public class ZipArchiveOutputStream extends ArchiveOutputStream {
+      */
+     private CurrentEntry entry;
+ 
++    /**
++     * Whether the current entry is being added as a raw entry.
++     */
++    private boolean addingRawEntry = false;
++
+     /**
+      * The file comment.
+      */
+@@ -539,7 +544,7 @@ private void closeEntry(final boolean actuallyNeedsZip64, final boolean phased)
+             rewriteSizesAndCrc(actuallyNeedsZip64);
+         }
+ 
+-        if (!phased) {
++        if (!phased && !addingRawEntry) {
+             writeDataDescriptor(entry.entry);
+         }
+         entry = null;
+@@ -584,9 +589,11 @@ public void addRawArchiveEntry(final ZipArchiveEntry entry, final InputStream ra
+         final boolean is2PhaseSource = ae.getCrc() != ZipArchiveEntry.CRC_UNKNOWN
+                 && ae.getSize() != ArchiveEntry.SIZE_UNKNOWN
+                 && ae.getCompressedSize() != ArchiveEntry.SIZE_UNKNOWN;
++        addingRawEntry = true;
+         putArchiveEntry(ae, is2PhaseSource);
+         copyFromZipInputStream(rawStream);
+         closeCopiedEntry(is2PhaseSource);
++        addingRawEntry = false;
+     }
+ 
+     /**
+@@ -1490,7 +1497,7 @@ private int versionNeededToExtract(final int zipMethod, final boolean zip64, fin
+     }
+ 
+     private boolean usesDataDescriptor(final int zipMethod) {
+-        return zipMethod == DEFLATED && channel == null;
++        return !addingRawEntry && zipMethod == DEFLATED && channel == null;
+     }
+ 
+     private int versionNeededToExtractMethod(int zipMethod) {
+@@ -1673,6 +1680,10 @@ private CurrentEntry(final ZipArchiveEntry entry) {
+          * the stream at all.</p>
+          */
+         private boolean hasWritten;
++        /**
++         * Whether this entry was added as a raw entry.
++         */
++        private boolean isRawEntry = false;
+     }
+ 
+     private static final class EntryMetaData {

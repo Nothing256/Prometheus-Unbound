@@ -1,0 +1,86 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/impl/ExternalTypeHandler.java b/src/main/java/com/fasterxml/jackson/databind/deser/impl/ExternalTypeHandler.java
+index 93f3013f6..35036b9ca 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/impl/ExternalTypeHandler.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/impl/ExternalTypeHandler.java
+@@ -71,9 +71,19 @@ public class ExternalTypeHandler
+         boolean canDeserialize = (bean != null) && (_tokens[index] != null);
+         // Minor optimization: deserialize properties as soon as we have all we need:
+         if (canDeserialize) {
+-            _deserializeAndSet(jp, ctxt, bean, index, typeId);
+-            // clear stored data, to avoid deserializing+setting twice:
+-            _tokens[index] = null;
++            // [databind#29] Check if the token buffer contains a null value and handle it specially
++            JsonToken firstToken = _tokens[index].firstToken();
++            if (firstToken != null && firstToken == JsonToken.VALUE_NULL) {
++                // Handle null value with type ID by setting the property directly to null
++                SettableBeanProperty typeProp = _properties[index].getProperty();
++                typeProp.set(bean, null);
++                // clear stored data, to avoid deserializing+setting twice:
++                _tokens[index] = null;
++            } else {
++                _deserializeAndSet(jp, ctxt, bean, index, typeId);
++                // clear stored data, to avoid deserializing+setting twice:
++                _tokens[index] = null;
++            }
+         } else {
+             _typeIds[index] = typeId;
+         }
+@@ -114,10 +124,21 @@ public class ExternalTypeHandler
+          */
+         if (canDeserialize) {
+             String typeId = _typeIds[index];
+-            // clear stored data, to avoid deserializing+setting twice:
+-            _typeIds[index] = null;
+-            _deserializeAndSet(jp, ctxt, bean, index, typeId);
+-            _tokens[index] = null;
++            // [databind#29] Check if the token buffer contains a null value and handle it specially
++            JsonToken firstToken = _tokens[index].firstToken();
++            if (firstToken != null && firstToken == JsonToken.VALUE_NULL) {
++                // Handle null value with type ID by setting the property directly to null
++                SettableBeanProperty handleProp = _properties[index].getProperty();
++                handleProp.set(bean, null);
++                // clear stored data, to avoid deserializing+setting twice:
++                _typeIds[index] = null;
++                _tokens[index] = null;
++            } else {
++                // clear stored data, to avoid deserializing+setting twice:
++                _typeIds[index] = null;
++                _deserializeAndSet(jp, ctxt, bean, index, typeId);
++                _tokens[index] = null;
++            }
+         }
+         return true;
+     }
+@@ -163,6 +184,16 @@ public class ExternalTypeHandler
+                 throw ctxt.mappingException("Missing property '%s' for external type id '%s'",
+                         prop.getName(), _properties[i].getTypePropertyName());
+             }
++            // [databind#29] Check if the token buffer contains a null value and handle it specially
++            else {
++                JsonToken firstToken = _tokens[i].firstToken();
++                if (firstToken != null && firstToken == JsonToken.VALUE_NULL) {
++                    // Handle null value with type ID by setting the property directly to null
++                    SettableBeanProperty prop = _properties[i].getProperty();
++                    prop.set(bean, null);
++                    continue;
++                }
++            }
+             _deserializeAndSet(p, ctxt, bean, i, typeId);
+         }
+         return bean;
+@@ -198,6 +229,15 @@ public class ExternalTypeHandler
+                 throw ctxt.mappingException("Missing property '%s' for external type id '%s'",
+                         prop.getName(), _properties[i].getTypePropertyName());
+             }
++            // [databind#29] Check if the token buffer contains a null value and handle it specially
++            else {
++                JsonToken firstToken = _tokens[i].firstToken();
++                if (firstToken != null && firstToken == JsonToken.VALUE_NULL) {
++                    // Handle null value with type ID by returning null directly
++                    values[i] = null;
++                    continue;
++                }
++            }
+             values[i] = _deserialize(jp, ctxt, i, typeId);
+         }
+         // second: fill in creator properties:

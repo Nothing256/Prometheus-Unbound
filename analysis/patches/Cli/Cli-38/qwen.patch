@@ -1,0 +1,52 @@
+diff --git a/src/main/java/org/apache/commons/cli/DefaultParser.java b/src/main/java/org/apache/commons/cli/DefaultParser.java
+index 4bff7f3..3bc4797 100644
+--- a/src/main/java/org/apache/commons/cli/DefaultParser.java
++++ b/src/main/java/org/apache/commons/cli/DefaultParser.java
+@@ -260,9 +260,47 @@ public class DefaultParser implements CommandLineParser
+      */
+     private boolean isArgument(String token)
+     {
++        // If the token starts with '-' but could be a series of concatenated short options,
++        // it should not be treated as an argument to the previous option
++        if (token.startsWith("-") && token.length() > 1 && !isOption(token) && couldBeConcatenatedOptions(token)) {
++            return false;
++        }
+         return !isOption(token) || isNegativeNumber(token);
+     }
+ 
++    /**
++     * Checks if a token that starts with '-' could be parsed as concatenated short options.
++     * For example, "-abc" could be "-a", "-b", "-c" if options a, b, c exist.
++     *
++     * @param token the token to check
++     * @return true if the token could be broken down into valid short options
++     */
++    private boolean couldBeConcatenatedOptions(String token)
++    {
++        if (!token.startsWith("-") || token.startsWith("--") || token.length() <= 1) {
++            return false;
++        }
++
++        // Remove leading hyphen to get the option characters
++        String optChars = token.substring(1);
++
++        // Check if '=' is present (indicating value assignment), if so only check up to '='
++        int equalsIndex = optChars.indexOf('=');
++        if (equalsIndex != -1) {
++            optChars = optChars.substring(0, equalsIndex);
++        }
++
++        // Every character should correspond to a valid short option
++        for (int i = 0; i < optChars.length(); i++) {
++            String optionChar = String.valueOf(optChars.charAt(i));
++            if (!options.hasShortOption(optionChar)) {
++                return false;
++            }
++        }
++
++        return optChars.length() > 0;  // Should have at least one character that is a valid option
++    }
++
+     /**
+      * Check if the token is a negative number.
+      *

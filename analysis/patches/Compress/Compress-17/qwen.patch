@@ -1,0 +1,25 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/tar/TarUtils.java b/src/main/java/org/apache/commons/compress/archivers/tar/TarUtils.java
+index c5532494..7d1ca21e 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/tar/TarUtils.java
++++ b/src/main/java/org/apache/commons/compress/archivers/tar/TarUtils.java
+@@ -194,9 +194,9 @@ public class TarUtils {
+             val = (val << 8) + (buffer[offset + i] & 0xff);
+         }
+         if (negative) {
+-            // 2's complement
++            // 2's complement - replace Math.pow to avoid precision issues
+             val--;
+-            val ^= ((long) Math.pow(2, (length - 1) * 8) - 1);
++            val ^= ((1L << ((length - 1) * 8)) - 1);
+         }
+         return negative ? -val : val;
+     }
+@@ -209,7 +209,7 @@ public class TarUtils {
+         System.arraycopy(buffer, offset + 1, remainder, 0, length - 1);
+         BigInteger val = new BigInteger(remainder);
+         if (negative) {
+-            // 2's complement
++            // 2's complement - original algorithm using BigInteger operations
+             val = val.add(BigInteger.valueOf(-1)).not();
+         }
+         if (val.bitLength() > 63) {

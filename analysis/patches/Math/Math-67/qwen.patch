@@ -1,0 +1,14 @@
+--- a/src/main/java/org/apache/commons/math/optimization/MultiStartUnivariateRealOptimizer.java
++++ b/src/main/java/org/apache/commons/math/optimization/MultiStartUnivariateRealOptimizer.java
+@@ -267,4 +267,4 @@
+             if (Double.isNaN(optima[i])) {
+-                optima[i] = optima[--lastNaN];
+-                optima[lastNaN + 1] = Double.NaN;
+-                optimaValues[i] = optimaValues[--lastNaN];
+-                optimaValues[lastNaN + 1] = Double.NaN;
++                --lastNaN;
++                optima[i] = optima[lastNaN];
++                optima[lastNaN] = Double.NaN;
++                optimaValues[i] = optimaValues[lastNaN];
++                optimaValues[lastNaN] = Double.NaN;
+             }

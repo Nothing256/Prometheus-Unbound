@@ -1,0 +1,11 @@
+--- a/src/main/java/com/fasterxml/jackson/core/json/JsonWriteContext.java
++++ b/src/main/java/com/fasterxml/jackson/core/json/JsonWriteContext.java
+@@ -168,6 +168,9 @@
+         // Most likely, object:
+         if (_type == TYPE_OBJECT) {
++            if (!_gotName) { // We expect a field name to have been written
++                return STATUS_EXPECT_NAME;
++            }
+             _gotName = false;
+             ++_index;
+             return STATUS_OK_AFTER_COLON;

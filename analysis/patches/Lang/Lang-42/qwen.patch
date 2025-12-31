@@ -1,0 +1,60 @@
+diff --git a/src/java/org/apache/commons/lang/Entities.java b/src/java/org/apache/commons/lang/Entities.java
+index ef41e6a22..fe692068c 100644
+--- a/src/java/org/apache/commons/lang/Entities.java
++++ b/src/java/org/apache/commons/lang/Entities.java
+@@ -810,7 +810,7 @@ class Entities {
+      * Escapes the characters in the <code>String</code> passed and writes the result to the <code>Writer</code>
+      * passed.
+      * </p>
+-     * 
++     *
+      * @param writer
+      *            The <code>Writer</code> to write the results of the escaping to. Assumed to be a non-null value.
+      * @param str
+@@ -818,7 +818,7 @@ class Entities {
+      * @throws IOException
+      *             when <code>Writer</code> passed throws the exception from calls to the {@link Writer#write(int)}
+      *             methods.
+-     * 
++     *
+      * @see #escape(String)
+      * @see Writer
+      */
+@@ -829,9 +829,34 @@ class Entities {
+             String entityName = this.entityName(c);
+             if (entityName == null) {
+                 if (c > 0x7F) {
+-                    writer.write("&#");
+-                    writer.write(Integer.toString(c, 10));
+-                    writer.write(';');
++                    // Check for high surrogate character
++                    if (c >= 0xD800 && c <= 0xDBFF && i + 1 < len) {
++                        char c2 = str.charAt(i + 1);
++                        // Check if next character is a low surrogate
++                        if (c2 >= 0xDC00 && c2 <= 0xDFFF) {
++                            // Combine the surrogate pair into a single codepoint
++                            int codepoint = Character.toCodePoint(c, c2);
++                            writer.write("&#");
++                            writer.write(Integer.toString(codepoint, 10));
++                            writer.write(';');
++                            i++; // Skip the next character since we already processed it
++                        } else {
++                            // Not a valid surrogate pair, just process the high surrogate
++                            writer.write("&#");
++                            writer.write(Integer.toString(c, 10));
++                            writer.write(';');
++                        }
++                    } else if (c >= 0xDC00 && c <= 0xDFFF) {
++                        // This is a low surrogate without a preceding high surrogate
++                        writer.write("&#");
++                        writer.write(Integer.toString(c, 10));
++                        writer.write(';');
++                    } else {
++                        // Regular character above 0x7F
++                        writer.write("&#");
++                        writer.write(Integer.toString(c, 10));
++                        writer.write(';');
++                    }
+                 } else {
+                     writer.write(c);
+                 }

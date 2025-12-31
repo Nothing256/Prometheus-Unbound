@@ -1,0 +1,14 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/ValueInstantiator.java b/src/main/java/com/fasterxml/jackson/databind/deser/ValueInstantiator.java
+index b721f6909..6f5e857ba 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/ValueInstantiator.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/ValueInstantiator.java
+@@ -69,7 +69,8 @@ public abstract class ValueInstantiator
+      */
+     public boolean canInstantiate() {
+         return canCreateUsingDefault()
+-                || canCreateUsingDelegate() 
++                || canCreateUsingDelegate()
++                || canCreateUsingArrayDelegate()
+                 || canCreateFromObjectWith() || canCreateFromString()
+                 || canCreateFromInt() || canCreateFromLong()
+                 || canCreateFromDouble() || canCreateFromBoolean();

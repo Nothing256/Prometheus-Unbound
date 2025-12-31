@@ -1,0 +1,52 @@
+diff --git a/src/java/org/apache/commons/cli2/commandline/WriteableCommandLineImpl.java b/src/java/org/apache/commons/cli2/commandline/WriteableCommandLineImpl.java
+index 88d3286..4935748 100644
+--- a/src/java/org/apache/commons/cli2/commandline/WriteableCommandLineImpl.java
++++ b/src/java/org/apache/commons/cli2/commandline/WriteableCommandLineImpl.java
+@@ -239,12 +239,46 @@ public class WriteableCommandLineImpl
+ 
+                 if (trigger.startsWith(prefix))
+                 {
+-                        return true;
++                    // Check if this might be a negative number
++                    // If the part after the prefix is a valid number, it's likely a numeric value
++                    // rather than an option (e.g., "-42" is a number, not an option named "42")
++                    String remaining = trigger.substring(prefix.length());
++                    if (isNumeric(remaining)) {
++                        // This looks like a number (e.g., "-42", "-3.14"), not an option
++                        return false;
++                    }
++
++                    return true;
+                 }
+             }
+             return false;
+     }
+ 
++    /**
++     * Checks if the given string is a valid number representation.
++     * This includes integers, decimals, and scientific notation.
++     * @param str the string to check
++     * @return true if the string represents a valid number
++     */
++    private boolean isNumeric(String str) {
++        if (str == null || str.isEmpty()) {
++            return false;
++        }
++
++        // Handle the special case of just "-" which is not a number
++        if (str.equals("-")) {
++            return false;
++        }
++
++        // Check for a valid number format
++        try {
++            Double.parseDouble(str);
++            return true;
++        } catch (NumberFormatException e) {
++            return false;
++        }
++    }
++
+     public String toString() {
+         final StringBuffer buffer = new StringBuffer();
+ 

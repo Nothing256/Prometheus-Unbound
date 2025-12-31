@@ -1,0 +1,45 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/type/TypeFactory.java b/src/main/java/com/fasterxml/jackson/databind/type/TypeFactory.java
+index 41ffafb2b..cf44f51d7 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/type/TypeFactory.java
++++ b/src/main/java/com/fasterxml/jackson/databind/type/TypeFactory.java
+@@ -1250,8 +1250,19 @@ public final class TypeFactory
+             JavaType[] superInterfaces;
+ 
+             if (rawType.isInterface()) {
+-                superClass = null;
+-                superInterfaces = _resolveSuperInterfaces(context, rawType, bindings);
++                // First check if this is a well-known interface that needs special handling
++                // to avoid issues with generic type variables in interface hierarchy
++                if (bindings == null) {
++                    bindings = TypeBindings.emptyBindings();
++                }
++                result = _fromWellKnownClass(context, rawType, bindings, null, NO_TYPES);
++                if (result != null) {
++                    superClass = null;
++                    superInterfaces = NO_TYPES;
++                } else {
++                    superClass = null;
++                    superInterfaces = _resolveSuperInterfaces(context, rawType, bindings);
++                }
+             } else {
+                 // Note: even Enums can implement interfaces, so can not drop those
+                 superClass = _resolveSuperClass(context, rawType, bindings);
+@@ -1329,7 +1340,7 @@ public final class TypeFactory
+         if (rawType == Map.class) {
+             return _mapType(rawType, bindings, superClass, superInterfaces);
+         }
+-        if (rawType == Collection.class) {
++        if (rawType == Collection.class || rawType == List.class || rawType == Set.class || rawType == Queue.class) {
+             return _collectionType(rawType, bindings, superClass, superInterfaces);
+         }
+         // and since 2.6 one referential type
+@@ -1422,6 +1433,9 @@ public final class TypeFactory
+         bindings = bindings.withUnboundVariable(name);
+ 
+         Type[] bounds = var.getBounds();
++        if (bounds == null || bounds.length == 0) {
++            return CORE_TYPE_OBJECT; // Default to Object type if no bounds
++        }
+         return _fromAny(context, bounds[0], bindings);
+     }
+ 

@@ -1,0 +1,34 @@
+diff --git a/src/main/java/org/apache/commons/csv/CSVFormat.java b/src/main/java/org/apache/commons/csv/CSVFormat.java
+index 847f30ad..8c71f3af 100644
+--- a/src/main/java/org/apache/commons/csv/CSVFormat.java
++++ b/src/main/java/org/apache/commons/csv/CSVFormat.java
+@@ -316,7 +316,7 @@ public final class CSVFormat implements Serializable {
+      *      http://dev.mysql.com/doc/refman/5.1/en/load-data.html</a>
+      */
+     public static final CSVFormat MYSQL = DEFAULT.withDelimiter(TAB).withEscape(BACKSLASH).withIgnoreEmptyLines(false)
+-            .withQuote(null).withRecordSeparator(LF);
++            .withQuote(null).withRecordSeparator(LF).withNullString("\\N");
+ 
+     /**
+      * Returns true if the given character is a line break character.
+diff --git a/src/main/java/org/apache/commons/csv/CSVPrinter.java b/src/main/java/org/apache/commons/csv/CSVPrinter.java
+index ac4234bb..89b7d3a0 100644
+--- a/src/main/java/org/apache/commons/csv/CSVPrinter.java
++++ b/src/main/java/org/apache/commons/csv/CSVPrinter.java
+@@ -267,6 +267,16 @@ public final class CSVPrinter implements Flushable, Closeable {
+             throw new IllegalStateException("Unexpected Quote value: " + quoteModePolicy);
+         }
+ 
++        // Special handling: if the original object was null and we're printing the nullString,
++        // then we should print it without quotes to distinguish it from actual string content
++        if (object == null && format.getNullString() != null && value != null) {
++            String currentValue = value.subSequence(offset, offset + len).toString();
++            if (format.getNullString().equals(currentValue)) {
++                out.append(value, offset, offset + len);
++                return; // Return early without quoting
++            }
++        }
++
+         if (!quote) {
+             // no encapsulation needed - write out the original value
+             out.append(value, start, end);

@@ -1,0 +1,27 @@
+--- /tmp/ReflectiveTypeAdapterFactory.java.original2	2025-12-20 19:03:52
++++ /Users/nothing/workspace/prometheus_workdir_qwen/gson_10_blind_auto/gson/src/main/java/com/google/gson/internal/bind/ReflectiveTypeAdapterFactory.java	2025-12-20 19:03:22
+@@ -113,15 +113,20 @@
+     final boolean jsonAdapterPresent = mapped != null;
+     if (mapped == null) mapped = context.getAdapter(fieldType);
+ 
+-    final TypeAdapter<?> typeAdapter = mapped;
++    @SuppressWarnings("unchecked")
++    final TypeAdapter<Object> typeAdapter = (TypeAdapter<Object>) mapped;
+     return new ReflectiveTypeAdapterFactory.BoundField(name, serialize, deserialize) {
+       @SuppressWarnings({"unchecked", "rawtypes"}) // the type adapter and field type always agree
+       @Override void write(JsonWriter writer, Object value)
+           throws IOException, IllegalAccessException {
+         Object fieldValue = field.get(value);
+-        TypeAdapter t =
+-          new TypeAdapterRuntimeTypeWrapper(context, typeAdapter, fieldType.getType());
+-        t.write(writer, fieldValue);
++        TypeAdapter<Object> adapter = typeAdapter;
++        if (!jsonAdapterPresent) {
++          adapter = new TypeAdapterRuntimeTypeWrapper(context, typeAdapter, fieldType.getType());
++        } else {
++          adapter = typeAdapter; // Use the field's JsonAdapter directly
++        }
++        adapter.write(writer, fieldValue);
+       }
+       @Override void read(JsonReader reader, Object value)
+           throws IOException, IllegalAccessException {

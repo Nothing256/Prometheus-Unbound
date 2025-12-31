@@ -1,0 +1,73 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/ar/ArArchiveInputStream.java b/src/main/java/org/apache/commons/compress/archivers/ar/ArArchiveInputStream.java
+index acfe3279..d4c785e0 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/ar/ArArchiveInputStream.java
++++ b/src/main/java/org/apache/commons/compress/archivers/ar/ArArchiveInputStream.java
+@@ -62,7 +62,7 @@ public class ArArchiveInputStream extends ArchiveInputStream {
+ 
+         if (offset == 0) {
+             final byte[] expected = ArArchiveEntry.HEADER.getBytes();
+-            final byte[] realized = new byte[expected.length]; 
++            final byte[] realized = new byte[expected.length];
+             final int read = read(realized);
+             if (read != expected.length) {
+                 throw new IOException("failed to read header");
+@@ -74,15 +74,16 @@ public class ArArchiveInputStream extends ArchiveInputStream {
+             }
+         }
+ 
+-                // hit eof
+-
+-        if (input.available() == 0) {
+-            return null;
+-        }
++        // Replace the unreliable input.available() == 0 check with a more reliable method
++        // The original approach could incorrectly return null when available() returned 0
++        // due to buffering issues, even though more data was available.
+ 
+         if (offset % 2 != 0) {
+             read();
+         }
++
++        // Instead of checking available(), we'll try reading and handle the case where
++        // there isn't enough data for a complete header, which reliably indicates EOF
+         final byte[] name = new byte[16];
+         final byte[] lastmodified = new byte[12];
+         final byte[] userid = new byte[6];
+@@ -90,12 +91,31 @@ public class ArArchiveInputStream extends ArchiveInputStream {
+         final byte[] filemode = new byte[8];
+         final byte[] length = new byte[10];
+ 
+-        read(name);
+-        read(lastmodified);
+-        read(userid);
+-        read(groupid);
+-        read(filemode);
+-        read(length);
++        // Read header fields and check for EOF
++        int nameRead = read(name);
++        if (nameRead == -1) {
++            return null; // Properly detect EOF condition
++        }
++        if (nameRead != 16) {
++            throw new IOException("Truncated entry name field: expected 16 bytes, got " + nameRead);
++        }
++
++        // Read remaining header fields
++        if (read(lastmodified) != 12) {
++            throw new IOException("Truncated entry header: lastmodified field");
++        }
++        if (read(userid) != 6) {
++            throw new IOException("Truncated entry header: userid field");
++        }
++        if (read(groupid) != 6) {
++            throw new IOException("Truncated entry header: groupid field");
++        }
++        if (read(filemode) != 8) {
++            throw new IOException("Truncated entry header: filemode field");
++        }
++        if (read(length) != 10) {
++            throw new IOException("Truncated entry header: length field");
++        }
+ 
+         {
+             final byte[] expected = ArArchiveEntry.TRAILER.getBytes();

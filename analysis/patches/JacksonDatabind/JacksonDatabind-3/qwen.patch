@@ -1,0 +1,11 @@
+--- /tmp/buggy_StringArrayDeserializer.java	2025-12-25 19:47:28
++++ src/main/java/com/fasterxml/jackson/databind/deser/std/StringArrayDeserializer.java	2025-12-25 19:47:36
+@@ -63,7 +63,7 @@
+             if (t == JsonToken.VALUE_STRING) {
+                 value = jp.getText();
+             } else if (t == JsonToken.VALUE_NULL) {
+-                value = _elementDeserializer.getNullValue();
++                value = null;
+             } else {
+                 value = _parseString(jp, ctxt);
+             }

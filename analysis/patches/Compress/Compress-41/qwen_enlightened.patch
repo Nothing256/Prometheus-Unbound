@@ -1,0 +1,17 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveInputStream.java b/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveInputStream.java
+index 5d4c0a82..e9679210 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveInputStream.java
++++ b/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveInputStream.java
+@@ -246,6 +246,12 @@ public ZipArchiveEntry getNextZipEntry() throws IOException {
+             skipRemainderOfArchive();
+         }
+         if (!sig.equals(ZipLong.LFH_SIG)) {
++            // For the first entry, if the signature is clearly not a ZIP signature
++            // and the first byte is not 'P' (meaning it's definitely not a PK signature),
++            // then throw an exception indicating this is not a ZIP archive
++            if (firstEntry && LFH_BUF[0] != 'P') {
++                throw new ZipException("Not a zip archive");
++            }
+             return null;
+         }
+ 

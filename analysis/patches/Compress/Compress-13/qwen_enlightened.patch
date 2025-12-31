@@ -1,0 +1,24 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveEntry.java b/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveEntry.java
+index 88cf183f..2b178ec7 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveEntry.java
++++ b/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveEntry.java
+@@ -509,7 +509,8 @@ public class ZipArchiveEntry extends java.util.zip.ZipEntry
+      * @param name the name to use
+      */
+     protected void setName(String name) {
+-        this.name = name;
++        // Normalize backslashes to forward slashes to handle Windows-style paths
++        this.name = name != null ? name.replace('\\', '/') : name;
+     }
+ 
+     /**
+@@ -545,7 +546,8 @@ public class ZipArchiveEntry extends java.util.zip.ZipEntry
+      * @since Apache Commons Compress 1.2
+      */
+     protected void setName(String name, byte[] rawName) {
+-        setName(name);
++        // Normalize backslashes to forward slashes to handle Windows-style paths
++        setName(name != null ? name.replace('\\', '/') : name);
+         this.rawName = rawName;
+     }
+ 

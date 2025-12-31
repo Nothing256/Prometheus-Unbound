@@ -1,0 +1,82 @@
+diff --git a/src/main/java/org/jsoup/nodes/Document.java b/src/main/java/org/jsoup/nodes/Document.java
+index 2f37b29a..a0516f5d 100644
+--- a/src/main/java/org/jsoup/nodes/Document.java
++++ b/src/main/java/org/jsoup/nodes/Document.java
+@@ -110,7 +110,9 @@ public class Document extends Element {
+         normaliseTextNodes(htmlEl);
+         normaliseTextNodes(this);
+ 
+-        
++        // Move non-permitted elements from head to body, including content inside noscript
++        normaliseHead();
++
+         return this;
+     }
+ 
+@@ -133,6 +135,66 @@ public class Document extends Element {
+         }
+     }
+ 
++    // Move child elements from head to body that don't belong in head
++    private void normaliseHead() {
++        Element head = head();
++        if (head == null) return;
++
++        // First, handle the content inside noscript elements in head
++        List<Node> noscriptChildrenToMove = new ArrayList<Node>();
++        for (Node node : head.childNodes) {
++            if (node instanceof Element) {
++                String nodeName = node.nodeName().toLowerCase();
++                if ("noscript".equals(nodeName)) {
++                    Element noscriptEl = (Element) node;
++                    // Collect all children first
++                    List<Node> originalChildren = new ArrayList<Node>();
++                    for (Node child : noscriptEl.childNodes) {
++                        originalChildren.add(child);
++                    }
++                    // Now remove them from the noscript element and add to list to move
++                    for (Node child : originalChildren) {
++                        noscriptEl.removeChild(child);
++                        noscriptChildrenToMove.add(child);
++                    }
++                }
++            }
++        }
++
++        // Move noscript content to body first (these should appear first in body)
++        for (Node child : noscriptChildrenToMove) {
++            body().prependChild(child);
++        }
++
++        // Then, find other elements in head that should be in body (anything that's not a head-specific element)
++        // Head-specific elements include: base, link, meta, noscript, script, style, template, title
++        List<Node> toMove = new ArrayList<Node>();
++        for (Node node : head.childNodes) {
++            if (node instanceof Element) {
++                String nodeName = node.nodeName().toLowerCase();
++                // Elements that are allowed in head according to HTML spec
++                if (!isHeadElement(nodeName)) {
++                    toMove.add(node);
++                }
++            }
++        }
++
++        // Move non-head elements to body
++        for (int i = toMove.size()-1; i >= 0; i--) {
++            Node node = toMove.get(i);
++            head.removeChild(node);
++            body().appendChild(node);
++        }
++    }
++
++    private boolean isHeadElement(String nodeName) {
++        return "base".equals(nodeName) || "link".equals(nodeName) ||
++               "meta".equals(nodeName) || "noscript".equals(nodeName) ||
++               "script".equals(nodeName) || "style".equals(nodeName) ||
++               "template".equals(nodeName) || "title".equals(nodeName);
++    }
++
++
+     // merge multiple <head> or <body> contents into one, delete the remainder, and ensure they are owned by <html>
+         // ensure parented by <html>
+ 

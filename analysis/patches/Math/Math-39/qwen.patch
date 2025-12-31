@@ -1,0 +1,22 @@
+diff --git a/src/main/java/org/apache/commons/math/ode/nonstiff/EmbeddedRungeKuttaIntegrator.java b/src/main/java/org/apache/commons/math/ode/nonstiff/EmbeddedRungeKuttaIntegrator.java
+index 13ced27d7..7ddea0c11 100644
+--- a/src/main/java/org/apache/commons/math/ode/nonstiff/EmbeddedRungeKuttaIntegrator.java
++++ b/src/main/java/org/apache/commons/math/ode/nonstiff/EmbeddedRungeKuttaIntegrator.java
+@@ -243,6 +243,17 @@ public abstract class EmbeddedRungeKuttaIntegrator
+           }
+           hNew = initializeStep(forward, getOrder(), scale,
+                                 stepStart, y, yDotK[0], yTmp, yDotK[1]);
++          // Make sure the initial step does not go past the target time
++          final double maxStep = t - stepStart;
++          if (forward) {
++              if (hNew > maxStep) {
++                  hNew = maxStep;
++              }
++          } else {
++              if (hNew < maxStep) {
++                  hNew = maxStep;
++              }
++          }
+           firstTime = false;
+         }
+ 

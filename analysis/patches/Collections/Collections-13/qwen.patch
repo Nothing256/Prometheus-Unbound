@@ -1,0 +1,13 @@
+--- a/src/java/org/apache/commons/collections/ExtendedProperties.java
++++ b/src/java/org/apache/commons/collections/ExtendedProperties.java
+@@ -1721,8 +1721,10 @@
+         for (Enumeration e = props.propertyNames(); e.hasMoreElements();) {
+             String key = (String) e.nextElement();
+             String value = props.getProperty(key);
++            // Only add properties that have String values
++            if (value != null) {
+             c.setProperty(key, value);
++            }
+         }
+ 
+         return c;

@@ -1,0 +1,18 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializer.java b/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializer.java
+index 21bd1288d..b5f55cecb 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializer.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializer.java
+@@ -426,6 +426,10 @@ public class BeanDeserializer
+             // regular property? needs buffering
+             SettableBeanProperty prop = _beanProperties.find(propName);
+             if (prop != null) {
++                    // [databind#1261]: Need to properly handle identity reference properties during buffering
++                    // to avoid issues with collections containing identity references.
++                    // Use the property's own deserializer to ensure proper context, especially
++                    // for identity reference collections
+                     buffer.bufferProperty(prop, _deserializeWithErrorWrapping(p, ctxt, prop));
+                     // 14-Jun-2016, tatu: As per [databind#1261], looks like we need additional
+                     //    handling of forward references here. Not exactly sure why existing
+                     //    facilities did not cover, but this does appear to solve the problem
+                 continue;
+             }

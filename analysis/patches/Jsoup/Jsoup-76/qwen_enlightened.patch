@@ -1,0 +1,83 @@
+diff --git a/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java b/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java
+index 93fe6aed..1fb8389a 100644
+--- a/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java
++++ b/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java
+@@ -55,6 +55,7 @@ public class HtmlTreeBuilder extends TreeBuilder {
+     private boolean framesetOk; // if ok to go into frameset
+     private boolean fosterInserts; // if next inserts should be fostered
+     private boolean fragmentParsing; // if parsing a fragment of html
++    private boolean ignoreNextLf; // if should skip the first LF character after <pre> tag
+ 
+     HtmlTreeBuilder() {}
+ 
+@@ -79,6 +80,15 @@ public class HtmlTreeBuilder extends TreeBuilder {
+         framesetOk = true;
+         fosterInserts = false;
+         fragmentParsing = false;
++        ignoreNextLf = false;
++    }
++
++    boolean isIgnoreNextLf() {
++        return ignoreNextLf;
++    }
++
++    void setIgnoreNextLf(boolean ignoreNextLf) {
++        this.ignoreNextLf = ignoreNextLf;
+     }
+ 
+     List<Node> parseFragment(String inputFragment, Element context, String baseUri, ParseErrorList errors, ParseSettings settings) {
+diff --git a/src/main/java/org/jsoup/parser/HtmlTreeBuilderState.java b/src/main/java/org/jsoup/parser/HtmlTreeBuilderState.java
+index 20820ee2..419f2b9d 100644
+--- a/src/main/java/org/jsoup/parser/HtmlTreeBuilderState.java
++++ b/src/main/java/org/jsoup/parser/HtmlTreeBuilderState.java
+@@ -503,6 +503,8 @@ enum HtmlTreeBuilderState {
+                         tb.markInsertionMode();
+                         tb.framesetOk(false);
+                         tb.transition(Text);
++                        // For <textarea> tags, ignore the first newline character if immediately following the tag
++                        tb.setIgnoreNextLf(true);
+                     } else if (name.equals("xmp")) {
+                         if (tb.inButtonScope("p")) {
+                             tb.processEndTag("p");
+@@ -788,17 +790,30 @@ enum HtmlTreeBuilderState {
+         // in script, style etc. normally treated as data tags
+         boolean process(Token t, HtmlTreeBuilder tb) {
+             if (t.isCharacter()) {
++                String data = t.asCharacter().getData();
++                // For pre tags: ignore LF if it's the first character after the tag
++                if (tb.isIgnoreNextLf() && data.equals("\n")) {
++                    // Ignore this newline and reset flag
++                    tb.setIgnoreNextLf(false);
++                    return true;
++                }
++                // Reset flag after processing first non-LF character or subsequent character
++                if (tb.isIgnoreNextLf()) {
++                    tb.setIgnoreNextLf(false);
++                }
+                 tb.insert(t.asCharacter());
+             } else if (t.isEOF()) {
+                 tb.error(this);
+                 // if current node is script: already started
+                 tb.pop();
+                 tb.transition(tb.originalState());
++                tb.setIgnoreNextLf(false); // reset flag on EOF
+                 return tb.process(t);
+             } else if (t.isEndTag()) {
+                 // if: An end tag whose tag name is "script" -- scripting nesting level, if evaluating scripts
+                 tb.pop();
+                 tb.transition(tb.originalState());
++                tb.setIgnoreNextLf(false); // reset flag when ending tag
+             }
+             return true;
+         }
+@@ -1492,6 +1507,10 @@ enum HtmlTreeBuilderState {
+         tb.markInsertionMode();
+         tb.transition(Text);
+         tb.insert(startTag);
++        // For <pre> tags, ignore the first newline character if immediately following the tag
++        if (startTag.normalName().equals("pre")) {
++            tb.setIgnoreNextLf(true);
++        }
+     }
+ 
+     private static void handleRawtext(Token.StartTag startTag, HtmlTreeBuilder tb) {

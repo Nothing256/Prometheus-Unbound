@@ -1,0 +1,22 @@
+diff --git a/src/main/java/org/apache/commons/math/analysis/solvers/BracketingNthOrderBrentSolver.java b/src/main/java/org/apache/commons/math/analysis/solvers/BracketingNthOrderBrentSolver.java
+index 93dd3bbdd..55b5644b6 100644
+--- a/src/main/java/org/apache/commons/math/analysis/solvers/BracketingNthOrderBrentSolver.java
++++ b/src/main/java/org/apache/commons/math/analysis/solvers/BracketingNthOrderBrentSolver.java
+@@ -365,7 +365,16 @@ public class BracketingNthOrderBrentSolver
+         for (int i = start; i < end - 1; ++i) {
+             final int delta = i + 1 - start;
+             for (int j = end - 1; j > i; --j) {
+-                x[j] = (x[j] - x[j-1]) / (y[j] - y[j - delta]);
++                final double d = y[j] - y[j - delta];
++                // Fix for issue 716: prevent division by a value too close to zero
++                // which can occur when function values are very close due to high precision requirements
++                final double ad = FastMath.abs(d);
++                final double ay = FastMath.max(FastMath.abs(y[j]), FastMath.abs(y[j - delta]));
++                // Use a threshold that accounts for the scale of the y values and machine precision
++                if (ad <= ay * Precision.EPSILON * 2) {
++                    return Double.NaN;
++                }
++                x[j] = (x[j] - x[j-1]) / d;
+             }
+         }
+ 

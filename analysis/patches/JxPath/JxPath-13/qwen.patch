@@ -1,0 +1,41 @@
+diff --git a/src/java/org/apache/commons/jxpath/ri/NamespaceResolver.java b/src/java/org/apache/commons/jxpath/ri/NamespaceResolver.java
+index d182676..e8742ee 100644
+--- a/src/java/org/apache/commons/jxpath/ri/NamespaceResolver.java
++++ b/src/java/org/apache/commons/jxpath/ri/NamespaceResolver.java
+@@ -138,14 +138,16 @@ public class NamespaceResolver implements Cloneable {
+      */
+         if (reverseMap == null) {
+             reverseMap = new HashMap();
+-            NodeIterator ni = pointer.namespaceIterator();
+-            if (ni != null) {
+-                for (int position = 1; ni.setPosition(position); position++) {
+-                    NodePointer nsPointer = ni.getNodePointer();
+-                    String uri = nsPointer.getNamespaceURI();                    
+-                    String prefix = nsPointer.getName().getName();
+-                    if (!"".equals(prefix)) {
+-                        reverseMap.put(uri, prefix);
++            if (pointer != null) {
++                NodeIterator ni = pointer.namespaceIterator();
++                if (ni != null) {
++                    for (int position = 1; ni.setPosition(position); position++) {
++                        NodePointer nsPointer = ni.getNodePointer();
++                        String uri = nsPointer.getNamespaceURI();
++                        String prefix = nsPointer.getName().getName();
++                        if (!"".equals(prefix)) {
++                            reverseMap.put(uri, prefix);
++                        }
+                     }
+                 }
+             }
+@@ -187,6 +189,11 @@ public class NamespaceResolver implements Cloneable {
+     public Object clone() {
+         try {
+             NamespaceResolver result = (NamespaceResolver) super.clone();
++            // Need to clone the maps to prevent shared state between clones
++            result.namespaceMap = (HashMap) namespaceMap.clone();
++            if (reverseMap != null) {
++                result.reverseMap = (HashMap) reverseMap.clone();
++            }
+             result.sealed = false;
+             return result;
+         }

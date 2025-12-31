@@ -1,0 +1,30 @@
+diff --git a/src/main/java/org/apache/commons/math3/optimization/direct/CMAESOptimizer.java b/src/main/java/org/apache/commons/math3/optimization/direct/CMAESOptimizer.java
+index bc754a592..aa55a2a6f 100644
+--- a/src/main/java/org/apache/commons/math3/optimization/direct/CMAESOptimizer.java
++++ b/src/main/java/org/apache/commons/math3/optimization/direct/CMAESOptimizer.java
+@@ -928,8 +928,11 @@ public class CMAESOptimizer
+             }
+             double[] res = new double[x.length];
+             for (int i = 0; i < x.length; i++) {
+-                double diff = boundaries[1][i] - boundaries[0][i];
+-                res[i] = (x[i] - boundaries[0][i]) / diff;
++                double lower = boundaries[0][i];
++                double upper = boundaries[1][i];
++                double range = upper - lower;
++                // Calculate normalized value: (x[i] - lower) / (upper - lower)
++                res[i] = (x[i] - lower) / range;
+             }
+             return res;
+         }
+@@ -954,8 +957,9 @@ public class CMAESOptimizer
+             }
+             double[] res = new double[x.length];
+             for (int i = 0; i < x.length; i++) {
+-                double diff = boundaries[1][i] - boundaries[0][i];
+-                res[i] = diff * x[i] + boundaries[0][i];
++                // Use numerically stable interpolation: lower + x*(upper - lower) = lower*(1-x) + upper*x
++                // This avoids precision loss when one boundary is much larger than the other
++                res[i] = boundaries[0][i] * (1.0 - x[i]) + boundaries[1][i] * x[i];
+             }
+             return res;
+         }

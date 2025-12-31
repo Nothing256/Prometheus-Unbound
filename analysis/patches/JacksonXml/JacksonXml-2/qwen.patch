@@ -1,0 +1,28 @@
+diff --git a/src/main/java/com/fasterxml/jackson/dataformat/xml/deser/XmlTokenStream.java b/src/main/java/com/fasterxml/jackson/dataformat/xml/deser/XmlTokenStream.java
+index fe37ee90..6a3738b4 100644
+--- a/src/main/java/com/fasterxml/jackson/dataformat/xml/deser/XmlTokenStream.java
++++ b/src/main/java/com/fasterxml/jackson/dataformat/xml/deser/XmlTokenStream.java
+@@ -321,9 +321,21 @@ public class XmlTokenStream
+             }
+             // otherwise need to find START/END_ELEMENT or text
+             String text = _collectUntilTag();
+-            // If we have no/all-whitespace text followed by START_ELEMENT, ignore text
++            // If we have text followed by START_ELEMENT (mixed content)
+             if (_xmlReader.getEventType() == XMLStreamReader.START_ELEMENT) {
+-                    return _initStartElement();
++                if (text != null && !text.trim().isEmpty()) {
++                    // We have non-whitespace text content before the child element
++                    // Set up to return the text now, and have the START_ELEMENT returned next
++                    _textValue = text;
++                    // Prepare to replay the START_ELEMENT that we encountered after the text
++                    _nextLocalName = _xmlReader.getLocalName();
++                    _nextNamespaceURI = _xmlReader.getNamespaceURI();
++                    _repeatElement = REPLAY_START_DELAYED;
++                    // Change state to XML_TEXT so the next call will handle the replay
++                    return (_currentState = XML_TEXT);
++                }
++                // Only if text is all whitespace, proceed with child element
++                return _initStartElement();
+             }
+             // For END_ELEMENT we will return text, if any
+             if (text != null) {

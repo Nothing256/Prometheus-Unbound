@@ -1,0 +1,51 @@
+diff --git a/src/main/java/com/fasterxml/jackson/dataformat/xml/deser/XmlTokenStream.java b/src/main/java/com/fasterxml/jackson/dataformat/xml/deser/XmlTokenStream.java
+index fe37ee90..3f8368ca 100644
+--- a/src/main/java/com/fasterxml/jackson/dataformat/xml/deser/XmlTokenStream.java
++++ b/src/main/java/com/fasterxml/jackson/dataformat/xml/deser/XmlTokenStream.java
+@@ -323,7 +323,17 @@ public class XmlTokenStream
+             String text = _collectUntilTag();
+             // If we have no/all-whitespace text followed by START_ELEMENT, ignore text
+             if (_xmlReader.getEventType() == XMLStreamReader.START_ELEMENT) {
+-                    return _initStartElement();
++                // Check if the text is non-whitespace; if so, return it before processing the child element
++                if (text != null && !_isAllWhitespace(text)) {
++                    _textValue = text;
++                    // Need to push back the START_ELEMENT for processing on the next call
++                    _repeatElement = REPLAY_START_DELAYED;
++                    _nextLocalName = _xmlReader.getLocalName();
++                    _nextNamespaceURI = _xmlReader.getNamespaceURI();
++
++                    return (_currentState = XML_TEXT);
++                }
++                return _initStartElement();
+             }
+             // For END_ELEMENT we will return text, if any
+             if (text != null) {
+@@ -465,7 +475,10 @@ public class XmlTokenStream
+             _namespaceURI = _nextNamespaceURI;
+             _nextLocalName = null;
+             _nextNamespaceURI = null;
+-            
++            // We also need to properly initialize state for the replayed element
++            _attributeCount = _xmlReader.getAttributeCount();
++            _nextAttributeIndex = 0;
++
+ //System.out.println("handleRepeat for START_DELAYED: "+_localName+" ("+_xmlReader.getLocalName()+")");
+ 
+             return XML_START_ELEMENT;
+@@ -502,6 +515,15 @@ public class XmlTokenStream
+                 location.getColumnNumber());
+     }
+ 
++    private boolean _isAllWhitespace(String text) {
++        for (int i = 0, len = text.length(); i < len; ++i) {
++            if (!Character.isWhitespace(text.charAt(i))) {
++                return false;
++            }
++        }
++        return true;
++    }
++
+ 
+     
+     // for DEBUGGING

@@ -1,0 +1,75 @@
+diff --git a/src/main/java/org/apache/commons/math3/linear/OpenMapRealVector.java b/src/main/java/org/apache/commons/math3/linear/OpenMapRealVector.java
+index 821482744..bfcb905b7 100644
+--- a/src/main/java/org/apache/commons/math3/linear/OpenMapRealVector.java
++++ b/src/main/java/org/apache/commons/math3/linear/OpenMapRealVector.java
+@@ -340,17 +340,27 @@ public class OpenMapRealVector extends SparseRealVector
+     @Override
+     public OpenMapRealVector ebeDivide(RealVector v) {
+         checkVectorDimensions(v.getDimension());
+-        OpenMapRealVector res = new OpenMapRealVector(this);
+-        /*
+-         * MATH-803: it is not sufficient to loop through non zero entries of
+-         * this only. Indeed, if this[i] = 0d and v[i] = 0d, then
+-         * this[i] / v[i] = NaN, and not 0d.
+-         */
++        OpenMapRealVector res = new OpenMapRealVector(v.getDimension());
++
++        // Process all entries in this vector (non-zero entries)
+         Iterator iter = entries.iterator();
+         while (iter.hasNext()) {
+             iter.advance();
+             res.setEntry(iter.key(), iter.value() / v.getEntry(iter.key()));
+         }
++
++        // Process entries where this vector has zeros but other vector might have non-zeros
++        // We need to handle all indices to ensure proper ebe division
++        for (int i = 0; i < virtualSize; i++) {
++            if (!entries.containsKey(i)) {
++                // This vector has 0 at position i, so result will be 0 / v[i]
++                double value = 0.0 / v.getEntry(i);
++                if (!isDefaultValue(value)) {
++                    res.setEntry(i, value);
++                }
++            }
++        }
++
+         return res;
+     }
+ 
+@@ -358,19 +368,28 @@ public class OpenMapRealVector extends SparseRealVector
+     @Override
+     public OpenMapRealVector ebeMultiply(RealVector v) {
+         checkVectorDimensions(v.getDimension());
+-        OpenMapRealVector res = new OpenMapRealVector(this);
++        OpenMapRealVector res = new OpenMapRealVector(v.getDimension());
++
++        // Process all entries in this vector (non-zero entries)
+         Iterator iter = entries.iterator();
+         while (iter.hasNext()) {
+             iter.advance();
+             res.setEntry(iter.key(), iter.value() * v.getEntry(iter.key()));
+         }
+-        /*
+-         * MATH-803: the above loop assumes that 0d * x  = 0d for any double x,
+-         * which allows to consider only the non-zero entries of this. However,
+-         * this fails if this[i] == 0d and (v[i] = NaN or v[i] = Infinity).
+-         *
+-         * These special cases are handled below.
+-         */
++
++        // Process entries where this vector has zeros but the result might be NaN or Infinity
++        // We need to handle all indices to ensure proper ebe multiplication
++        for (int i = 0; i < virtualSize; i++) {
++            if (!entries.containsKey(i)) {
++                // This vector has 0 at position i, so result will be 0 * v[i]
++                // Special case: 0 * NaN = NaN, 0 * Infinity = NaN
++                double value = 0.0 * v.getEntry(i);
++                if (!isDefaultValue(value)) {
++                    res.setEntry(i, value);
++                }
++            }
++        }
++
+         return res;
+     }
+ 

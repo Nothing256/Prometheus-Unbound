@@ -1,0 +1,12 @@
+--- /tmp/original_VerificationOverTimeImpl.java	2025-12-22 16:43:29
++++ src/org/mockito/internal/verification/VerificationOverTimeImpl.java	2025-12-22 16:43:06
+@@ -88,9 +88,6 @@
+             } catch (MockitoAssertionError e) {
+                 error = handleVerifyException(e);
+             }
+-            catch (org.mockito.exceptions.verification.junit.ArgumentsAreDifferent e) {
+-                error = handleVerifyException(e);
+-            }
+         }
+ 
+         if (error != null) {

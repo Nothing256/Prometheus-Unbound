@@ -1,0 +1,54 @@
+diff --git a/src/main/java/org/jsoup/parser/CharacterReader.java b/src/main/java/org/jsoup/parser/CharacterReader.java
+index 187f9e9d..88cb5378 100644
+--- a/src/main/java/org/jsoup/parser/CharacterReader.java
++++ b/src/main/java/org/jsoup/parser/CharacterReader.java
+@@ -454,7 +454,22 @@ public final class CharacterReader {
+      *  Heuristic to determine if the current buffer looks like binary content. Reader will already hopefully be
+      *  decoded correctly, so a bunch of NULLs indicates a binary file
+      */
+-
++    boolean isBinary() {
++        bufferUp();
++        int threshold = Math.min(10, bufLength); // Check first 10 characters or less if buffer is smaller
++        for (int i = 0; i < threshold; i++) {
++            char c = charBuf[i];
++            if (c == '\0') { // Null byte indicates binary content
++                return true;
++            }
++            // Check for other indicators of binary data
++            // Control characters (except common text ones like \t, \n, \r) can indicate binary
++            if (c < 0x08 || (c > 0x0D && c < 0x20) || c == 0x7F) {
++                return true;
++            }
++        }
++        return false;
++    }
+ 
+ 
+     @Override
+diff --git a/src/main/java/org/jsoup/parser/Tokeniser.java b/src/main/java/org/jsoup/parser/Tokeniser.java
+index 22e1ce1d..ab6bf0d0 100644
+--- a/src/main/java/org/jsoup/parser/Tokeniser.java
++++ b/src/main/java/org/jsoup/parser/Tokeniser.java
+@@ -6,6 +6,9 @@ import org.jsoup.nodes.Entities;
+ 
+ import java.util.Arrays;
+ 
++import java.io.IOException;
++import org.jsoup.UncheckedIOException;
++
+ /**
+  * Readers the input stream into tokens.
+  */
+@@ -50,6 +53,11 @@ final class Tokeniser {
+     Tokeniser(CharacterReader reader, ParseErrorList errors) {
+         this.reader = reader;
+         this.errors = errors;
++
++        // Check for binary content right at the start of tokenization
++        if (reader.isBinary()) {
++            throw new UncheckedIOException(new IOException("Input is binary and unsupported"));
++        }
+     }
+ 
+     Token read() {

@@ -1,0 +1,117 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/util/StdDateFormat.java b/src/main/java/com/fasterxml/jackson/databind/util/StdDateFormat.java
+index e04380c51..006888f71 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/util/StdDateFormat.java
++++ b/src/main/java/com/fasterxml/jackson/databind/util/StdDateFormat.java
+@@ -402,12 +402,109 @@ public class StdDateFormat
+                 }
+                 // Milliseconds partial or missing; and even seconds are optional
+                 len = dateStr.length();
++                // Check if we have format like HH:mm (without seconds) before timezone
++                // Find the 'T' character and see if there's only HH:mm pattern before timezone
++                int tPos = dateStr.indexOf('T');
++                if (tPos >= 0) {
++                    // Look for the timezone part start (either '+' or '-' after 'T')
++                    int tzStart = -1;
++                    for (int i = tPos + 1; i < dateStr.length(); ++i) {
++                        char ch = dateStr.charAt(i);
++                        if (ch == '+' || ch == '-') {
++                            tzStart = i;
++                            break;
++                        }
++                    }
++                    if (tzStart > 0) {
++                        // Extract the time part before timezone: should be HH:mm or HH:mm:ss
++                        String timePart = dateStr.substring(tPos + 1, tzStart);
++                        // Check for decimal point to distinguish between colons in time vs milliseconds
++                        int decimalIndex = timePart.indexOf('.');
++                        String timePartWithoutMs = timePart;
++                        if (decimalIndex >= 0) {
++                            timePartWithoutMs = timePart.substring(0, decimalIndex);
++                        }
++
++                        int colonCount = 0;
++                        for (int i = 0; i < timePartWithoutMs.length(); ++i) {
++                            if (timePartWithoutMs.charAt(i) == ':') {
++                                colonCount++;
++                            }
++                        }
++                        // If we only have one colon, it means format is HH:mm, missing seconds
++                        if (colonCount == 1) {
++                            StringBuilder sb = new StringBuilder(dateStr);
++                            sb.insert(tzStart, ":00");
++                            dateStr = sb.toString();
++                            len = dateStr.length(); // Update length after adding seconds
++                        }
++                    }
++                }
+                 // remove 'T', '+'/'-' and 4-digit timezone-offset
++                // Only add milliseconds if not already present (check for decimal point)
++                // The original logic looked for date format without milliseconds but with seconds
+                 c = dateStr.charAt(len-9);
+                 if (Character.isDigit(c)) {
+-                    StringBuilder sb = new StringBuilder(dateStr);
+-                    sb.insert(len-5, ".000");
+-                    dateStr = sb.toString();
++                    // Check if milliseconds are already present by looking for decimal point
++                    // before the timezone part
++                    int lastT = dateStr.lastIndexOf('T');
++                    int firstTz = -1; // Find first timezone indicator after 'T'
++                    for (int i = lastT + 1; i < dateStr.length(); ++i) {
++                        char ch = dateStr.charAt(i);
++                        if (ch == '+' || ch == '-' || ch == 'Z') {
++                            firstTz = i;
++                            break;
++                        }
++                    }
++                    if (firstTz > 0) {
++                        String timePart = dateStr.substring(lastT + 1, firstTz);
++                        if (timePart.indexOf('.') == -1) { // No decimal seconds present
++                            StringBuilder sb = new StringBuilder(dateStr);
++                            sb.insert(len-5, ".000");
++                            dateStr = sb.toString();
++                        } else {
++                            // If there are already decimal seconds, make sure they are 3 digits
++                            // Find the decimal point in the original string
++                            int decimalPos = -1;
++                            for (int i = lastT; i < firstTz; i++) {
++                                if (dateStr.charAt(i) == '.') {
++                                    decimalPos = i;
++                                    break;
++                                }
++                            }
++                            if (decimalPos >= 0) {
++                                // Count digits after decimal point
++                                int digitCount = 0;
++                                for (int i = decimalPos + 1; i < firstTz; i++) {
++                                    if (Character.isDigit(dateStr.charAt(i))) {
++                                        digitCount++;
++                                    } else {
++                                        break; // Stop at timezone indicator
++                                    }
++                                }
++                                // Pad with zeros to make 3 digits if needed
++                                if (digitCount < 3) {
++                                    StringBuilder sb = new StringBuilder();
++                                    // Add part before decimal
++                                    sb.append(dateStr.substring(0, decimalPos + 1)); // includes the '.'
++                                    // Add existing fractional digits
++                                    sb.append(dateStr.substring(decimalPos + 1, decimalPos + 1 + digitCount));
++                                    // Add required zeros
++                                    for (int i = 0; i < (3 - digitCount); i++) {
++                                        sb.append('0');
++                                    }
++                                    // Add rest of the string after fractional digits
++                                    sb.append(dateStr.substring(decimalPos + 1 + digitCount));
++                                    dateStr = sb.toString();
++                                }
++                            }
++                        }
++                    } else {
++                        // No timezone part found, add .000 normally (shouldn't happen in this branch)
++                        StringBuilder sb = new StringBuilder(dateStr);
++                        sb.insert(len-5, ".000");
++                        dateStr = sb.toString();
++                    }
+                 }
+                 df = _formatISO8601;
+                 if (_formatISO8601 == null) {

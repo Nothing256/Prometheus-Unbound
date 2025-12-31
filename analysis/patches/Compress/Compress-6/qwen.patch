@@ -1,0 +1,49 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveEntry.java b/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveEntry.java
+index 6a7c1e93..88add3e0 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveEntry.java
++++ b/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveEntry.java
+@@ -459,6 +459,13 @@ public class ZipArchiveEntry extends java.util.zip.ZipEntry
+             return false;
+         }
+         ZipArchiveEntry other = (ZipArchiveEntry) obj;
++
++        // First check the parent class equality (includes time, size, CRC, etc.)
++        if (!super.equals(obj)) {
++            return false;
++        }
++
++        // Then compare our custom fields
+         if (name == null) {
+             if (other.name != null) {
+                 return false;
+@@ -466,6 +473,30 @@ public class ZipArchiveEntry extends java.util.zip.ZipEntry
+         } else if (!name.equals(other.name)) {
+             return false;
+         }
++
++        // Compare other custom fields specific to this class
++        if (method != other.method) {
++            return false;
++        }
++        if (internalAttributes != other.internalAttributes) {
++            return false;
++        }
++        if (externalAttributes != other.externalAttributes) {
++            return false;
++        }
++        if (platform != other.platform) {
++            return false;
++        }
++
++        // Compare extra fields
++        if (extraFields == null) {
++            if (other.extraFields != null) {
++                return false;
++            }
++        } else if (!extraFields.equals(other.extraFields)) {
++            return false;
++        }
++
+         return true;
+     }
+ }

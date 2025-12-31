@@ -1,0 +1,25 @@
+diff --git a/src/java/org/apache/commons/collections/buffer/UnboundedFifoBuffer.java b/src/java/org/apache/commons/collections/buffer/UnboundedFifoBuffer.java
+index 6efc1420..5b3ee547 100644
+--- a/src/java/org/apache/commons/collections/buffer/UnboundedFifoBuffer.java
++++ b/src/java/org/apache/commons/collections/buffer/UnboundedFifoBuffer.java
+@@ -122,7 +122,7 @@ public class UnboundedFifoBuffer extends AbstractCollection implements Buffer, S
+ 
+     /**
+      * Read the buffer in using a custom routine.
+-     * 
++     *
+      * @param in  the input stream
+      * @throws IOException
+      * @throws ClassNotFoundException
+@@ -130,7 +130,10 @@ public class UnboundedFifoBuffer extends AbstractCollection implements Buffer, S
+     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+         in.defaultReadObject();
+         int size = in.readInt();
+-        buffer = new Object[size + 1];
++        // Ensure buffer has minimum capacity to hold elements after deserialization
++        // The buffer needs at least size + 1 capacity, but for proper operation
++        // when empty, ensure it has enough space to add elements without immediate resize
++        buffer = new Object[Math.max(size + 1, 2)]; // Minimum size of 2 to allow adding elements
+         for (int i = 0; i < size; i++) {
+             buffer[i] = in.readObject();
+         }

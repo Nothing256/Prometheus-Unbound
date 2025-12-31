@@ -1,0 +1,38 @@
+diff --git a/src/main/java/org/jsoup/helper/W3CDom.java b/src/main/java/org/jsoup/helper/W3CDom.java
+index f58a9255..ee6d6960 100644
+--- a/src/main/java/org/jsoup/helper/W3CDom.java
++++ b/src/main/java/org/jsoup/helper/W3CDom.java
+@@ -81,6 +81,9 @@ public class W3CDom {
+             if (source instanceof org.jsoup.nodes.Element) {
+                 org.jsoup.nodes.Element sourceEl = (org.jsoup.nodes.Element) source;
+ 
++                // Save current namespace mappings to restore later
++                HashMap<String, String> previousNamespaces = new HashMap<>(namespaces);
++
+                 String prefix = updateNamespaces(sourceEl);
+                 String namespace = namespaces.get(prefix);
+ 
+@@ -92,6 +95,10 @@ public class W3CDom {
+                     dest.appendChild(el);
+                 }
+                 dest = el; // descend
++
++                // Store previous namespace mappings to restore in tail method
++                // We'll store this in the element as user data temporarily
++                el.setUserData("previousNamespaces", previousNamespaces, null);
+             } else if (source instanceof org.jsoup.nodes.TextNode) {
+                 org.jsoup.nodes.TextNode sourceText = (org.jsoup.nodes.TextNode) source;
+                 Text text = doc.createTextNode(sourceText.getWholeText());
+@@ -111,6 +118,12 @@ public class W3CDom {
+ 
+         public void tail(org.jsoup.nodes.Node source, int depth) {
+             if (source instanceof org.jsoup.nodes.Element && dest.getParentNode() instanceof Element) {
++                // Restore previous namespace mappings from user data
++                HashMap<String, String> previousNamespaces = (HashMap<String, String>) dest.getUserData("previousNamespaces");
++                if (previousNamespaces != null) {
++                    namespaces.clear();
++                    namespaces.putAll(previousNamespaces);
++                }
+                 dest = (Element) dest.getParentNode(); // undescend. cromulent.
+             }
+         }

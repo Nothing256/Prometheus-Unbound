@@ -1,0 +1,80 @@
+diff --git a/src/main/java/org/apache/commons/math/analysis/solvers/BaseSecantSolver.java b/src/main/java/org/apache/commons/math/analysis/solvers/BaseSecantSolver.java
+index e258c68c6..6dd102b6d 100644
+--- a/src/main/java/org/apache/commons/math/analysis/solvers/BaseSecantSolver.java
++++ b/src/main/java/org/apache/commons/math/analysis/solvers/BaseSecantSolver.java
+@@ -154,6 +154,10 @@ public abstract class BaseSecantSolver
+         // larger than the right bound.
+         boolean inverted = false;
+ 
++        // For Regula Falsi stagnation detection
++        int x0StagnationCounter = 0;
++        int x1StagnationCounter = 0;
++
+         // Keep finding better approximations.
+         while (true) {
+             // Calculate the next approximation.
+@@ -164,17 +168,28 @@ public abstract class BaseSecantSolver
+             // this is not an under-approximation or an over-approximation,
+             // we can return it regardless of the allowed solutions.
+             if (fx == 0.0) {
++                // Reset stagnation counters when we find the exact root
++                x0StagnationCounter = 0;
++                x1StagnationCounter = 0;
+                 return x;
+             }
+ 
+             // Update the bounds with the new approximation.
+             if (f1 * fx < 0) {
+-                // The value of x1 has switched to the other bound, thus inverting
+-                // the interval.
++                // Root is between x and x1, so interval becomes [x, x1] or [x1, x]
++                // x0 gets x1's value, x1 gets x's value
++                // Both bounds are updated, so no stagnation.
+                 x0 = x1;
+                 f0 = f1;
+                 inverted = !inverted;
++
++                // Both bounds have changed, so reset stagnation counters for Regula Falsi
++                x0StagnationCounter = 0;
++                x1StagnationCounter = 0;
+             } else {
++                // Root is between x0 and x, so interval becomes [x0, x]
++                // x0 remains unchanged, x1 gets x's value
++                // x0 stagnates, x1 is updated.
+                 switch (method) {
+                 case ILLINOIS:
+                     f0 *= 0.5;
+@@ -182,16 +197,29 @@ public abstract class BaseSecantSolver
+                 case PEGASUS:
+                     f0 *= f1 / (f1 + fx);
+                     break;
+-                        // Update formula cannot make any progress: Update the
+-                        // search interval.
+                 default:
+-                    // Should never happen.
++                    // The Regula Falsi method: No further modification of f0
++                    // But potentially apply stagnation prevention
++                    // For Regula Falsi: x0 stagnates, x1 is updated
++                    x0StagnationCounter++; // x0 stagnates
++                    x1StagnationCounter = 0; // x1 is updated
++                    break;
+                 }
+             }
+-            // Update from [x0, x1] to [x0, x].
++            // Update x1 to x regardless of the path above
+             x1 = x;
+             f1 = fx;
+ 
++            // For Regula Falsi, apply stagnation prevention if needed
++            if (method == Method.REGULA_FALSI) {
++                final int STAGGER_THRESHOLD = 3;  // Increased threshold
++                if (x0StagnationCounter >= STAGGER_THRESHOLD) {
++                    f0 *= 0.5;  // Apply Illinois-like correction to unstuck x0
++                } else if (x1StagnationCounter >= STAGGER_THRESHOLD) {
++                    f1 *= 0.5;  // Apply Illinois-like correction to unstuck x1
++                }
++            }
++
+             // If the function value of the last approximation is too small,
+             // given the function value accuracy, then we can't get closer to
+             // the root than we already are.

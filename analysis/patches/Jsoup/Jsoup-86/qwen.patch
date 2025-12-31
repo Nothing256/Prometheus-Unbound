@@ -1,0 +1,31 @@
+diff --git a/src/main/java/org/jsoup/parser/XmlTreeBuilder.java b/src/main/java/org/jsoup/parser/XmlTreeBuilder.java
+index 87cdc372..02b70b92 100644
+--- a/src/main/java/org/jsoup/parser/XmlTreeBuilder.java
++++ b/src/main/java/org/jsoup/parser/XmlTreeBuilder.java
+@@ -89,9 +89,10 @@ public class XmlTreeBuilder extends TreeBuilder {
+     void insert(Token.Comment commentToken) {
+         Comment comment = new Comment(commentToken.getData());
+         Node insert = comment;
+-        if (commentToken.bogus && comment.isXmlDeclaration()) {
++        if (commentToken.bogus && comment.isXmlDeclaration() && !isInsideScript()) {
+             // xml declarations are emitted as bogus comments (which is right for html, but not xml)
+             // so we do a bit of a hack and parse the data as an element to pull the attributes out
++            // Skip conversion if inside a script tag to preserve literal <? and ?> as text
+             XmlDeclaration decl = comment.asXmlDeclaration(); // else, we couldn't parse it as a decl, so leave as a comment
+             if (decl != null)
+                 insert = decl;
+@@ -99,6 +100,14 @@ public class XmlTreeBuilder extends TreeBuilder {
+         insertNode(insert);
+     }
+ 
++    private boolean isInsideScript() {
++        if (stack.size() > 0) {
++            Element current = stack.get(stack.size() - 1);
++            return "script".equalsIgnoreCase(current.tagName());
++        }
++        return false;
++    }
++
+     void insert(Token.Character token) {
+         final String data = token.getData();
+         insertNode(token.isCData() ? new CDataNode(data) : new TextNode(data));

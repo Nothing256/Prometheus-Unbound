@@ -1,0 +1,348 @@
+diff --git a/src/main/java/org/jsoup/nodes/PseudoTextElement.java b/src/main/java/org/jsoup/nodes/PseudoTextElement.java
+new file mode 100644
+index 0000000..b7e3d9c
+--- /dev/null
++++ b/src/main/java/org/jsoup/nodes/PseudoTextElement.java
+@@ -0,0 +1,64 @@
++package org.jsoup.nodes;
++
++import org.jsoup.helper.Validate;
++import org.jsoup.parser.ParseSettings;
++import org.jsoup.parser.Tag;
++
++/**
++ * A PseudoTextElement is a fake {@link Element} that wraps text nodes, so that text nodes can be selected using
++ * the normal element selectors.
++ */
++public class PseudoTextElement extends Element {
++    private String text;
++
++    /**
++     * Create a new PseudoTextElement.
++     * @param tag the tag for this pseudo element
++     * @param baseUri the base URI
++     * @param text the text to wrap
++     */
++    public PseudoTextElement(Tag tag, String baseUri, String text) {
++        super(tag, baseUri);
++        this.text = text;
++    }
++
++    /**
++     * Create a new PseudoTextElement with a special tag.
++     * @param text the text to wrap
++     */
++    public PseudoTextElement(String text) {
++        this(Tag.valueOf("#text"), "", text);
++    }
++
++    @Override
++    public String text() {
++        return text;
++    }
++
++    @Override
++    public String ownText() {
++        return text;
++    }
++
++    @Override
++    public Element text(String newText) {
++        Validate.notNull(newText);
++        this.text = newText;
++        return this;
++    }
++
++    @Override
++    public String nodeName() {
++        return "#text";
++    }
++
++    @Override
++    public String toString() {
++        return text;
++    }
++
++    @Override
++    public String html() {
++        return org.jsoup.helper.StringUtil.normaliseWhitespace(text);
++    }
++}
+diff --git a/src/main/java/org/jsoup/select/Evaluator.java b/src/main/java/org/jsoup/select/Evaluator.java
+index 89f72c9..e92872a 100644
+--- a/src/main/java/org/jsoup/select/Evaluator.java
++++ b/src/main/java/org/jsoup/select/Evaluator.java
+@@ -755,6 +755,19 @@ public static final class MatchesOwn extends Evaluator {
+         @Override
+         public String toString() {
+             return String.format(":matchesOwn(%s)", pattern);
+         }
+     }
++    
++    /**
++     * Evaluator for matching text nodes as elements using :matchText pseudo selector
++     */
++    public static final class MatchText extends Evaluator {
++        @Override
++        public boolean matches(Element root, Element element) {
++            return element instanceof org.jsoup.nodes.PseudoTextElement;
++        }
++
++        @Override
++        public String toString() {
++            return ":matchText";
++        }
++    }
++
+ }
+diff --git a/src/main/java/org/jsoup/select/QueryParser.java b/src/main/java/org/jsoup/select/QueryParser.java
+index 6684000..58672e7 100644
+--- a/src/main/java/org/jsoup/select/QueryParser.java
++++ b/src/main/java/org/jsoup/select/QueryParser.java
+@@ -199,6 +199,7 @@ private void findElements() {
+         else if (tq.matchChomp(":root"))
+         	evals.add(new Evaluator.IsRoot());
+         else if (tq.matchChomp(":matchText"))
+             evals.add(new Evaluator.MatchText());
+ 		else // unhandled
+             throw new Selector.SelectorParseException("Could not parse query '%s': unexpected token at '%s'", query, tq.remainder());
+ 
+     }
+diff --git a/src/main/java/org/jsoup/select/Selector.java b/src/main/java/org/jsoup/select/Selector.java
+index 751302a..8b21e4c 100644
+--- a/src/main/java/org/jsoup/select/Selector.java
++++ b/src/main/java/org/jsoup/select/Selector.java
+@@ -96,6 +96,91 @@ public static Elements select(String query, Element root) {
+      */
+     public static Elements select(Evaluator evaluator, Element root) {
+         Validate.notNull(evaluator);
+         Validate.notNull(root);
++
++        // Check if the evaluator contains matchText, which requires special DOM transformation
++        if (containsMatchTextEvaluator(evaluator)) {
++            return selectWithMatchText(evaluator, root);
++        } else {
++            return Collector.collect(evaluator, root);
++        }
++    }
++
++    private static boolean containsMatchTextEvaluator(Evaluator evaluator) {
++        if (evaluator instanceof Evaluator.MatchText) {
++            return true;
++        } else if (evaluator instanceof CombiningEvaluator.And) {
++            CombiningEvaluator.And andEval = (CombiningEvaluator.And) evaluator;
++            for (Evaluator eval : andEval.evaluators) {
++                if (containsMatchTextEvaluator(eval)) {
++                    return true;
++                }
++            }
++        } else if (evaluator instanceof CombiningEvaluator.Or) {
++            CombiningEvaluator.Or orEval = (CombiningEvaluator.Or) evaluator;
++            for (Evaluator eval : orEval.evaluators) {
++                if (containsMatchTextEvaluator(eval)) {
++                    return true;
++                }
++            }
++        } else if (evaluator instanceof StructuralEvaluator.Has) {
++            StructuralEvaluator.Has hasEval = (StructuralEvaluator.Has) evaluator;
++            if (containsMatchTextEvaluator(hasEval.evaluator)) {
++                return true;
++            }
++        } else if (evaluator instanceof StructuralEvaluator.Not) {
++            StructuralEvaluator.Not notEval = (StructuralEvaluator.Not) evaluator;
++            if (containsMatchTextEvaluator(notEval.evaluator)) {
++                return true;
++            }
++        }
++        return false;
++    }
++
++    private static Elements selectWithMatchText(Evaluator evaluator, Element root) {
++        Elements results = new Elements();
++
++        // Handle the case where an AND evaluator contains both a base element selector and :matchText
++        if (evaluator instanceof CombiningEvaluator.And) {
++            CombiningEvaluator.And andEval = (CombiningEvaluator.And) evaluator;
++            Evaluator elementEvaluator = null; // Evaluator to find base elements (like Tag("p"))
++            Evaluator matchTextEvaluator = null; // The MatchText evaluator
++            java.util.List<Evaluator> otherEvaluators = new java.util.ArrayList<>();
++            java.util.List<Evaluator> structuralEvaluators = new java.util.ArrayList<>(); // Structural evaluators like :first-child, :last-child
++
++            // Separate the evaluators
++            for (Evaluator eval : andEval.evaluators) {
++                if (eval instanceof Evaluator.MatchText) {
++                    matchTextEvaluator = eval;
++                } else if (isStructuralEvaluator(eval)) {
++                    structuralEvaluators.add(eval);
++                } else {
++                    otherEvaluators.add(eval);
++                }
++            }
++
++            // If we have both a base element selector and matchText
++            if (matchTextEvaluator != null && (!otherEvaluators.isEmpty() || !structuralEvaluators.isEmpty())) {
++                // Combine all non-MatchText, non-structural evaluators into one for finding base elements
++                if (otherEvaluators.size() == 1) {
++                    elementEvaluator = otherEvaluators.get(0);
++                } else if (otherEvaluators.size() > 1) {
++                    elementEvaluator = new CombiningEvaluator.And(otherEvaluators);
++                } else {
++                    // If no other evaluators, we'll match all elements
++                    elementEvaluator = new Evaluator.AllElements();
++                }
++                
++                // First, find all elements that match the base selector (e.g., all p tags with other conditions)
++                Elements baseElements = Collector.collect(elementEvaluator, root);
++                
++                // For each matching element, convert its text nodes to PseudoTextElements
++                for (Element baseElement : baseElements) {
++                    // Split text nodes around child elements and create PseudoTextElements
++                    java.util.List<org.jsoup.nodes.Node> childNodes = baseElement.childNodes();
++                    java.util.List<org.jsoup.nodes.PseudoTextElement> pseudoElements = new java.util.ArrayList<>();
++                    StringBuilder currentText = new StringBuilder();
++                    
++                    for (org.jsoup.nodes.Node node : childNodes) {
++                        if (node instanceof org.jsoup.nodes.TextNode) {
++                            currentText.append(((org.jsoup.nodes.TextNode) node).getWholeText());
++                        } else if (node instanceof org.jsoup.nodes.Element) {
++                            // Found an element, if we have accumulated text, create a PseudoTextElement
++                            if (currentText.length() > 0) {
++                                String text = currentText.toString().trim();
++                                if (!text.isEmpty()) {
++                                    org.jsoup.nodes.PseudoTextElement pte = new org.jsoup.nodes.PseudoTextElement(text);
++                                    pseudoElements.add(pte);
++                                }
++                                currentText.setLength(0); // clear the buffer
++                            }
++                        }
++                    }
++                    
++                    // Handle any remaining text after the last element
++                    if (currentText.length() > 0) {
++                        String text = currentText.toString().trim();
++                        if (!text.isEmpty()) {
++                            org.jsoup.nodes.PseudoTextElement pte = new org.jsoup.nodes.PseudoTextElement(text);
++                            pseudoElements.add(pte);
++                        }
++                    }
++                    
++                    // Now apply structural evaluators to the pseudo elements if there are any
++                    if (!structuralEvaluators.isEmpty()) {
++                        java.util.List<org.jsoup.nodes.PseudoTextElement> filteredPseudoElements = 
++                            filterWithStructuralEvaluators(pseudoElements, structuralEvaluators, root);
++                        // Also make sure each element matches the MatchText evaluator
++                        for (org.jsoup.nodes.PseudoTextElement pte : filteredPseudoElements) {
++                            if (matchTextEvaluator.matches(root, pte)) {
++                                results.add(pte);
++                            }
++                        }
++                    } else {
++                        // Add all pseudo elements if no structural filters
++                        for (org.jsoup.nodes.PseudoTextElement pte : pseudoElements) {
++                            if (matchTextEvaluator.matches(root, pte)) {
++                                results.add(pte);
++                            }
++                        }
++                    }
++                }
++            }
++        } else if (evaluator instanceof Evaluator.MatchText) {
++            // Handle the case where MatchText is by itself
++            java.util.List<org.jsoup.nodes.Node> childNodes = root.childNodes();
++            StringBuilder currentText = new StringBuilder();
++            
++            for (org.jsoup.nodes.Node node : childNodes) {
++                if (node instanceof org.jsoup.nodes.TextNode) {
++                    currentText.append(((org.jsoup.nodes.TextNode) node).getWholeText());
++                } else if (node instanceof org.jsoup.nodes.Element) {
++                    if (currentText.length() > 0) {
++                        String text = currentText.toString().trim();
++                        if (!text.isEmpty()) {
++                            org.jsoup.nodes.PseudoTextElement pte = new org.jsoup.nodes.PseudoTextElement(text);
++                            if (evaluator.matches(root, pte)) {
++                                results.add(pte);
++                            }
++                        }
++                        currentText.setLength(0);
++                    }
++                }
++            }
++            
++            if (currentText.length() > 0) {
++                String text = currentText.toString().trim();
++                if (!text.isEmpty()) {
++                    org.jsoup.nodes.PseudoTextElement pte = new org.jsoup.nodes.PseudoTextElement(text);
++                    if (evaluator.matches(root, pte)) {
++                        results.add(pte);
++                    }
++                }
++            }
++        } else {
++            // Fallback - collect normally
++            results = Collector.collect(evaluator, root);
++        }
++
++        return results;
++    }
++    
++    private static boolean isStructuralEvaluator(Evaluator eval) {
++        return eval instanceof Evaluator.IsFirstChild || 
++               eval instanceof Evaluator.IsLastChild ||
++               eval instanceof Evaluator.IsFirstOfType ||
++               eval instanceof Evaluator.IsLastOfType || 
++               eval instanceof Evaluator.IsOnlyChild || 
++               eval instanceof Evaluator.IsOnlyOfType ||
++               eval instanceof Evaluator.IsEmpty ||
++               eval instanceof Evaluator.IsRoot ||
++               eval instanceof Evaluator.IndexEvaluator ||
++               eval instanceof Evaluator.CssNthEvaluator;
++    }
++
++    private static java.util.List<org.jsoup.nodes.PseudoTextElement> filterWithStructuralEvaluators(
++            java.util.List<org.jsoup.nodes.PseudoTextElement> pseudoElements,
++            java.util.List<Evaluator> structuralEvaluators,
++            Element root) {
++        
++        java.util.List<org.jsoup.nodes.PseudoTextElement> result = new java.util.ArrayList<>();
++        
++        for (int i = 0; i < pseudoElements.size(); i++) {
++            org.jsoup.nodes.PseudoTextElement pte = pseudoElements.get(i);
++            boolean matchesAll = true;
++            
++            for (Evaluator structEval : structuralEvaluators) {
++                boolean evalMatch = false;
++                
++                // Handle structural evaluators by their logical meaning for pseudo elements
++                if (structEval instanceof Evaluator.IsFirstChild) {
++                    evalMatch = (i == 0); // First in our list is first child
++                } else if (structEval instanceof Evaluator.IsLastChild) {
++                    evalMatch = (i == pseudoElements.size() - 1); // Last in our list is last child
++                } else if (structEval instanceof Evaluator.IndexEquals) {
++                    Evaluator.IndexEquals idxEval = (Evaluator.IndexEquals) structEval;
++                    evalMatch = (i == idxEval.index);
++                } else if (structEval instanceof Evaluator.IndexGreaterThan) {
++                    Evaluator.IndexGreaterThan idxEval = (Evaluator.IndexGreaterThan) structEval;
++                    evalMatch = (i > idxEval.index);
++                } else if (structEval instanceof Evaluator.IndexLessThan) {
++                    Evaluator.IndexLessThan idxEval = (Evaluator.IndexLessThan) structEval;
++                    evalMatch = (i < idxEval.index);
++                } else {
++                    // For other structural evaluators, use the standard match (though may not work for pseudo elements)
++                    evalMatch = structEval.matches(root, pte);
++                }
++                
++                if (!evalMatch) {
++                    matchesAll = false;
++                    break;
++                }
++            }
++            
++            if (matchesAll) {
++                result.add(pte);
++            }
++        }
++        
++        return result;
++    }
++
+ }

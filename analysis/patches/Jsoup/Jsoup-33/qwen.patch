@@ -1,0 +1,13 @@
+diff --git a/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java b/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java
+index 975411ba..7ed05595 100644
+--- a/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java
++++ b/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java
+@@ -555,7 +555,7 @@ class HtmlTreeBuilder extends TreeBuilder {
+                 "blockquote", "body", "br", "button", "caption", "center", "col", "colgroup", "command", "dd",
+                 "details", "dir", "div", "dl", "dt", "embed", "fieldset", "figcaption", "figure", "footer", "form",
+                 "frame", "frameset", "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "hr", "html",
+-                "iframe", "img", "input", "isindex", "li", "link", "listing", "marquee", "menu", "meta", "nav",
++                "iframe", "img", "input", "isindex", "li", "link", "listing", "main", "marquee", "menu", "meta", "nav",
+                 "noembed", "noframes", "noscript", "object", "ol", "p", "param", "plaintext", "pre", "script",
+                 "section", "select", "style", "summary", "table", "tbody", "td", "textarea", "tfoot", "th", "thead",
+                 "title", "tr", "ul", "wbr", "xmp");

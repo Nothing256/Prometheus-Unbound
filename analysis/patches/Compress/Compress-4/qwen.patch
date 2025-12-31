@@ -1,0 +1,46 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveOutputStream.java b/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveOutputStream.java
+index 3641ab69..d4923977 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveOutputStream.java
++++ b/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveOutputStream.java
+@@ -354,14 +354,30 @@ public class CpioArchiveOutputStream extends ArchiveOutputStream implements
+ 
+     private void writeAsciiLong(final long number, final int length,
+             final int radix) throws IOException {
++        // Calculate max value for the given length and radix to prevent overflow issues
++        long maxValue = 0;
++        for (int i = 0; i < length; i++) {
++            if (radix == 16) {
++                maxValue = maxValue * 16 + 15;  // F in hex
++            } else if (radix == 8) {
++                maxValue = maxValue * 8 + 7;    // 7 in octal
++            } else { // radix == 10
++                maxValue = maxValue * 10 + 9;   // 9 in decimal
++            }
++        }
++
++        // If the number exceeds the field's capacity, use the maximum value
++        // This prevents the problematic truncation behavior that can corrupt archives
++        long valueToUse = (number > maxValue) ? maxValue : number;
++
+         StringBuffer tmp = new StringBuffer();
+         String tmpStr;
+         if (radix == 16) {
+-            tmp.append(Long.toHexString(number));
++            tmp.append(Long.toHexString(valueToUse));
+         } else if (radix == 8) {
+-            tmp.append(Long.toOctalString(number));
++            tmp.append(Long.toOctalString(valueToUse));
+         } else {
+-            tmp.append(Long.toString(number));
++            tmp.append(Long.toString(valueToUse));
+         }
+ 
+         if (tmp.length() <= length) {
+@@ -371,6 +387,7 @@ public class CpioArchiveOutputStream extends ArchiveOutputStream implements
+             }
+             tmpStr = tmp.toString();
+         } else {
++            // This shouldn't happen with our value clamping, but safeguard
+             tmpStr = tmp.substring(tmp.length() - length);
+         }
+         out.write(tmpStr.getBytes()); // TODO is it correct to use the default charset here?

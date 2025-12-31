@@ -1,0 +1,12 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/JavaType.java b/src/main/java/com/fasterxml/jackson/databind/JavaType.java
+index c3d85c947..7de135ee0 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/JavaType.java
++++ b/src/main/java/com/fasterxml/jackson/databind/JavaType.java
+@@ -334,7 +334,6 @@ public abstract class JavaType
+     @Override
+     public String containedTypeName(int index) { return null; }
+ 
+-    @Override
+     public abstract Class<?> getParameterSource();
+     
+     /*

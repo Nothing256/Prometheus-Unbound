@@ -1,0 +1,48 @@
+--- a/source/org/jfree/data/statistics/DefaultBoxAndWhiskerCategoryDataset.java
++++ b/source/org/jfree/data/statistics/DefaultBoxAndWhiskerCategoryDataset.java
+@@ -740,12 +740,49 @@
+      */
+     private void updateBounds() {
+         this.minimumRangeValue = Double.NaN;
+-        this.maximumRangeValue = Double.NaN;
++        this.minimumRangeValueRow = -1;
++        this.minimumRangeValueColumn = -1;
++        this.maximumRangeValue = Double.NaN;
++        this.maximumRangeValueRow = -1;
++        this.maximumRangeValueColumn = -1;
++        
++        int rowCount = this.data.getRowCount();
++        int columnCount = this.data.getColumnCount();
++        
++        for (int r = 0; r < rowCount; r++) {
++            for (int c = 0; c < columnCount; c++) {
++                BoxAndWhiskerItem item = (BoxAndWhiskerItem) this.data.getObject(r, c);
++                if (item != null) {
++                    Number minOutlier = item.getMinOutlier();
++                    Number maxOutlier = item.getMaxOutlier();
++                    
++                    if (minOutlier != null) {
++                        double minval = minOutlier.doubleValue();
++                        if (Double.isNaN(this.minimumRangeValue) || minval < this.minimumRangeValue) {
++                            this.minimumRangeValue = minval;
++                            this.minimumRangeValueRow = r;
++                            this.minimumRangeValueColumn = c;
++                        }
++                    }
++                    
++                    if (maxOutlier != null) {
++                        double maxval = maxOutlier.doubleValue();
++                        if (Double.isNaN(this.maximumRangeValue) || maxval > this.maximumRangeValue) {
++                            this.maximumRangeValue = maxval;
++                            this.maximumRangeValueRow = r;
++                            this.maximumRangeValueColumn = c;
++                        }
++                    }
++                }
++            }
++        }
++        
++        this.rangeBounds = new Range(this.minimumRangeValue, this.maximumRangeValue);
+     }
+ 
+     /**

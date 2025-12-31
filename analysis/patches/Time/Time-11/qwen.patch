@@ -1,0 +1,14 @@
+diff --git a/src/main/java/org/joda/time/tz/ZoneInfoCompiler.java b/src/main/java/org/joda/time/tz/ZoneInfoCompiler.java
+index 6efe0716..eecf3724 100644
+--- a/src/main/java/org/joda/time/tz/ZoneInfoCompiler.java
++++ b/src/main/java/org/joda/time/tz/ZoneInfoCompiler.java
+@@ -75,7 +75,8 @@ public class ZoneInfoCompiler {
+      * @return true to log verbosely
+      */
+     public static boolean verbose() {
+-        return cVerbose.get();
++        Boolean value = cVerbose.get();
++        return value != null ? value.booleanValue() : false;
+     }
+ 
+     //-----------------------------------------------------------------------

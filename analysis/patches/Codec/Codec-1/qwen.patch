@@ -1,0 +1,22 @@
+diff --git a/src/java/org/apache/commons/codec/language/Caverphone.java b/src/java/org/apache/commons/codec/language/Caverphone.java
+index 07122953..e64f426a 100644
+--- a/src/java/org/apache/commons/codec/language/Caverphone.java
++++ b/src/java/org/apache/commons/codec/language/Caverphone.java
+@@ -17,6 +17,8 @@
+ 
+ package org.apache.commons.codec.language;
+ 
++import java.util.Locale;
++
+ import org.apache.commons.codec.EncoderException;
+ import org.apache.commons.codec.StringEncoder;
+ 
+@@ -56,7 +58,7 @@ public class Caverphone implements StringEncoder {
+         }
+ 
+         // 1. Convert to lowercase
+-        txt = txt.toLowerCase();
++        txt = txt.toLowerCase(Locale.ENGLISH);
+ 
+         // 2. Remove anything not A-Z
+         txt = txt.replaceAll("[^a-z]", "");

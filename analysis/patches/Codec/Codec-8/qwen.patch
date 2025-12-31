@@ -1,0 +1,47 @@
+diff --git a/src/java/org/apache/commons/codec/binary/Base64InputStream.java b/src/java/org/apache/commons/codec/binary/Base64InputStream.java
+index a706702f..aef1b160 100644
+--- a/src/java/org/apache/commons/codec/binary/Base64InputStream.java
++++ b/src/java/org/apache/commons/codec/binary/Base64InputStream.java
+@@ -166,16 +166,35 @@ public class Base64InputStream extends FilterInputStream {
+                 if (!base64.hasData()) {
+                     byte[] buf = new byte[doEncode ? 4096 : 8192];
+                     int c = in.read(buf);
+-                    if (c > 0 && b.length == len) {
+-                        base64.setInitialBuffer(b, offset, len);
+-                    }
+-                    if (doEncode) {
+-                        base64.encode(buf, 0, c);
++                    if (c == -1) {
++                        // End of stream reached, signal EOF to get any final data
++                        if (doEncode) {
++                            base64.encode(buf, 0, -1);
++                        } else {
++                            base64.decode(buf, 0, -1);
++                        }
++                        // Try to get any remaining data after EOF
++                        readLen = base64.readResults(b, offset, len);
++                        if (readLen <= 0) {
++                            // No more data available after processing EOF, return -1
++                            return -1;
++                        } else {
++                            // We have data after processing EOF, return it (exit while loop naturally)
++                        }
+                     } else {
+-                        base64.decode(buf, 0, c);
++                        if (c > 0 && b.length == len) {
++                            base64.setInitialBuffer(b, offset, len);
++                        }
++                        if (doEncode) {
++                            base64.encode(buf, 0, c);
++                        } else {
++                            base64.decode(buf, 0, c);
++                        }
+                     }
++                } else {
++                    // Base64 has data, but readResults returned 0, just try again
++                    readLen = base64.readResults(b, offset, len);
+                 }
+-                readLen = base64.readResults(b, offset, len);
+             }
+             return readLen;
+         }

@@ -1,0 +1,52 @@
+diff --git a/src/main/java/org/apache/commons/math3/stat/inference/MannWhitneyUTest.java b/src/main/java/org/apache/commons/math3/stat/inference/MannWhitneyUTest.java
+index ce694ce8f..34d3ca5f6 100644
+--- a/src/main/java/org/apache/commons/math3/stat/inference/MannWhitneyUTest.java
++++ b/src/main/java/org/apache/commons/math3/stat/inference/MannWhitneyUTest.java
+@@ -156,7 +156,7 @@ public class MannWhitneyUTest {
+     }
+ 
+     /**
+-     * @param Umin smallest Mann-Whitney U value
++     * @param uValue Mann-Whitney U value (either U1 or U2)
+      * @param n1 number of subjects in first sample
+      * @param n2 number of subjects in second sample
+      * @return two-sided asymptotic p-value
+@@ -165,7 +165,7 @@ public class MannWhitneyUTest {
+      * @throws MaxCountExceededException if the maximum number of
+      * iterations is exceeded
+      */
+-    private double calculateAsymptoticPValue(final double Umin,
++    private double calculateAsymptoticPValue(final double uValue,
+                                              final int n1,
+                                              final int n2)
+         throws ConvergenceException, MaxCountExceededException {
+@@ -176,11 +176,16 @@ public class MannWhitneyUTest {
+         final double EU = n1n2prod / 2.0;
+         final double VarU = n1n2prod * (n1 + n2 + 1) / 12.0;
+ 
+-        final double z = (Umin - EU) / FastMath.sqrt(VarU);
++        // Calculate z-score and use absolute value to handle both tails properly
++        final double z = (uValue - EU) / FastMath.sqrt(VarU);
++
++        // For two-tailed test, use the absolute deviation from expected value
++        final double absZ = FastMath.abs(z);
+ 
+         final NormalDistribution standardNormal = new NormalDistribution(0, 1);
+ 
+-        return 2 * standardNormal.cumulativeProbability(z);
++        // For two-tailed test using the absolute deviation
++        return 2 * (1 - standardNormal.cumulativeProbability(absZ));
+     }
+ 
+     /**
+@@ -222,10 +227,6 @@ public class MannWhitneyUTest {
+         ensureDataConformance(x, y);
+ 
+         final double Umax = mannWhitneyU(x, y);
+-
+-        /*
+-         * It can be shown that U1 + U2 = n1 * n2
+-         */
+         final double Umin = x.length * y.length - Umax;
+ 
+         return calculateAsymptoticPValue(Umin, x.length, y.length);

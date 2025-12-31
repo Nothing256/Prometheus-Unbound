@@ -1,0 +1,16 @@
+diff --git a/src/main/java/org/jsoup/select/CombiningEvaluator.java b/src/main/java/org/jsoup/select/CombiningEvaluator.java
+index 4b0c9f2..2d3d5e6 100644
+--- a/src/main/java/org/jsoup/select/CombiningEvaluator.java
++++ b/src/main/java/org/jsoup/select/CombiningEvaluator.java
+@@ -57,10 +57,8 @@ abstract class CombiningEvaluator extends Evaluator {
+          */
+         Or(Collection<Evaluator> evaluators) {
+             super();
+-            if (evaluators.size() > 1)
+-                this.evaluators.add(new And(evaluators));
+-            else // 0 or 1
+-                this.evaluators.addAll(evaluators);
++            // For proper handling of comma-separated selectors (especially with commas in brackets/parentheses),
++            // treat each evaluator as a separate OR term
++            this.evaluators.addAll(evaluators);
+         }

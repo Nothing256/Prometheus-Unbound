@@ -1,0 +1,24 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveInputStream.java b/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveInputStream.java
+index dd845b83..9f4c7b99 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveInputStream.java
++++ b/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveInputStream.java
+@@ -795,11 +795,15 @@ private void readDataDescriptor() throws IOException {
+      * DEFLATED or ENHANCED_DEFLATED.
+      */
+     private boolean supportsDataDescriptorFor(final ZipArchiveEntry entry) {
+-        return !entry.getGeneralPurposeBit().usesDataDescriptor()
++        // If size is unknown, we can only handle specific methods that properly support data descriptors
++        if (entry.getSize() == ArchiveEntry.SIZE_UNKNOWN) {
++            return (allowStoredEntriesWithDataDescriptor && entry.getMethod() == ZipEntry.STORED)
++                    || entry.getMethod() == ZipEntry.DEFLATED
++                    || entry.getMethod() == ZipMethod.ENHANCED_DEFLATED.getCode();
++        }
+ 
+-                || (allowStoredEntriesWithDataDescriptor && entry.getMethod() == ZipEntry.STORED)
+-                || entry.getMethod() == ZipEntry.DEFLATED
+-                || entry.getMethod() == ZipMethod.ENHANCED_DEFLATED.getCode();
++        // If size is known, we can handle it regardless of data descriptor usage
++        return true;
+     }
+ 
+     /**

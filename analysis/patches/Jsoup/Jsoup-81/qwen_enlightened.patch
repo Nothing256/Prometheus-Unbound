@@ -1,0 +1,88 @@
+diff --git a/src/main/java/org/jsoup/helper/DataUtil.java b/src/main/java/org/jsoup/helper/DataUtil.java
+index 0d52d389..1a0b3a9c 100644
+--- a/src/main/java/org/jsoup/helper/DataUtil.java
++++ b/src/main/java/org/jsoup/helper/DataUtil.java
+@@ -111,40 +111,55 @@ public final class DataUtil {
+         if (bomCharset != null)
+             charsetName = bomCharset.charset;
+ 
+-        if (charsetName == null) { // determine from meta. safe first parse as UTF-8
+-            String docData = Charset.forName(defaultCharset).decode(firstBytes).toString();
+-            doc = parser.parseInput(docData, baseUri);
++        if (charsetName == null) { // determine from meta and xml declaration. safe first parse as UTF-8
++            // First, check for XML declaration in raw bytes before doing the initial parse
++            String foundCharset = null;
+ 
+-            // look for <meta http-equiv="Content-Type" content="text/html;charset=gb2312"> or HTML5 <meta charset="gb2312">
+-            Elements metaElements = doc.select("meta[http-equiv=content-type], meta[charset]");
+-            String foundCharset = null; // if not found, will keep utf-8 as best attempt
+-            for (Element meta : metaElements) {
+-                if (meta.hasAttr("http-equiv"))
+-                    foundCharset = getCharsetFromContentType(meta.attr("content"));
+-                if (foundCharset == null && meta.hasAttr("charset"))
+-                    foundCharset = meta.attr("charset");
+-                if (foundCharset != null)
+-                    break;
++            // Check if the first bytes contain an XML declaration that specifies encoding
++            // Look for <?xml declaration with encoding attribute in the raw bytes
++            // We need to be careful - to find the encoding we need to at least partially parse the raw bytes as text
++            // Since we don't know the encoding yet, we'll try to detect the XML declaration in a way that works
++            // for common encodings by checking for the "<?xml" sequence in the raw bytes
++            String rawBufferStr = Charset.forName(defaultCharset).decode(firstBytes).toString();
++            // Look for XML declaration pattern at the beginning
++            Pattern xmlDeclarationPattern = Pattern.compile("^<\\?xml[^>]*encoding\\s*=\\s*[\"']([^\"']*)[\"']", Pattern.CASE_INSENSITIVE);
++            Matcher xmlMatcher = xmlDeclarationPattern.matcher(rawBufferStr);
++            if (xmlMatcher.find()) {
++                String xmlEncoding = xmlMatcher.group(1);
++                foundCharset = validateCharset(xmlEncoding);
+             }
+ 
+-            // look for <?xml encoding='ISO-8859-1'?>
+-            if (foundCharset == null && doc.childNodeSize() > 0) {
+-                Node first = doc.childNode(0);
+-                XmlDeclaration decl = null;
+-                if (first instanceof XmlDeclaration)
+-                    decl = (XmlDeclaration) first;
+-                if (decl != null) {
+-                    if (decl.name().equalsIgnoreCase("xml"))
+-                        foundCharset = decl.attr("encoding");
+-                }
+-            }
+-            foundCharset = validateCharset(foundCharset);
+-            if (foundCharset != null && !foundCharset.equalsIgnoreCase(defaultCharset)) { // need to re-decode. (case insensitive check here to match how validate works)
++            if (foundCharset != null && !foundCharset.equalsIgnoreCase(defaultCharset)) {
++                // Found a different encoding in XML declaration, re-decode with this charset
+                 foundCharset = foundCharset.trim().replaceAll("[\"']", "");
+                 charsetName = foundCharset;
+                 doc = null;
+-            } else if (!fullyRead) {
+-                doc = null;
++            } else {
++                // No XML encoding found or same as default, proceed with initial UTF-8 parse to look for meta tags
++                String docData = Charset.forName(defaultCharset).decode(firstBytes).toString();
++                doc = parser.parseInput(docData, baseUri);
++
++                // look for <meta http-equiv="Content-Type" content="text/html;charset=gb2312"> or HTML5 <meta charset="gb2312">
++                Elements metaElements = doc.select("meta[http-equiv=content-type], meta[charset]");
++                for (Element meta : metaElements) {
++                    if (meta.hasAttr("http-equiv"))
++                        foundCharset = getCharsetFromContentType(meta.attr("content"));
++                    if (foundCharset == null && meta.hasAttr("charset"))
++                        foundCharset = meta.attr("charset");
++                    if (foundCharset != null)
++                        break;
++                }
++
++                // look for <?xml encoding='ISO-8859-1'?> - XML declarations in HTML parser become comments, so won't be found here
++                // This case is already handled by checking the raw bytes above
++                foundCharset = validateCharset(foundCharset);
++                if (foundCharset != null && !foundCharset.equalsIgnoreCase(defaultCharset)) { // need to re-decode. (case insensitive check here to match how validate works)
++                    foundCharset = foundCharset.trim().replaceAll("[\"']", "");
++                    charsetName = foundCharset;
++                    doc = null;
++                } else if (!fullyRead) {
++                    doc = null;
++                }
+             }
+         } else { // specified by content type header (or by user on file load)
+             Validate.notEmpty(charsetName, "Must set charset arg to character set of file to parse. Set to null to attempt to detect from HTML");

@@ -1,0 +1,35 @@
+diff --git a/src/java/org/apache/commons/cli/HelpFormatter.java b/src/java/org/apache/commons/cli/HelpFormatter.java
+index 9fa8ebf..59b1c68 100644
+--- a/src/java/org/apache/commons/cli/HelpFormatter.java
++++ b/src/java/org/apache/commons/cli/HelpFormatter.java
+@@ -815,7 +815,7 @@ public class HelpFormatter
+         }
+         sb.append(rtrim(text.substring(0, pos))).append(defaultNewLine);
+ 
+-        // all following lines must be padded with nextLineTabStop space 
++        // all following lines must be padded with nextLineTabStop space
+         // characters
+         final String padding = createPadding(nextLineTabStop);
+ 
+@@ -830,10 +830,18 @@ public class HelpFormatter
+                 sb.append(text);
+ 
+                 return sb;
+-            } else
+-            if (pos == lastPos)
++            }
++            // Originally threw an exception - now we force break to avoid infinite loop
++            else if (pos == lastPos)
+             {
+-                throw new RuntimeException("Text too long for line - throwing exception to avoid infinite loop [CLI-162]: " + text);
++                // If we cannot find a suitable wrap position, force break the word
++                // at the line width to avoid infinite loop
++                pos = Math.min(width, text.length());
++                // If pos is still same as lastPos and > 0, we're genuinely stuck, so
++                // just advance by 1 position to ensure progress
++                if (pos == 0) {
++                    pos = Math.min(1, text.length());
++                }
+             }
+ 
+             sb.append(rtrim(text.substring(0, pos))).append(defaultNewLine);

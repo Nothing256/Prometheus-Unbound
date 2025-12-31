@@ -1,0 +1,35 @@
+diff --git a/src/main/java/org/apache/commons/math/optimization/general/LevenbergMarquardtOptimizer.java b/src/main/java/org/apache/commons/math/optimization/general/LevenbergMarquardtOptimizer.java
+index d1b36ea3a..087a641e0 100644
+--- a/src/main/java/org/apache/commons/math/optimization/general/LevenbergMarquardtOptimizer.java
++++ b/src/main/java/org/apache/commons/math/optimization/general/LevenbergMarquardtOptimizer.java
+@@ -410,14 +410,13 @@ public class LevenbergMarquardtOptimizer extends AbstractLeastSquaresOptimizer {
+                 }
+ 
+                 // tests for convergence.
+-                    // we use the vectorial convergence checker
+-                    // we use the Levenberg-Marquardt specific convergence parameters
+-                    if (((Math.abs(actRed) <= costRelativeTolerance) &&
+-                         (preRed <= costRelativeTolerance) &&
+-                         (ratio <= 2.0)) ||
+-                        (delta <= parRelativeTolerance * xNorm)) {
+-                        return new VectorialPointValuePair(point, objective);
+-                    }
++                // we use the Levenberg-Marquardt specific convergence parameters
++                if (((Math.abs(actRed) <= costRelativeTolerance) &&
++                     (preRed <= costRelativeTolerance) &&
++                     (ratio <= 2.0)) ||
++                    (delta <= parRelativeTolerance * xNorm)) {
++                    return new VectorialPointValuePair(point, objective);
++                }
+ 
+                 // tests for termination and stringent tolerances
+                 // (2.2204e-16 is the machine epsilon for IEEE754)
+@@ -732,7 +731,7 @@ public class LevenbergMarquardtOptimizer extends AbstractLeastSquaresOptimizer {
+         }
+ 
+         // permute the components of z back to components of lmDir
+-        for (int j = 0; j < lmDir.length; ++j) {
++        for (int j = 0; j < solvedCols; ++j) {
+             lmDir[permutation[j]] = work[j];
+         }
+ 

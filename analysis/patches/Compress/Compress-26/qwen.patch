@@ -1,0 +1,32 @@
+diff --git a/src/main/java/org/apache/commons/compress/utils/IOUtils.java b/src/main/java/org/apache/commons/compress/utils/IOUtils.java
+index 686d75ad..38c286dd 100644
+--- a/src/main/java/org/apache/commons/compress/utils/IOUtils.java
++++ b/src/main/java/org/apache/commons/compress/utils/IOUtils.java
+@@ -92,15 +92,24 @@ public final class IOUtils {
+      * @throws IOException
+      */
+     public static long skip(InputStream input, long numToSkip) throws IOException {
++        final byte[] buffer = new byte[(int) Math.min(numToSkip, SKIP_BUF_SIZE)];
+         long available = numToSkip;
+         while (numToSkip > 0) {
+             long skipped = input.skip(numToSkip);
+             if (skipped == 0) {
+-                break;
++                // Fall back to read if skip returns 0
++                int readCount = input.read(buffer, 0, (int) Math.min(buffer.length, numToSkip));
++                if (readCount == -1) {
++                    // Reached end of stream
++                    break;
++                }
++                // Successfully read and skipped readCount bytes
++                numToSkip -= readCount;
++            } else {
++                numToSkip -= skipped;
+             }
+-            numToSkip -= skipped;
+         }
+-            
++
+         return available - numToSkip;
+     }
+ 

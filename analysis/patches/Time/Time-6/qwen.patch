@@ -1,0 +1,45 @@
+diff --git a/src/main/java/org/joda/time/chrono/GJChronology.java b/src/main/java/org/joda/time/chrono/GJChronology.java
+index b970403b..cb49d8ad 100644
+--- a/src/main/java/org/joda/time/chrono/GJChronology.java
++++ b/src/main/java/org/joda/time/chrono/GJChronology.java
+@@ -186,7 +186,7 @@ public final class GJChronology extends AssembledChronology {
+             DateTimeZone zone,
+             ReadableInstant gregorianCutover,
+             int minDaysInFirstWeek) {
+-        
++
+         zone = DateTimeUtils.getZone(zone);
+         Instant cutoverInstant;
+         if (gregorianCutover == null) {
+@@ -195,6 +195,22 @@ public final class GJChronology extends AssembledChronology {
+             cutoverInstant = gregorianCutover.toInstant();
+         }
+ 
++        // Check if a custom cutover is provided and if it occurs at or before year -1 in the Julian calendar
++        // The Julian calendar does not have a year zero, so year -1 is followed by year 1
++        // If the cutover date is at or before year -1, the proleptic Gregorian introduces year 0
++        // which creates complications that should be avoided
++        if (gregorianCutover != null) {
++            JulianChronology julianChrono;
++            if (zone == DateTimeZone.UTC) {
++                julianChrono = JulianChronology.getInstance(zone, minDaysInFirstWeek);
++            } else {
++                julianChrono = JulianChronology.getInstance(DateTimeZone.UTC, minDaysInFirstWeek);
++            }
++            if (julianChrono.year().get(cutoverInstant.getMillis()) <= -1) {
++                throw new IllegalArgumentException("Cutover must occur after year -1 in Julian calendar");
++            }
++        }
++
+         GJChronology chrono;
+         synchronized (cCache) {
+             ArrayList<GJChronology> chronos = cCache.get(zone);
+@@ -206,7 +222,7 @@ public final class GJChronology extends AssembledChronology {
+                     chrono = chronos.get(i);
+                     if (minDaysInFirstWeek == chrono.getMinimumDaysInFirstWeek() &&
+                         cutoverInstant.equals(chrono.getGregorianCutover())) {
+-                        
++
+                         return chrono;
+                     }
+                 }

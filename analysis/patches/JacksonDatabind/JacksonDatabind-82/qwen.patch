@@ -1,0 +1,43 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializerFactory.java b/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializerFactory.java
+index 4b0434e41..bd0522d5c 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializerFactory.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializerFactory.java
+@@ -492,9 +492,35 @@ public class BeanDeserializerFactory
+             boolean ignoreAny = ignorals.getIgnoreUnknown();
+             builder.setIgnoreUnknownProperties(ignoreAny);
+             // Or explicit/implicit definitions?
+-            ignored = ignorals.getIgnored();
+-            for (String propName : ignored) {
+-                builder.addIgnorable(propName);
++            Set<String> allOrigIgnored = ignorals.getIgnored();
++
++            // Check if class has @JsonIgnoreProperties annotation with allowSetters=true
++            JsonIgnoreProperties.Value classAnnotation = ctxt.getAnnotationIntrospector()
++                .findPropertyIgnorals(beanDesc.getClassInfo());
++            boolean hasAllowSetters = (classAnnotation != null && classAnnotation.getAllowSetters());
++
++            if (hasAllowSetters) {
++                // If the class annotation has allowSetters=true, only add non-annotation properties as ignorable
++                Set<?> fromAnnotation = (classAnnotation != null) ?
++                    classAnnotation.getIgnored() : Collections.emptySet();
++
++                // Also update the ignored set to exclude properties from class annotation with allowSetters
++                Set<String> filteredIgnored = new HashSet<String>();
++
++                for (String propName : allOrigIgnored) {
++                    // Only add to ignorable if it's not from the class annotation that has allowSetters=true
++                    if (!fromAnnotation.contains(propName)) {
++                        builder.addIgnorable(propName);
++                        filteredIgnored.add(propName);
++                    }
++                }
++                ignored = filteredIgnored;
++            } else {
++                // Otherwise, add all ignored properties as ignorable
++                for (String propName : allOrigIgnored) {
++                    builder.addIgnorable(propName);
++                }
++                ignored = allOrigIgnored;
+             }
+         } else {
+             ignored = Collections.emptySet();

@@ -1,0 +1,38 @@
+diff --git a/src/main/java/org/apache/commons/math/optimization/univariate/MultiStartUnivariateRealOptimizer.java b/src/main/java/org/apache/commons/math/optimization/univariate/MultiStartUnivariateRealOptimizer.java
+index 1200544d7..b57c124c8 100644
+--- a/src/main/java/org/apache/commons/math/optimization/univariate/MultiStartUnivariateRealOptimizer.java
++++ b/src/main/java/org/apache/commons/math/optimization/univariate/MultiStartUnivariateRealOptimizer.java
+@@ -154,12 +154,21 @@ public class MultiStartUnivariateRealOptimizer<FUNC extends UnivariateRealFuncti
+         optima = new UnivariateRealPointValuePair[starts];
+         totalEvaluations = 0;
+ 
+-        // Multi-start loop.
++        // Store the original max evaluations to reset for each start
++        final int originalMaxEvaluations = optimizer.getMaxEvaluations();
++
++        // Multi-start loop: Divide interval into equal segments for systematic search
++        final double intervalLength = max - min;
++        final double segmentLength = intervalLength / starts;
++
+         for (int i = 0; i < starts; ++i) {
++            // Reset the optimizer to its original max evaluations for each start
++            optimizer.setMaxEvaluations(originalMaxEvaluations);
++
+             try {
+-                final double bound1 = (i == 0) ? min : min + generator.nextDouble() * (max - min);
+-                final double bound2 = (i == 0) ? max : min + generator.nextDouble() * (max - min);
+-                optima[i] = optimizer.optimize(f, goal, FastMath.min(bound1, bound2), FastMath.max(bound1, bound2));
++                final double segmentMin = min + i * segmentLength;
++                final double segmentMax = (i == starts - 1) ? max : min + (i + 1) * segmentLength; // Ensure last segment ends at max
++                optima[i] = optimizer.optimize(f, goal, segmentMin, segmentMax);
+             } catch (FunctionEvaluationException fee) {
+                 optima[i] = null;
+             } catch (ConvergenceException ce) {
+@@ -167,7 +176,6 @@ public class MultiStartUnivariateRealOptimizer<FUNC extends UnivariateRealFuncti
+             }
+ 
+             final int usedEvaluations = optimizer.getEvaluations();
+-            optimizer.setMaxEvaluations(optimizer.getMaxEvaluations() - usedEvaluations);
+             totalEvaluations += usedEvaluations;
+         }
+ 

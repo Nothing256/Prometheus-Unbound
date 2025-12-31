@@ -1,0 +1,45 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveInputStream.java b/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveInputStream.java
+index 38ae9568..3cf7cf8b 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveInputStream.java
++++ b/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveInputStream.java
+@@ -784,7 +784,7 @@ public class ZipArchiveInputStream extends ArchiveInputStream {
+         for (int i = 0; !done && i < lastRead - 4; i++) {
+             if (buf.array()[i] == LFH[0] && buf.array()[i + 1] == LFH[1]) {
+                 if ((buf.array()[i + 2] == LFH[2] && buf.array()[i + 3] == LFH[3])
+-                    || (buf.array()[i] == CFH[2] && buf.array()[i + 3] == CFH[3])) {
++                    || (buf.array()[i + 2] == CFH[2] && buf.array()[i + 3] == CFH[3])) {
+                     // found a LFH or CFH:
+                     readTooMuch = offset + lastRead - i - expectedDDLen;
+                     done = true;
+@@ -798,10 +798,12 @@ public class ZipArchiveInputStream extends ArchiveInputStream {
+                     // * push back bytes read in excess as well as the data
+                     //   descriptor
+                     // * copy the remaining bytes to cache
+-                    // * read data descriptor
+                     pushback(buf.array(), offset + lastRead - readTooMuch, readTooMuch);
+                     bos.write(buf.array(), 0, i);
+-                    readDataDescriptor();
++                    // Only read data descriptor if we found a DD signature
++                    if (buf.array()[i + 2] == DD[2] && buf.array()[i + 3] == DD[3]) {
++                        readDataDescriptor();
++                    }
+                 }
+             }
+         }
+@@ -817,12 +819,12 @@ public class ZipArchiveInputStream extends ArchiveInputStream {
+      * <p>Data descriptor plus incomplete signature (3 bytes in the
+      * worst case) can be 20 bytes max.</p>
+      */
+-    private int cacheBytesRead(ByteArrayOutputStream bos, int offset, int lastRead, int expecteDDLen) {
+-        final int cacheable = offset + lastRead - expecteDDLen - 3;
++    private int cacheBytesRead(ByteArrayOutputStream bos, int offset, int lastRead, int expectedDDLen) {
++        final int cacheable = offset + lastRead - expectedDDLen - 3;
+         if (cacheable > 0) {
+             bos.write(buf.array(), 0, cacheable);
+-            System.arraycopy(buf.array(), cacheable, buf.array(), 0, expecteDDLen + 3);
+-            offset = expecteDDLen + 3;
++            System.arraycopy(buf.array(), cacheable, buf.array(), 0, expectedDDLen + 3);
++            offset = expectedDDLen + 3;
+         } else {
+             offset += lastRead;
+         }

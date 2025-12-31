@@ -1,0 +1,32 @@
+--- a/src/org/mockito/internal/creation/instance/ConstructorInstantiator.java
++++ b/src/org/mockito/internal/creation/instance/ConstructorInstantiator.java
+@@ -18,13 +18,31 @@
+     private <T> T withOuterClass(Class<T> cls) {
+         try {
+             //this is kind of overengineered because we don't need to support more params
+             //however, I know we will be needing it :)
+-            Constructor<T> c = cls.getDeclaredConstructor(outerClassInstance.getClass());
++            // For inner classes, the constructor expects the declaring class of the inner class
++            Class<?> expectedOuterClass = cls.getEnclosingClass();
++            if (expectedOuterClass == null) {
++                // If there's no enclosing class, fall back to the original behavior
++                expectedOuterClass = outerClassInstance.getClass();
++            }
++            Constructor<T> c = cls.getDeclaredConstructor(expectedOuterClass);
+             return c.newInstance(outerClassInstance);
++        } catch (Exception e) {
++            // If the exact enclosing class doesn't work, try to find a compatible constructor
++            // by iterating through the class hierarchy of outerClassInstance
++            try {
++                Constructor<T> c = cls.getDeclaredConstructor(outerClassInstance.getClass());
++                return c.newInstance(outerClassInstance);
++            } catch (Exception fallbackException) {
++                // Report the original exception
++                throw paramsException(cls, e);
++            }
+         } catch (Exception e) {
+             throw paramsException(cls, e);
+         }
+     }
+ 
+-

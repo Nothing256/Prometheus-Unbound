@@ -1,0 +1,107 @@
+--- original_version.java	2025-12-20 17:11:05
++++ fixed_version.java	2025-12-20 17:11:05
+@@ -87,11 +87,28 @@
+         TypeVariable<?> fieldTypeVariable = (TypeVariable<?>) typeToEvaluate;
+         TypeVariable<?>[] classTypeVariables = rawParentClass.getTypeParameters();
+         ParameterizedType objParameterizedType = (ParameterizedType) parentType;
+-        int indexOfActualTypeArgument = getIndex(classTypeVariables, fieldTypeVariable);
+-        Type[] actualTypeArguments = objParameterizedType.getActualTypeArguments();
+-        return actualTypeArguments[indexOfActualTypeArgument];
+ 
+-
++        // Check if the type variable is defined in this class
++        int indexOfActualTypeArgument = getIndexSafe(classTypeVariables, fieldTypeVariable);
++        if (indexOfActualTypeArgument >= 0) {
++            Type[] actualTypeArguments = objParameterizedType.getActualTypeArguments();
++            return actualTypeArguments[indexOfActualTypeArgument];
++        } else {
++            // The type variable is not defined in this class, it might be defined in a superclass
++            // We need to resolve it from the generic superclass relationship
++            Type resolvedType = resolveTypeVariableFromSuperclass(fieldTypeVariable, rawParentClass);
++            if (resolvedType != null) {
++                return resolvedType;
++            }
++        }
++      } else {
++        // parentType is not a ParameterizedType (e.g., it's just Bar.class),
++        // but we still might need to resolve type variables from superclass relationships
++        TypeVariable<?> fieldTypeVariable = (TypeVariable<?>) typeToEvaluate;
++        Type resolvedType = resolveTypeVariableFromSuperclass(fieldTypeVariable, rawParentClass);
++        if (resolvedType != null) {
++            return resolvedType;
++        }
+       }
+ 
+       throw new UnsupportedOperationException("Expecting parameterized type, got " + parentType
+@@ -132,4 +149,71 @@
+     throw new IllegalStateException(
+         "How can the type variable not be present in the class declaration!");
+   }
++
++  private static int getIndexSafe(TypeVariable<?>[] types, TypeVariable<?> type) {
++    for (int i = 0; i < types.length; ++i) {
++      if (type.equals(types[i])) {
++        return i;
++      }
++    }
++    return -1; // Not found
++  }
++
++  private static Type resolveTypeVariableFromSuperclass(TypeVariable<?> typeVariable, Class<?> clazz) {
++    // Walk up the class hierarchy to find where this type variable is defined and its mapping
++    Class<?> currentClass = clazz;
++
++    while (currentClass != null && currentClass != Object.class) {
++      Type genericSuperclass = currentClass.getGenericSuperclass();
++      if (genericSuperclass instanceof ParameterizedType) {
++        ParameterizedType paramSuperType = (ParameterizedType) genericSuperclass;
++        Class<?> superClass = (Class<?>) paramSuperType.getRawType();
++
++        // Check if the type variable is declared by this superclass
++        if (superClass.equals(typeVariable.getGenericDeclaration())) {
++          TypeVariable<?>[] superClassTypeVars = superClass.getTypeParameters();
++          int indexInSuper = getIndexSafe(superClassTypeVars, typeVariable);
++
++          if (indexInSuper != -1) {
++            Type[] superClassActualTypes = paramSuperType.getActualTypeArguments();
++            if (indexInSuper < superClassActualTypes.length) {
++              return superClassActualTypes[indexInSuper];
++            }
++          }
++        }
++      }
++
++      // Move to the superclass to continue search
++      currentClass = currentClass.getSuperclass();
++    }
++
++    // Also check interfaces
++    currentClass = clazz;
++    while (currentClass != null && currentClass != Object.class) {
++      Type[] genericInterfaces = currentClass.getGenericInterfaces();
++
++      for (Type genericInterface : genericInterfaces) {
++        if (genericInterface instanceof ParameterizedType) {
++          ParameterizedType paramInterfaceType = (ParameterizedType) genericInterface;
++          Class<?> interfaceClass = (Class<?>) paramInterfaceType.getRawType();
++
++          if (interfaceClass.equals(typeVariable.getGenericDeclaration())) {
++            TypeVariable<?>[] interfaceTypeVars = interfaceClass.getTypeParameters();
++            int indexInInterface = getIndexSafe(interfaceTypeVars, typeVariable);
++
++            if (indexInInterface != -1) {
++              Type[] interfaceActualTypes = paramInterfaceType.getActualTypeArguments();
++              if (indexInInterface < interfaceActualTypes.length) {
++                return interfaceActualTypes[indexInInterface];
++              }
++            }
++          }
++        }
++      }
++
++      currentClass = currentClass.getSuperclass();
++    }
++
++    return null; // Not found
++  }
+ }

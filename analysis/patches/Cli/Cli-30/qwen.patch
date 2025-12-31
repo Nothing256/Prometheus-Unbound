@@ -1,0 +1,84 @@
+--- a/src/main/java/org/apache/commons/cli/DefaultParser.java
++++ b/src/main/java/org/apache/commons/cli/DefaultParser.java
+@@ -154,19 +154,28 @@
+             if (!cmd.hasOption(option))
+             {
+                 Option opt = options.getOption(option);
+ 
+-            // if the option is part of a group, check if another option of the group has been selected
+-
+                 // get the value from the properties
+                 String value = properties.getProperty(option);
++
++                // Check if the option is part of a group and if another option from the same group
++                // is already present in the command line
++                OptionGroup group = options.getOptionGroup(opt);
++                if (group != null)
++                {
++                    // Check if any option from this group is already in the command line
++                    // If so, skip this property option to allow command line to take precedence
++                    boolean foundInCmdLine = false;
++                    java.util.Iterator it = group.getOptions().iterator();
++                    while (it.hasNext() && !foundInCmdLine)
++                    {
++                        Option groupOption = (Option) it.next();
++                        String optName = groupOption.getOpt();
++                        String longOptName = groupOption.getLongOpt();
++                        if ((optName != null && cmd.hasOption(optName)) || 
++                            (longOptName != null && cmd.hasOption(longOptName)))
++                        {
++                            foundInCmdLine = true;
++                        }
++                    }
++                    
++                    if (foundInCmdLine)
++                    {
++                        continue; // Skip this property option
++                    }
++                }
++
+                 if (opt.hasArg())
+                 {
+                     if (opt.getValues() == null || opt.getValues().length == 0)
+--- a/src/main/java/org/apache/commons/cli/Parser.java
++++ b/src/main/java/org/apache/commons/cli/Parser.java
+@@ -265,19 +265,28 @@
+             if (!cmd.hasOption(option))
+             {
+                 Option opt = getOptions().getOption(option);
+ 
+-            // if the option is part of a group, check if another option of the group has been selected
+-
+                 // get the value from the properties instance
+                 String value = properties.getProperty(option);
++
++                // Check if the option is part of a group and if another option from the same group
++                // is already present in the command line
++                OptionGroup group = getOptions().getOptionGroup(opt);
++                if (group != null)
++                {
++                    // Check if any option from this group is already in the command line
++                    // If so, skip this property option to allow command line to take precedence
++                    boolean foundInCmdLine = false;
++                    java.util.Iterator it = group.getOptions().iterator();
++                    while (it.hasNext() && !foundInCmdLine)
++                    {
++                        Option groupOption = (Option) it.next();
++                        String optName = groupOption.getOpt();
++                        String longOptName = groupOption.getLongOpt();
++                        if ((optName != null && cmd.hasOption(optName)) || 
++                            (longOptName != null && cmd.hasOption(longOptName)))
++                        {
++                            foundInCmdLine = true;
++                        }
++                    }
++                    
++                    if (foundInCmdLine)
++                    {
++                        continue; // Skip this property option
++                    }
++                }
++
+                 if (opt.hasArg())
+                 {
+                     if (opt.getValues() == null || opt.getValues().length == 0)

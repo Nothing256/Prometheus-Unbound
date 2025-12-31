@@ -1,0 +1,35 @@
+diff --git a/src/main/java/org/apache/commons/compress/utils/BitInputStream.java b/src/main/java/org/apache/commons/compress/utils/BitInputStream.java
+index 207c48d..a3b7c8f 100644
+--- a/src/main/java/org/apache/commons/compress/utils/BitInputStream.java
++++ b/src/main/java/org/apache/commons/compress/utils/BitInputStream.java
+@@ -84,7 +84,11 @@ public long readBits(final int count) throws IOException {
+         while (bitsCachedSize < count) {
+             final long nextByte = in.read();
+             if (nextByte < 0) {
+                 return nextByte;
+             }
++            // Prevent overflow when shifting nextByte in LITTLE_ENDIAN mode
++            if (byteOrder == ByteOrder.LITTLE_ENDIAN && bitsCachedSize > 55) {
++                break; // Avoid unsafe shifts that could lose bits
++            }
+             if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
+                 bitsCached |= (nextByte << bitsCachedSize);
+             } else {
+                 bitsCached <<= 8;
+                 bitsCached |= nextByte;
+             }
+             bitsCachedSize += 8;
+         }
+         // bitsCachedSize >= 57 and left-shifting it 8 bits would cause an overflow
+
+         final long bitsOut;
+         if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
+             bitsOut = (bitsCached & MASKS[count]);
+             bitsCached >>>= count;
+         } else {
+             bitsOut = (bitsCached >> (bitsCachedSize - count)) & MASKS[count];
+         }
+         bitsCachedSize -= count;
+         return bitsOut;
+     }
+ }

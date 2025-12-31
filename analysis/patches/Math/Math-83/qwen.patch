@@ -1,0 +1,47 @@
+diff --git a/src/main/java/org/apache/commons/math/optimization/linear/SimplexTableau.java b/src/main/java/org/apache/commons/math/optimization/linear/SimplexTableau.java
+index 0cf01af09..7c67665ab 100644
+--- a/src/main/java/org/apache/commons/math/optimization/linear/SimplexTableau.java
++++ b/src/main/java/org/apache/commons/math/optimization/linear/SimplexTableau.java
+@@ -154,7 +154,7 @@ class SimplexTableau implements Serializable {
+                     int row = getNumObjectiveFunctions() + i;
+ 
+                     // decision variable coefficients
+-                    copyArray(constraint.getCoefficients().getData(), matrix[row], 1);
++                    copyArray(constraint.getCoefficients().getData(), matrix[row], getNumObjectiveFunctions());
+ 
+                     // x-
+                     if (!restrictToNonNegative) {
+@@ -310,11 +310,21 @@ class SimplexTableau implements Serializable {
+         int width = getWidth() - numArtificialVariables - 1;
+         int height = getHeight() - 1;
+         double[][] matrix = new double[height][width];
++        int artificialStart = getArtificialVariableOffset();
+         for (int i = 0; i < height; i++) {
+-            for (int j = 0; j < width - 1; j++) {
+-                matrix[i][j] = getEntry(i + 1, j + 1);
+-            }
++            // Handle RHS column first to avoid interference with destination column index
+             matrix[i][width - 1] = getEntry(i + 1, getRhsOffset());
++
++            int destCol = 0;
++            for (int col = 1; col < getWidth(); col++) {
++                if (col == getRhsOffset()) {
++                    continue; // Skip RHS column in the main loop
++                }
++                if (col >= artificialStart && col < artificialStart + numArtificialVariables) {
++                    continue; // Skip artificial variable columns
++                }
++                matrix[i][destCol++] = getEntry(i + 1, col);
++            }
+         }
+         this.tableau = new Array2DRowRealMatrix(matrix);
+         this.numArtificialVariables = 0;
+@@ -328,7 +338,7 @@ class SimplexTableau implements Serializable {
+      */
+     private void copyArray(final double[] src, final double[] dest,
+                            final int destPos) {
+-        System.arraycopy(src, 0, dest, getNumObjectiveFunctions(), src.length); 
++        System.arraycopy(src, 0, dest, destPos, src.length);
+     }
+ 
+     /**

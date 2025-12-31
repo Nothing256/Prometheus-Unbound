@@ -1,0 +1,97 @@
+diff --git a/src/main/java/org/apache/commons/math/optimization/MultiStartUnivariateRealOptimizer.java b/src/main/java/org/apache/commons/math/optimization/MultiStartUnivariateRealOptimizer.java
+index d0dada317..a223a9b2e 100644
+--- a/src/main/java/org/apache/commons/math/optimization/MultiStartUnivariateRealOptimizer.java
++++ b/src/main/java/org/apache/commons/math/optimization/MultiStartUnivariateRealOptimizer.java
+@@ -251,6 +251,10 @@ public class MultiStartUnivariateRealOptimizer implements UnivariateRealOptimize
+             } catch (ConvergenceException ce) {
+                 optima[i]       = Double.NaN;
+                 optimaValues[i] = Double.NaN;
++            } catch (RuntimeException re) {
++                // Catch any runtime exceptions (e.g., from the function) and treat as failed optimization
++                optima[i]       = Double.NaN;
++                optimaValues[i] = Double.NaN;
+             }
+ 
+             totalIterations  += optimizer.getIterationCount();
+@@ -259,42 +263,52 @@ public class MultiStartUnivariateRealOptimizer implements UnivariateRealOptimize
+         }
+ 
+         // sort the optima from best to worst, followed by NaN elements
++        // Fixed to avoid ArrayIndexOutOfBoundsException
+         int lastNaN = optima.length;
+-        for (int i = 0; i < lastNaN; ++i) {
++        for (int i = 0; i < lastNaN; ) {  // Note: no increment in the for loop
+             if (Double.isNaN(optima[i])) {
+-                optima[i] = optima[--lastNaN];
+-                optima[lastNaN + 1] = Double.NaN;
+-                optimaValues[i] = optimaValues[--lastNaN];
+-                optimaValues[lastNaN + 1] = Double.NaN;
++                lastNaN--;
++                // Swap NaN element to the end section
++                optima[i] = optima[lastNaN];
++                optima[lastNaN] = Double.NaN;
++                optimaValues[i] = optimaValues[lastNaN];
++                optimaValues[lastNaN] = Double.NaN;
++                // Don't increment i, since we need to check the element we just swapped in
++            } else {
++                i++;  // Only increment if the current element is not NaN
+             }
+         }
+ 
+-        double currX = optima[0];
+-        double currY = optimaValues[0];
+-        for (int j = 1; j < lastNaN; ++j) {
+-            final double prevY = currY;
+-            currX = optima[j];
+-            currY = optimaValues[j];
+-            if ((goalType == GoalType.MAXIMIZE) ^ (currY < prevY)) {
+-                // the current element should be inserted closer to the beginning
+-                int i = j - 1;
+-                double mIX = optima[i];
+-                double mIY = optimaValues[i];
+-                while ((i >= 0) && ((goalType == GoalType.MAXIMIZE) ^ (currY < mIY))) {
+-                    optima[i + 1]       = mIX;
+-                    optimaValues[i + 1] = mIY;
+-                    if (i-- != 0) {
+-                        mIX = optima[i];
+-                        mIY = optimaValues[i];
+-                    } else {
+-                        mIX = Double.NaN;
+-                        mIY = Double.NaN;
+-                    }
+-                }
+-                optima[i + 1]       = currX;
+-                optimaValues[i + 1] = currY;
++        // Only sort if we have valid optima to sort
++        if (lastNaN > 0) {
++            double currX = optima[0];
++            double currY = optimaValues[0];
++            for (int j = 1; j < lastNaN; ++j) {
++                final double prevY = currY;
+                 currX = optima[j];
+                 currY = optimaValues[j];
++                if ((goalType == GoalType.MAXIMIZE) ^ (currY < prevY)) {
++                    // the current element should be inserted closer to the beginning
++                    int i = j - 1;
++                    double mIX = optima[i];
++                    double mIY = optimaValues[i];
++                    while ((i >= 0) && ((goalType == GoalType.MAXIMIZE) ^ (currY < mIY))) {
++                        optima[i + 1]       = mIX;
++                        optimaValues[i + 1] = mIY;
++                        i--;
++                        if (i >= 0) {
++                            mIX = optima[i];
++                            mIY = optimaValues[i];
++                        } else {
++                            mIX = Double.NaN;
++                            mIY = Double.NaN;
++                        }
++                    }
++                    optima[i + 1]       = currX;
++                    optimaValues[i + 1] = currY;
++                    currX = optima[j];
++                    currY = optimaValues[j];
++                }
+             }
+         }
+ 

@@ -1,0 +1,115 @@
+diff --git a/src/main/java/org/jsoup/nodes/Attributes.java b/src/main/java/org/jsoup/nodes/Attributes.java
+index a716abc4..7ad74fc0 100644
+--- a/src/main/java/org/jsoup/nodes/Attributes.java
++++ b/src/main/java/org/jsoup/nodes/Attributes.java
+@@ -3,6 +3,7 @@ package org.jsoup.nodes;
+ import org.jsoup.SerializationException;
+ import org.jsoup.helper.Validate;
+ import org.jsoup.internal.StringUtil;
++import org.jsoup.parser.ParseSettings;
+ 
+ import java.io.IOException;
+ import java.util.AbstractMap;
+@@ -174,6 +175,19 @@ public class Attributes implements Iterable<Attribute>, Cloneable {
+         return this;
+     }
+ 
++    /**
++     Set a new attribute only if not already present.
++     @param key case sensitive attribute key
++     @param value attribute value
++     @return these attributes, for chaining
++     */
++    public Attributes putIfNew(String key, String value) {
++        int i = indexOfKey(key);
++        if (i == NotFound)
++            add(key, value);
++        return this;
++    }
++
+     // removes and shifts up
+     private void remove(int index) {
+         Validate.isFalse(index >= size);
+@@ -394,6 +408,45 @@ public class Attributes implements Iterable<Attribute>, Cloneable {
+      * @param settings case sensitivity
+      * @return number of removed dupes
+      */
++    public int removeDups(ParseSettings settings) {
++        int initialSize = size;
++
++        // Create a new set of attributes without duplicates
++        Attributes newAttrs = new Attributes();
++        for (int i = 0; i < size; i++) {
++            String key = keys[i];
++            String value = vals[i];
++
++            boolean isDuplicate = false;
++            // Check if this key already exists in newAttrs
++            for (int j = 0; j < newAttrs.size; j++) {
++                if (settings.preserveAttributeCase()) {
++                    // Only exact case matches are duplicates
++                    if (key.equals(newAttrs.keys[j])) {
++                        isDuplicate = true;
++                        break;
++                    }
++                } else {
++                    // Case-insensitive matches are duplicates
++                    if (key.equalsIgnoreCase(newAttrs.keys[j])) {
++                        isDuplicate = true;
++                        break;
++                    }
++                }
++            }
++
++            if (!isDuplicate) {
++                newAttrs.add(key, value);
++            }
++        }
++
++        // Copy the new attributes back to this instance
++        this.size = newAttrs.size;
++        this.keys = newAttrs.keys;
++        this.vals = newAttrs.vals;
++
++        return initialSize - size; // Return number of removed duplicates
++    }
+ 
+     private static class Dataset extends AbstractMap<String, String> {
+         private final Attributes attributes;
+diff --git a/src/main/java/org/jsoup/parser/ParseSettings.java b/src/main/java/org/jsoup/parser/ParseSettings.java
+index 1378978a..25103b32 100644
+--- a/src/main/java/org/jsoup/parser/ParseSettings.java
++++ b/src/main/java/org/jsoup/parser/ParseSettings.java
+@@ -35,6 +35,9 @@ public class ParseSettings {
+     /**
+      * Returns true if preserving attribute case.
+      */
++    public boolean preserveAttributeCase() {
++        return preserveAttributeCase;
++    }
+ 
+     /**
+      * Define parse settings.
+@@ -69,6 +72,9 @@ public class ParseSettings {
+     Attributes normalizeAttributes(Attributes attributes) {
+         if (!preserveAttributeCase) {
+             attributes.normalize();
++            // After normalization to lowercase, remove duplicates (which are now in same case)
++            // Only keep first occurrences to ensure first wins
++            attributes.removeDups(this);
+         }
+         return attributes;
+     }
+diff --git a/src/main/java/org/jsoup/parser/Token.java b/src/main/java/org/jsoup/parser/Token.java
+index 9b0b7c2e..eb1d33b5 100644
+--- a/src/main/java/org/jsoup/parser/Token.java
++++ b/src/main/java/org/jsoup/parser/Token.java
+@@ -113,7 +113,7 @@ abstract class Token {
+                     else
+                         value = null;
+                     // note that we add, not put. So that the first is kept, and rest are deduped, once in a context where case sensitivity is known (the appropriate tree builder).
+-                    attributes.put(pendingAttributeName, value);
++                    attributes.putIfNew(pendingAttributeName, value);
+                 }
+             }
+             pendingAttributeName = null;

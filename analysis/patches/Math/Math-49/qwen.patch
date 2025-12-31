@@ -1,0 +1,116 @@
+diff --git a/src/main/java/org/apache/commons/math/linear/OpenMapRealVector.java b/src/main/java/org/apache/commons/math/linear/OpenMapRealVector.java
+index 5db488466..1c8aeab46 100644
+--- a/src/main/java/org/apache/commons/math/linear/OpenMapRealVector.java
++++ b/src/main/java/org/apache/commons/math/linear/OpenMapRealVector.java
+@@ -342,7 +342,9 @@ public class OpenMapRealVector extends AbstractRealVector
+     public OpenMapRealVector ebeDivide(RealVector v) {
+         checkVectorDimensions(v.getDimension());
+         OpenMapRealVector res = new OpenMapRealVector(this);
+-        Iterator iter = res.entries.iterator();
++        // Create a copy of entries to avoid concurrent modification during iteration
++        OpenIntToDoubleHashMap entriesCopy = new OpenIntToDoubleHashMap(res.entries);
++        Iterator iter = entriesCopy.iterator();
+         while (iter.hasNext()) {
+             iter.advance();
+             res.setEntry(iter.key(), iter.value() / v.getEntry(iter.key()));
+@@ -355,7 +357,9 @@ public class OpenMapRealVector extends AbstractRealVector
+     public OpenMapRealVector ebeDivide(double[] v) {
+         checkVectorDimensions(v.length);
+         OpenMapRealVector res = new OpenMapRealVector(this);
+-        Iterator iter = res.entries.iterator();
++        // Create a copy of entries to avoid concurrent modification during iteration
++        OpenIntToDoubleHashMap entriesCopy = new OpenIntToDoubleHashMap(res.entries);
++        Iterator iter = entriesCopy.iterator();
+         while (iter.hasNext()) {
+             iter.advance();
+             res.setEntry(iter.key(), iter.value() / v[iter.key()]);
+@@ -367,7 +371,9 @@ public class OpenMapRealVector extends AbstractRealVector
+     public OpenMapRealVector ebeMultiply(RealVector v) {
+         checkVectorDimensions(v.getDimension());
+         OpenMapRealVector res = new OpenMapRealVector(this);
+-        Iterator iter = res.entries.iterator();
++        // Create a copy of entries to avoid concurrent modification during iteration
++        OpenIntToDoubleHashMap entriesCopy = new OpenIntToDoubleHashMap(res.entries);
++        Iterator iter = entriesCopy.iterator();
+         while (iter.hasNext()) {
+             iter.advance();
+             res.setEntry(iter.key(), iter.value() * v.getEntry(iter.key()));
+@@ -380,7 +386,9 @@ public class OpenMapRealVector extends AbstractRealVector
+     public OpenMapRealVector ebeMultiply(double[] v) {
+         checkVectorDimensions(v.length);
+         OpenMapRealVector res = new OpenMapRealVector(this);
+-        Iterator iter = res.entries.iterator();
++        // Create a copy of entries to avoid concurrent modification during iteration
++        OpenIntToDoubleHashMap entriesCopy = new OpenIntToDoubleHashMap(res.entries);
++        Iterator iter = entriesCopy.iterator();
+         while (iter.hasNext()) {
+             iter.advance();
+             res.setEntry(iter.key(), iter.value() * v[iter.key()]);
+@@ -857,8 +865,10 @@ public class OpenMapRealVector extends AbstractRealVector
+      * since the order in which entries are returned is undefined.
+      */
+     protected class OpenMapEntry extends Entry {
+-        /** Iterator pointing to the entry. */
+-        private final Iterator iter;
++        /** Index of the entry. */
++        private final int index;
++        /** Value of the entry. */
++        private double value;
+ 
+         /**
+          * Build an entry from an iterator point to an element.
+@@ -866,25 +876,27 @@ public class OpenMapRealVector extends AbstractRealVector
+          * @param iter Iterator pointing to the entry.
+          */
+         protected OpenMapEntry(Iterator iter) {
+-            this.iter = iter;
++            this.index = iter.key();
++            this.value = iter.value();
+         }
+ 
+         /** {@inheritDoc} */
+         @Override
+         public double getValue() {
+-            return iter.value();
++            return value;
+         }
+ 
+         /** {@inheritDoc} */
+         @Override
+         public void setValue(double value) {
+-            entries.put(iter.key(), value);
++            this.value = value;
++            entries.put(index, value);
+         }
+ 
+         /** {@inheritDoc} */
+         @Override
+         public int getIndex() {
+-            return iter.key();
++            return index;
+         }
+ 
+     }
+@@ -897,13 +909,10 @@ public class OpenMapRealVector extends AbstractRealVector
+     protected class OpenMapSparseIterator implements java.util.Iterator<Entry> {
+         /** Underlying iterator. */
+         private final Iterator iter;
+-        /** Current entry. */
+-        private final Entry current;
+ 
+         /** Simple constructor. */
+         protected OpenMapSparseIterator() {
+             iter = entries.iterator();
+-            current = new OpenMapEntry(iter);
+         }
+ 
+         /** {@inheritDoc} */
+@@ -914,7 +923,7 @@ public class OpenMapRealVector extends AbstractRealVector
+         /** {@inheritDoc} */
+         public Entry next() {
+             iter.advance();
+-            return current;
++            return new OpenMapEntry(iter);
+         }
+ 
+         /** {@inheritDoc} */

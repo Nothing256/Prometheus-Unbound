@@ -1,0 +1,60 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/ser/std/StdKeySerializers.java b/src/main/java/com/fasterxml/jackson/databind/ser/std/StdKeySerializers.java
+index 7f55a3f29..241f6bd93 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/ser/std/StdKeySerializers.java
++++ b/src/main/java/com/fasterxml/jackson/databind/ser/std/StdKeySerializers.java
+@@ -6,7 +6,10 @@ import java.util.Date;
+ 
+ import com.fasterxml.jackson.core.*;
+ import com.fasterxml.jackson.databind.*;
++import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
++import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
+ import com.fasterxml.jackson.databind.ser.impl.PropertySerializerMap;
++import com.fasterxml.jackson.databind.AnnotationIntrospector;
+ 
+ @SuppressWarnings("serial")
+ public class StdKeySerializers
+@@ -135,9 +138,41 @@ public class StdKeySerializers
+                 break;
+             case TYPE_ENUM:
+                 {
+-                    String str = provider.isEnabled(SerializationFeature.WRITE_ENUMS_USING_TO_STRING)
+-                            ? value.toString() : ((Enum<?>) value).name();
+-                    g.writeFieldName(str);
++                    Enum<?> enumValue = (Enum<?>) value;
++
++                    if (provider.isEnabled(SerializationFeature.WRITE_ENUMS_USING_TO_STRING)) {
++                        g.writeFieldName(value.toString());
++                    } else {
++                        // Use the AnnotationIntrospector to properly handle @JsonProperty annotations on enum constants
++                        AnnotationIntrospector intr = provider.getAnnotationIntrospector();
++                        Class<?> enumClass = enumValue.getDeclaringClass();
++                        Enum<?>[] enumConstants = (Enum<?>[]) enumClass.getEnumConstants();
++
++                        if (enumConstants != null) {
++                            String[] names = intr.findEnumValues(enumClass, enumConstants, new String[enumConstants.length]);
++
++                            // Find the name for our specific enum value
++                            String enumName = enumValue.name();
++                            String properName = null;
++
++                            for (int i = 0; i < enumConstants.length; i++) {
++                                if (enumConstants[i] == enumValue) {
++                                    properName = names[i];
++                                    break;
++                                }
++                            }
++
++                            // If no specific name was found via annotation, use the enum name
++                            if (properName == null || properName.isEmpty()) {
++                                properName = enumName;
++                            }
++
++                            g.writeFieldName(properName);
++                        } else {
++                            // Fallback to the enum name if we can't get the constants
++                            g.writeFieldName(enumValue.name());
++                        }
++                    }
+                 }
+                 break;
+             case TYPE_TO_STRING:

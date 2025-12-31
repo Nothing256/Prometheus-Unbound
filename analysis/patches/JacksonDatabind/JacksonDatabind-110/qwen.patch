@@ -1,0 +1,34 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/impl/JavaUtilCollectionsDeserializers.java b/src/main/java/com/fasterxml/jackson/databind/deser/impl/JavaUtilCollectionsDeserializers.java
+index 3228bacda..f15ecc45c 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/impl/JavaUtilCollectionsDeserializers.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/impl/JavaUtilCollectionsDeserializers.java
+@@ -40,6 +40,7 @@ public abstract class JavaUtilCollectionsDeserializers
+ 
+     private final static Class<?> CLASS_UNMODIFIABLE_SET;
+     private final static Class<?> CLASS_UNMODIFIABLE_LIST;
++    private final static Class<?> CLASS_UNMODIFIABLE_LIST_FROM_NON_RANDOM_ACCESS; // for LinkedList, etc.
+ 
+     /* 02-Mar-2019, tatu: for [databind#2265], need to consider possible alternate type...
+      *    which we essentially coerce into the other one
+@@ -54,8 +55,10 @@ public abstract class JavaUtilCollectionsDeserializers
+         List<?> list = Collections.singletonList(Boolean.TRUE);
+         CLASS_SINGLETON_LIST = list.getClass();
+         CLASS_UNMODIFIABLE_LIST = Collections.unmodifiableList(list).getClass();
+-        // for [databind#2265]
+-        
++        // for [databind#2265]: capture the type that comes from non-RandomAccess lists like LinkedList
++        List<?> nonRAList = new LinkedList<>(Arrays.asList(Boolean.TRUE, Boolean.FALSE));
++        CLASS_UNMODIFIABLE_LIST_FROM_NON_RANDOM_ACCESS = Collections.unmodifiableList(nonRAList).getClass();
++
+         Map<?,?> map = Collections.singletonMap("a", "b");
+         CLASS_SINGLETON_MAP = map.getClass();
+         CLASS_UNMODIFIABLE_MAP = Collections.unmodifiableMap(map).getClass();
+@@ -77,6 +80,8 @@ public abstract class JavaUtilCollectionsDeserializers
+         // [databind#2265]: we may have another impl type for unmodifiable Lists, check both
+         } else if (type.hasRawClass(CLASS_UNMODIFIABLE_LIST)) {
+             conv = converter(TYPE_UNMODIFIABLE_LIST, type, List.class);
++        } else if (type.hasRawClass(CLASS_UNMODIFIABLE_LIST_FROM_NON_RANDOM_ACCESS)) {
++            conv = converter(TYPE_UNMODIFIABLE_LIST, type, List.class);
+         } else if (type.hasRawClass(CLASS_UNMODIFIABLE_SET)) {
+             conv = converter(TYPE_UNMODIFIABLE_SET, type, Set.class);
+         } else {

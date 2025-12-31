@@ -1,0 +1,11 @@
+--- /Users/nothing/workspace/prometheus_workdir_qwen/time_17_blind_auto/src/main/java/org/joda/time/DateTimeZone.java	2025-12-18 12:45:56
++++ DateTimeZone.java.fixed	2025-12-18 12:45:56
+@@ -1172,7 +1172,7 @@
+         
+         // work out range of instants that have duplicate local times
+         long local = convertUTCToLocal(instant);
+-        return convertLocalToUTC(local, false, earlierOrLater ? instantAfter : instantBefore);
++        return convertLocalToUTC(local, false, earlierOrLater ? instantBefore : instantAfter);
+         
+         // calculate result
+           // currently in later offset

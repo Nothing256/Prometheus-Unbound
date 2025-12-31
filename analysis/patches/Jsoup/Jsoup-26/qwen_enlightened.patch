@@ -1,0 +1,19 @@
+diff --git a/src/main/java/org/jsoup/safety/Cleaner.java b/src/main/java/org/jsoup/safety/Cleaner.java
+index 7d7f3166..dd1fdde0 100644
+--- a/src/main/java/org/jsoup/safety/Cleaner.java
++++ b/src/main/java/org/jsoup/safety/Cleaner.java
+@@ -40,7 +40,13 @@ public class Cleaner {
+         Validate.notNull(dirtyDocument);
+ 
+         Document clean = Document.createShell(dirtyDocument.baseUri());
+-            copySafeNodes(dirtyDocument.body(), clean.body());
++        Element dirtyBody = dirtyDocument.body();
++        if (dirtyBody != null) {
++            copySafeNodes(dirtyBody, clean.body());
++        } else {
++            // If there's no body element, clean the children of the root element directly
++            copySafeNodes(dirtyDocument, clean.body());
++        }
+ 
+         return clean;
+     }

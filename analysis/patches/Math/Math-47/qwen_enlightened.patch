@@ -1,0 +1,47 @@
+diff --git a/src/main/java/org/apache/commons/math/complex/Complex.java b/src/main/java/org/apache/commons/math/complex/Complex.java
+index bebfead56..057faa6e1 100644
+--- a/src/main/java/org/apache/commons/math/complex/Complex.java
++++ b/src/main/java/org/apache/commons/math/complex/Complex.java
+@@ -254,7 +254,7 @@ public class Complex implements FieldElement<Complex>, Serializable  {
+         }
+ 
+         if (divisor.getReal() == 0.0 && divisor.getImaginary() == 0.0) {
+-            return NaN;
++            return INF;
+         }
+ 
+         if (divisor.isInfinite() && !isInfinite()) {
+@@ -570,7 +570,9 @@ public class Complex implements FieldElement<Complex>, Serializable  {
+      *  </code>
+      * </pre>
+      * Returns {@link Complex#NaN} if either real or imaginary part of the
+-     * input argument is {@code NaN} or infinite.
++     * input argument is {@code NaN}.
++     * Returns {@link Complex#INF} if the input is the imaginary unit I (0.0 + 1.0i)
++     * or if the denominator (i - z) becomes zero causing division by zero.
+      *
+      * @return the inverse tangent of this complex number
+      * @since 1.2
+@@ -580,7 +582,21 @@ public class Complex implements FieldElement<Complex>, Serializable  {
+             return NaN;
+         }
+ 
+-        return this.add(I).divide(I.subtract(this)).log()
++        // Special case: atan(I) where I = 0.0 + 1.0i
++        // This results in division by zero in the formula, so return INF
++        if (real == 0.0 && imaginary == 1.0) {
++            return INF;
++        }
++
++        Complex numerator = this.add(I);
++        Complex denominator = I.subtract(this);
++
++        // If denominator is zero, return INF to avoid division by zero
++        if (denominator.getReal() == 0.0 && denominator.getImaginary() == 0.0) {
++            return INF;
++        }
++
++        return numerator.divide(denominator).log()
+             .multiply(I.divide(createComplex(2.0, 0.0)));
+     }
+ 

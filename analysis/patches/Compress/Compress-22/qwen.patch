@@ -1,0 +1,86 @@
+diff --git a/src/main/java/org/apache/commons/compress/compressors/bzip2/BZip2CompressorInputStream.java b/src/main/java/org/apache/commons/compress/compressors/bzip2/BZip2CompressorInputStream.java
+index 4f89e0e5..8aaadab6 100644
+--- a/src/main/java/org/apache/commons/compress/compressors/bzip2/BZip2CompressorInputStream.java
++++ b/src/main/java/org/apache/commons/compress/compressors/bzip2/BZip2CompressorInputStream.java
+@@ -79,6 +79,9 @@ public class BZip2CompressorInputStream extends CompressorInputStream implements
+     private int storedBlockCRC, storedCombinedCRC;
+     private int computedBlockCRC, computedCombinedCRC;
+ 
++    // Flag to track if stream was truncated
++    private boolean truncated = false;
++
+     // Variables used by setup* methods exclusively
+ 
+     private int su_count;
+@@ -196,6 +199,11 @@ public class BZip2CompressorInputStream extends CompressorInputStream implements
+     }
+ 
+     private int read0() throws IOException {
++        // If the stream was previously detected as truncated, throw an exception
++        if (truncated) {
++            throw new IOException("unexpected end of stream");
++        }
++
+         final int retChar = this.currentChar;
+         switch (currentState) {
+         case EOF:
+@@ -272,13 +280,22 @@ public class BZip2CompressorInputStream extends CompressorInputStream implements
+         char magic5;
+ 
+         while (true) {
+-            // Get the block magic bytes.
+-            magic0 = bsGetUByte();
+-            magic1 = bsGetUByte();
+-            magic2 = bsGetUByte();
+-            magic3 = bsGetUByte();
+-            magic4 = bsGetUByte();
+-            magic5 = bsGetUByte();
++            try {
++                // Get the block magic bytes.
++                magic0 = bsGetUByte();
++                magic1 = bsGetUByte();
++                magic2 = bsGetUByte();
++                magic3 = bsGetUByte();
++                magic4 = bsGetUByte();
++                magic5 = bsGetUByte();
++            } catch (IOException e) {
++                // If we encounter an unexpected end of stream while trying to read
++                // the next block header, this indicates a truncated stream.
++                // Set the truncated flag and state to EOF to handle subsequent reads correctly.
++                this.truncated = true;
++                this.currentState = EOF;
++                return;
++            }
+ 
+             // If isn't end of stream magic, break out of the loop.
+             if (magic0 != 0x17 || magic1 != 0x72 || magic2 != 0x45
+@@ -316,7 +333,20 @@ public class BZip2CompressorInputStream extends CompressorInputStream implements
+             }
+ 
+             // currBlockNo++;
+-            getAndMoveToFrontDecode();
++            try {
++                getAndMoveToFrontDecode();
++            } catch (IOException e) {
++                // If we get an unexpected end of stream during block decoding,
++                // it indicates a truncated block
++                if (e.getMessage() != null && e.getMessage().contains("unexpected end of stream")) {
++                    this.truncated = true;
++                    this.currentState = EOF;
++                    return;
++                } else {
++                    // Re-throw other IO exceptions
++                    throw e;
++                }
++            }
+ 
+             this.crc.initialiseCRC();
+             this.currentState = START_BLOCK_STATE;
+@@ -381,6 +411,8 @@ public class BZip2CompressorInputStream extends CompressorInputStream implements
+                 int thech = inShadow.read();
+ 
+                 if (thech < 0) {
++                    // For truncated data, we should handle this more gracefully
++                    // in the context of what we're trying to parse
+                     throw new IOException("unexpected end of stream");
+                 }

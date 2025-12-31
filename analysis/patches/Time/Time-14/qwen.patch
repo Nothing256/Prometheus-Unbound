@@ -1,0 +1,26 @@
+diff --git a/src/main/java/org/joda/time/chrono/BasicMonthOfYearDateTimeField.java b/src/main/java/org/joda/time/chrono/BasicMonthOfYearDateTimeField.java
+index afca44e6..18c97b4a 100644
+--- a/src/main/java/org/joda/time/chrono/BasicMonthOfYearDateTimeField.java
++++ b/src/main/java/org/joda/time/chrono/BasicMonthOfYearDateTimeField.java
+@@ -114,7 +114,9 @@ class BasicMonthOfYearDateTimeField extends ImpreciseDateTimeField {
+             yearToUse = thisYear + (monthToUse / iMax);
+             monthToUse = (monthToUse % iMax) + 1;
+         } else {
+-            yearToUse = thisYear + (monthToUse / iMax) - 1;
++            // Use proper floor division for negative numbers
++            int div = (monthToUse % iMax == 0) ? (monthToUse / iMax) : (monthToUse / iMax - 1);
++            yearToUse = thisYear + div - 1;
+             monthToUse = Math.abs(monthToUse);
+             int remMonthToUse = monthToUse % iMax;
+             // Take care of the boundary condition
+@@ -166,7 +168,9 @@ class BasicMonthOfYearDateTimeField extends ImpreciseDateTimeField {
+             yearToUse = thisYear + (monthToUse / iMax);
+             monthToUse = (monthToUse % iMax) + 1;
+         } else {
+-            yearToUse = thisYear + (monthToUse / iMax) - 1;
++            // Use proper floor division for negative numbers
++            long div = (monthToUse % iMax == 0) ? (monthToUse / iMax) : (monthToUse / iMax - 1);
++            yearToUse = thisYear + div - 1;
+             monthToUse = Math.abs(monthToUse);
+             int remMonthToUse = (int)(monthToUse % iMax);
+             if (remMonthToUse == 0) {

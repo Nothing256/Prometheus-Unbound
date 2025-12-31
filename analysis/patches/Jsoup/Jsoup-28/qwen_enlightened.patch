@@ -1,0 +1,45 @@
+diff --git a/src/main/java/org/jsoup/nodes/Entities.java b/src/main/java/org/jsoup/nodes/Entities.java
+index be73e321..0b668dcf 100644
+--- a/src/main/java/org/jsoup/nodes/Entities.java
++++ b/src/main/java/org/jsoup/nodes/Entities.java
+@@ -102,7 +102,7 @@ public class Entities {
+     static String unescape(String string, boolean strict) {
+         if (!string.contains("&"))
+             return string;
+-        Matcher m = strict? strictUnescapePattern.matcher(string) : unescapePattern.matcher(string);
++        Matcher m = strict ? strictUnescapePattern.matcher(string) : unescapePattern.matcher(string);
+         StringBuffer accum = new StringBuffer(string.length());
+         while (m.find()) {
+             int charval = -1;
+@@ -115,10 +115,29 @@ public class Entities {
+                 }
+             } else {
+                 String name = m.group(1);
+-                if (full.containsKey(name))
++                // Check if this match included a semicolon
++                String fullMatch = m.group(0);
++                boolean hasSemicolon = fullMatch.endsWith(";");
++
++                // Only unescape named entities if they have a semicolon or if this entity name
++                // does not have any shorter entity name as a prefix
++                boolean canUnescape = hasSemicolon;
++                if (!hasSemicolon) {
++                    // Check if any shorter entity name is a prefix of this name
++                    canUnescape = true;
++                    for (String otherName : full.keySet()) {
++                        if (!otherName.equals(name) && otherName.length() < name.length() &&
++                            name.startsWith(otherName)) {
++                            canUnescape = false;
++                            break;
++                        }
++                    }
++                }
++
++                if (canUnescape && full.containsKey(name))
+                     charval = full.get(name);
+             }
+-            if (charval != -1 || charval > 0xFFFF) {
++            if (charval != -1 && charval <= 0xFFFF) {
+                 String c = Character.toString((char) charval);
+                 m.appendReplacement(accum, Matcher.quoteReplacement(c));
+             } else {

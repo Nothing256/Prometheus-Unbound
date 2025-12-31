@@ -1,0 +1,56 @@
+--- a/src/java/org/apache/commons/jxpath/ri/axes/AttributeContext.java
++++ b/src/java/org/apache/commons/jxpath/ri/axes/AttributeContext.java
+@@ -15,7 +15,9 @@
+ package org.apache.commons.jxpath.ri.axes;
+
+ import org.apache.commons.jxpath.ri.EvalContext;
++import org.apache.commons.jxpath.ri.Compiler;
+ import org.apache.commons.jxpath.ri.QName;
+ import org.apache.commons.jxpath.ri.compiler.NodeNameTest;
++import org.apache.commons.jxpath.ri.compiler.NodeTypeTest;
+ import org.apache.commons.jxpath.ri.compiler.NodeTest;
+ import org.apache.commons.jxpath.ri.model.NodeIterator;
+ import org.apache.commons.jxpath.ri.model.NodePointer;
+@@ -71,31 +73,39 @@
+     public boolean nextNode() {
+         super.setPosition(getCurrentPosition() + 1);
+         if (!setStarted) {
+-            setStarted = true;
+-            if (!(nodeTest instanceof NodeNameTest)) {
+-                return false;
+-            }
+-            QName name = ((NodeNameTest) nodeTest).getNodeName();
+-            iterator =
+-                parentContext.getCurrentNodePointer().attributeIterator(name);
++            setStarted = true;
++            if (nodeTest instanceof NodeNameTest) {
++                QName name = ((NodeNameTest) nodeTest).getNodeName();
++                iterator =
++                    parentContext.getCurrentNodePointer().attributeIterator(name);
++            }
++            else if (nodeTest instanceof NodeTypeTest) {
++                NodeTypeTest test = (NodeTypeTest) nodeTest;
++                if (test.getNodeType() == Compiler.NODE_TYPE_NODE) {
++                    // For attribute::node(), return all attributes (equivalent to @*)
++                    QName name = new QName("*");
++                    iterator =
++                        parentContext.getCurrentNodePointer().attributeIterator(name);
++                }
++                else {
++                    return false;
++                }
++            }
++            else {
++                return false;
++            }
+         }
+         if (iterator == null) {
+             return false;
+         }
+         if (!iterator.setPosition(iterator.getPosition() + 1)) {
+             return false;
+         }
+         currentNodePointer = iterator.getNodePointer();
+         return true;
+     }
+ }

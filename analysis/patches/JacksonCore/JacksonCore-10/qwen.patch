@@ -1,0 +1,26 @@
+diff --git a/src/main/java/com/fasterxml/jackson/core/sym/ByteQuadsCanonicalizer.java b/src/main/java/com/fasterxml/jackson/core/sym/ByteQuadsCanonicalizer.java
+index 976ef6e4..0d7ab9c0 100644
+--- a/src/main/java/com/fasterxml/jackson/core/sym/ByteQuadsCanonicalizer.java
++++ b/src/main/java/com/fasterxml/jackson/core/sym/ByteQuadsCanonicalizer.java
+@@ -936,7 +936,7 @@ public final class ByteQuadsCanonicalizer
+     private int _appendLongName(int[] quads, int qlen)
+     {
+         int start = _longNameOffset;
+-        
++
+         // note: at this point we must already be shared. But may not have enough space
+         if ((start + qlen) > _hashArea.length) {
+             // try to increment in reasonable chunks; at least space that we need
+@@ -946,6 +946,12 @@ public final class ByteQuadsCanonicalizer
+ 
+             int newSize = _hashArea.length + Math.max(toAdd, minAdd);
+             _hashArea = Arrays.copyOf(_hashArea, newSize);
++            // When expanding _hashArea, we also need to expand _names array to maintain
++            // the correct relationship for spillover areas
++            int newNamesSize = ((newSize - 1) >> 2) + 1; // (newSize - 1) / 4 + 1
++            if (_names.length < newNamesSize) {
++                _names = Arrays.copyOf(_names, newNamesSize);
++            }
+         }
+         System.arraycopy(quads, 0, _hashArea, start, qlen);
+         _longNameOffset += qlen;

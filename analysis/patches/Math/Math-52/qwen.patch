@@ -1,0 +1,28 @@
+diff --git a/src/main/java/org/apache/commons/math/geometry/euclidean/threed/Rotation.java b/src/main/java/org/apache/commons/math/geometry/euclidean/threed/Rotation.java
+index 20f5b3486..5f52773e6 100644
+--- a/src/main/java/org/apache/commons/math/geometry/euclidean/threed/Rotation.java
++++ b/src/main/java/org/apache/commons/math/geometry/euclidean/threed/Rotation.java
+@@ -353,8 +353,8 @@ public class Rotation implements Serializable {
+     if (c == 0) {
+       // the (q1, q2, q3) vector is also close to the (u1, u3) plane,
+       // it is almost aligned with u1: we try (u2, u3) and (v2, v3)
+-      k = v2Su2.crossProduct(v3Su3);;
+-      c = k.dotProduct(u2.crossProduct(u3));;
++      k = v2Su2.crossProduct(v3Su3);
++      c = k.dotProduct(u2.crossProduct(u3));
+ 
+       if (c == 0) {
+         // the (q1, q2, q3) vector is aligned with everything
+@@ -382,10 +382,10 @@ public class Rotation implements Serializable {
+   q3 = inv * k.getZ();
+ 
+   // compute the scalar part
+-   k = new Vector3D(uRef.getY() * q3 - uRef.getZ() * q2,
++   Vector3D m = new Vector3D(uRef.getY() * q3 - uRef.getZ() * q2,
+                     uRef.getZ() * q1 - uRef.getX() * q3,
+                     uRef.getX() * q2 - uRef.getY() * q1);
+-  q0 = vRef.dotProduct(k) / (2 * k.getNormSq());
++  q0 = vRef.dotProduct(m) / (2 * m.getNormSq());
+ 
+   }
+ 

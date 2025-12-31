@@ -1,0 +1,40 @@
+diff --git a/src/java/org/apache/commons/lang/ClassUtils.java b/src/java/org/apache/commons/lang/ClassUtils.java
+index d5de42b2b..ee17898e3 100644
+--- a/src/java/org/apache/commons/lang/ClassUtils.java
++++ b/src/java/org/apache/commons/lang/ClassUtils.java
+@@ -188,10 +188,34 @@ public class ClassUtils {
+             return StringUtils.EMPTY;
+         }
+ 
+-
+         // Handle array encoding
++        int dim = 0;
++        while (className.startsWith("[")) {
++            dim++;
++            className = className.substring(1);
++        }
++
++        if (dim > 0) { // Only process as array if it actually is an array
+             // Strip Object type encoding
++            if (className.startsWith("L")) {
++                className = className.substring(
++                    1,
++                    className.endsWith(";")
++                        ? className.length() - 1
++                        : className.length());
++            } else {
++                if (className.length() > 0) {
++                    String abbreviation = reverseAbbreviationMap.get(className.substring(0, 1));
++                    className = (abbreviation != null) ? abbreviation : className;
++                }
++            }
+ 
++            // Add array notation
++            for (int i = 0; i < dim; i++) {
++                className += "[]";
++            }
++        }
++        // If dim == 0 (not an array), className remains unchanged and proceeds to normal processing
+ 
+         int lastDotIdx = className.lastIndexOf(PACKAGE_SEPARATOR_CHAR);
+         int innerIdx = className.indexOf(

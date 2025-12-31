@@ -1,0 +1,38 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/std/FromStringDeserializer.java b/src/main/java/com/fasterxml/jackson/databind/deser/std/FromStringDeserializer.java
+index c27ea729e..9f75d9945 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/std/FromStringDeserializer.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/std/FromStringDeserializer.java
+@@ -228,13 +228,13 @@ public abstract class FromStringDeserializer<T> extends StdScalarDeserializer<T>
+                 return Pattern.compile(value);
+             case STD_LOCALE:
+                 {
+-                    int ix = value.indexOf('_');
++                    int ix = findSeparatorIndex(value, '_', '-');
+                     if (ix < 0) { // single argument
+                         return new Locale(value);
+                     }
+                     String first = value.substring(0, ix);
+                     value = value.substring(ix+1);
+-                    ix = value.indexOf('_');
++                    ix = findSeparatorIndex(value, '_', '-');
+                     if (ix < 0) { // two pieces
+                         return new Locale(first, value);
+                     }
+@@ -288,6 +288,17 @@ public abstract class FromStringDeserializer<T> extends StdScalarDeserializer<T>
+             return super._deserializeFromEmptyString();
+         }
+ 
++        private static int findSeparatorIndex(String value, char sep1, char sep2) {
++            int ix1 = value.indexOf(sep1);
++            int ix2 = value.indexOf(sep2);
++
++            // If only one separator exists, return that index
++            if (ix1 < 0) return ix2;
++            if (ix2 < 0) return ix1;
++
++            // If both exist, return the first one that appears
++            return Math.min(ix1, ix2);
++        }
+ 
+     }
+ }

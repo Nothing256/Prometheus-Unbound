@@ -1,0 +1,39 @@
+diff --git a/src/org/mockito/internal/creation/MockSettingsImpl.java b/src/org/mockito/internal/creation/MockSettingsImpl.java
+index bf2cf3b..99aadad 100644
+--- a/src/org/mockito/internal/creation/MockSettingsImpl.java
++++ b/src/org/mockito/internal/creation/MockSettingsImpl.java
+@@ -34,8 +34,26 @@ public class MockSettingsImpl implements MockSettings {
+ 
+     public MockSettings extraInterfaces(Class<?>... extraInterfaces) {
+         if (extraInterfaces == null || extraInterfaces.length == 0) {
+             new Reporter().extraInterfacesRequiresAtLeastOneInterface();
+         }
+ 
+         for (Class<?> i : extraInterfaces) {
+             if (i == null) {
+                 new Reporter().extraInterfacesDoesNotAcceptNullParameters();
+             } else if (!i.isInterface()) {
+                 new Reporter().extraInterfacesAcceptsOnlyInterfaces(i);
+             }
+         }
++
++        // If there are existing extra interfaces, merge them with the new ones
++        if (this.extraInterfaces != null && this.extraInterfaces.length > 0) {
++            // Create a new array with combined interfaces, avoiding duplicates
++            java.util.List<Class<?>> interfaceList = new java.util.ArrayList<Class<?>>();
++            for (Class<?> existingInterface : this.extraInterfaces) {
++                if (!interfaceList.contains(existingInterface)) {
++                    interfaceList.add(existingInterface);
++                }
++            }
++            for (Class<?> newInterface : extraInterfaces) {
++                if (!interfaceList.contains(newInterface)) {
++                    interfaceList.add(newInterface);
++                }
++            }
++            this.extraInterfaces = interfaceList.toArray(new Class<?>[interfaceList.size()]);
++        } else {
++            this.extraInterfaces = extraInterfaces;
++        }
+         return this;
+     }

@@ -1,0 +1,54 @@
+diff --git a/src/main/java/org/joda/time/chrono/ZonedChronology.java b/src/main/java/org/joda/time/chrono/ZonedChronology.java
+index f165f3dd..7ff64ca1 100644
+--- a/src/main/java/org/joda/time/chrono/ZonedChronology.java
++++ b/src/main/java/org/joda/time/chrono/ZonedChronology.java
+@@ -462,23 +462,37 @@ public final class ZonedChronology extends AssembledChronology {
+         }
+ 
+         public long set(long instant, int value) {
+-            long localInstant = iZone.convertUTCToLocal(instant);
+-            localInstant = iField.set(localInstant, value);
+-            long result = iZone.convertLocalToUTC(localInstant, false);
+-            if (get(result) != value) {
+-                throw new IllegalFieldValueException(iField.getType(), new Integer(value),
+-                    "Illegal instant due to time zone offset transition: " +
+-                    DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS").print(new Instant(localInstant)) +
+-                    " (" + iZone.getID() + ")");
++            if (iTimeField) {
++                // Similar to add method for time fields to maintain consistency during DST transitions
++                int offset = getOffsetToAdd(instant);
++                long localInstant = iField.set(instant + offset, value);
++                return localInstant - offset;
++            } else {
++                long localInstant = iZone.convertUTCToLocal(instant);
++                localInstant = iField.set(localInstant, value);
++                long result = iZone.convertLocalToUTC(localInstant, false);
++                if (get(result) != value) {
++                    throw new IllegalFieldValueException(iField.getType(), new Integer(value),
++                        "Illegal instant due to time zone offset transition: " +
++                        DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS").print(new Instant(localInstant)) +
++                        " (" + iZone.getID() + ")");
++                }
++                return result;
+             }
+-            return result;
+         }
+ 
+         public long set(long instant, String text, Locale locale) {
+             // cannot verify that new value stuck because set may be lenient
+-            long localInstant = iZone.convertUTCToLocal(instant);
+-            localInstant = iField.set(localInstant, text, locale);
+-            return iZone.convertLocalToUTC(localInstant, false);
++            if (iTimeField) {
++                // Similar to add method for time fields to maintain consistency during DST transitions
++                int offset = getOffsetToAdd(instant);
++                long localInstant = iField.set(instant + offset, text, locale);
++                return localInstant - offset;
++            } else {
++                long localInstant = iZone.convertUTCToLocal(instant);
++                localInstant = iField.set(localInstant, text, locale);
++                return iZone.convertLocalToUTC(localInstant, false);
++            }
+         }
+ 
+         public int getDifference(long minuendInstant, long subtrahendInstant) {

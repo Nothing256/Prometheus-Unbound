@@ -1,0 +1,42 @@
+diff --git a/src/main/java/org/apache/commons/math3/analysis/differentiation/DSCompiler.java b/src/main/java/org/apache/commons/math3/analysis/differentiation/DSCompiler.java
+index bf6dd65d5..ca4041823 100644
+--- a/src/main/java/org/apache/commons/math3/analysis/differentiation/DSCompiler.java
++++ b/src/main/java/org/apache/commons/math3/analysis/differentiation/DSCompiler.java
+@@ -1383,6 +1383,28 @@ public class DSCompiler {
+                       final double[] x, final int xOffset,
+                       final double[] result, final int resultOffset) {
+ 
++        // Handle special cases involving signed zeros
++        if (x[xOffset] == 0.0 && y[yOffset] == 0.0) {
++            if (1.0 / x[xOffset] > 0) { // x is +0
++                if (1.0 / y[yOffset] > 0) { // y is +0
++                    result[resultOffset] = 0.0; // atan2(+0, +0) = +0
++                } else { // y is -0
++                    result[resultOffset] = -0.0; // atan2(-0, +0) = -0
++                }
++            } else { // x is -0
++                if (1.0 / y[yOffset] > 0) { // y is +0
++                    result[resultOffset] = FastMath.PI; // atan2(+0, -0) = +PI
++                } else { // y is -0
++                    result[resultOffset] = -FastMath.PI; // atan2(-0, -0) = -PI
++                }
++            }
++            // Set all derivatives to 0 for the special cases
++            for (int i = 1; i < result.length; ++i) {
++                result[resultOffset + i] = 0.0;
++            }
++            return;
++        }
++
+         // compute r = sqrt(x^2+y^2)
+         double[] tmp1 = new double[getSize()];
+         multiply(x, xOffset, x, xOffset, tmp1, 0);      // x^2
+@@ -1415,8 +1437,6 @@ public class DSCompiler {
+ 
+         }
+ 
+-        // fix value to take special cases (+0/+0, +0/-0, -0/+0, -0/-0, +/-infinity) correctly
+-
+     }
+ 
+     /** Compute hyperbolic cosine of a derivative structure.

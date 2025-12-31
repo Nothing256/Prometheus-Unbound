@@ -1,0 +1,99 @@
+diff --git a/src/main/java/org/apache/commons/math/linear/EigenDecompositionImpl.java b/src/main/java/org/apache/commons/math/linear/EigenDecompositionImpl.java
+index 2d0d72f22..7a4342e2e 100644
+--- a/src/main/java/org/apache/commons/math/linear/EigenDecompositionImpl.java
++++ b/src/main/java/org/apache/commons/math/linear/EigenDecompositionImpl.java
+@@ -1478,7 +1478,8 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+                     if (dMin == dN) {
+                         gam = dN;
+                         a2 = 0.0;
+-                        if (work[nn - 5]  >  work[nn - 7]) {
++                        if (nn - 5 < 0 || nn - 7 < 0 || work[nn - 7] <= 0.0 || work[nn - 5] > work[nn - 7]) {
++                            tau = 0.25 * dMin;
+                             return;
+                         }
+                         b2 = work[nn - 5] / work[nn - 7];
+@@ -1487,11 +1488,13 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+                         np = nn - 2 * pingPong;
+                         b2 = work[np - 2];
+                         gam = dN1;
+-                        if (work[np - 4]  >  work[np - 2]) {
++                        if (np - 4 < 0 || np - 2 < 0 || work[np - 2] <= 0.0 || work[np - 4] > work[np - 2]) {
++                            tau = 0.25 * dMin;
+                             return;
+                         }
+                         a2 = work[np - 4] / work[np - 2];
+-                        if (work[nn - 9]  >  work[nn - 11]) {
++                        if (nn - 9 < 0 || nn - 11 < 0 || work[nn - 11] <= 0.0 || work[nn - 9] > work[nn - 11]) {
++                            tau = 0.25 * dMin;
+                             return;
+                         }
+                         b2 = work[nn - 9] / work[nn - 11];
+@@ -1505,7 +1508,8 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+                             break;
+                         }
+                         b1 = b2;
+-                        if (work[i4]  >  work[i4 - 2]) {
++                        if (i4 < 0 || i4 - 2 < 0 || work[i4 - 2] <= 0.0 || work[i4] > work[i4 - 2]) {
++                            tau = 0.25 * dMin;
+                             return;
+                         }
+                         b2 = b2 * (work[i4] / work[i4 - 2]);
+@@ -1534,7 +1538,8 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+                 double b1 = work[np - 2];
+                 double b2 = work[np - 6];
+                 final double gam = dN2;
+-                if (work[np - 8] > b2 || work[np - 4] > b1) {
++                if (np - 8 < 0 || np - 4 < 0 || b2 <= 0.0 || work[np - 8] > b2 || work[np - 4] > b1) {
++                    tau = 0.25 * dMin;
+                     return;
+                 }
+                 double a2 = (work[np - 8] / b2) * (1 + work[np - 4] / b1);
+@@ -1548,7 +1553,8 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+                             break;
+                         }
+                         b1 = b2;
+-                        if (work[i4]  >  work[i4 - 2]) {
++                        if (i4 < 0 || i4 - 2 < 0 || work[i4 - 2] <= 0.0 || work[i4] > work[i4 - 2]) {
++                            tau = 0.25 * dMin;
+                             return;
+                         }
+                         b2 = b2 * (work[i4] / work[i4 - 2]);
+@@ -1588,7 +1594,8 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+                 // cases 7 and 8.
+                 tType = -7;
+                 double s = 0.333 * dMin1;
+-                if (work[nn - 5] > work[nn - 7]) {
++                if (nn - 5 < 0 || nn - 7 < 0 || work[nn - 7] <= 0.0 || work[nn - 5] > work[nn - 7]) {
++                    tau = 0.333 * dMin1;
+                     return;
+                 }
+                 double b1 = work[nn - 5] / work[nn - 7];
+@@ -1596,7 +1603,8 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+                 if (b2 != 0.0) {
+                     for (int i4 = 4 * end - 10 + pingPong; i4 >= 4 * start + 2 + pingPong; i4 -= 4) {
+                         final double oldB1 = b1;
+-                        if (work[i4] > work[i4 - 2]) {
++                        if (i4 < 0 || i4 - 2 < 0 || work[i4 - 2] <= 0.0 || work[i4] > work[i4 - 2]) {
++                            tau = 0.333 * dMin1;
+                             return;
+                         }
+                         b1 = b1 * (work[i4] / work[i4 - 2]);
+@@ -1632,14 +1640,16 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+             if (dMin2 == dN2 && 2 * work[nn - 5] < work[nn - 7]) {
+                 tType = -10;
+                 final double s = 0.333 * dMin2;
+-                if (work[nn - 5] > work[nn - 7]) {
++                if (nn - 5 < 0 || nn - 7 < 0 || work[nn - 7] <= 0.0 || work[nn - 5] > work[nn - 7]) {
++                    tau = 0.25 * dMin2;
+                     return;
+                 }
+                 double b1 = work[nn - 5] / work[nn - 7];
+                 double b2 = b1;
+                 if (b2 != 0.0){
+                     for (int i4 = 4 * end - 9 + pingPong; i4 >= 4 * start + 2 + pingPong; i4 -= 4) {
+-                        if (work[i4] > work[i4 - 2]) {
++                        if (i4 < 0 || i4 - 2 < 0 || work[i4 - 2] <= 0.0 || work[i4] > work[i4 - 2]) {
++                            tau = 0.25 * dMin2;
+                             return;
+                         }
+                         b1 *= work[i4] / work[i4 - 2];

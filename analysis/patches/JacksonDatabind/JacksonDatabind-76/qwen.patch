@@ -1,0 +1,55 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/BuilderBasedDeserializer.java b/src/main/java/com/fasterxml/jackson/databind/deser/BuilderBasedDeserializer.java
+index 1629a42be..5e859cdb3 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/BuilderBasedDeserializer.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/BuilderBasedDeserializer.java
+@@ -564,7 +564,7 @@ public class BuilderBasedDeserializer
+ 
+     @SuppressWarnings("resource")
+     protected Object deserializeUsingPropertyBasedWithUnwrapped(JsonParser p,
+-    		DeserializationContext ctxt)
++        DeserializationContext ctxt)
+         throws IOException, JsonProcessingException
+     {
+         final PropertyBasedCreator creator = _propertyBasedCreator;
+@@ -589,10 +589,39 @@ public class BuilderBasedDeserializer
+                         wrapAndThrow(e, _beanType.getRawClass(), propName, ctxt);
+                         continue;
+                     }
+-                    while (t == JsonToken.FIELD_NAME) {
++                    // After building the object, we still need to process remaining fields properly
++                    // Some might be regular properties that should be set on the bean directly,
++                    // others should go to unwrapped processing
++                    // We need to continue processing the same way as the non-property-based version
++                    final Class<?> activeView = _needViewProcesing ? ctxt.getActiveView() : null;
++
++                    for (; t == JsonToken.FIELD_NAME; t = p.nextToken()) {
++                        String fieldName = p.getCurrentName();
++                        SettableBeanProperty prop = _beanProperties.find(fieldName);
+                         p.nextToken();
++                        if (prop != null) { // normal case - regular bean property
++                            if (activeView != null && !prop.visibleInView(activeView)) {
++                                p.skipChildren();
++                                continue;
++                            }
++                            try {
++                                bean = prop.deserializeSetAndReturn(p, ctxt, bean);
++                            } catch (Exception e) {
++                                wrapAndThrow(e, bean, fieldName, ctxt);
++                            }
++                            continue;
++                        }
++                        if (_ignorableProps != null && _ignorableProps.contains(fieldName)) {
++                            handleIgnoredProperty(p, ctxt, bean, fieldName);
++                            continue;
++                        }
++                        // but... others should be passed to unwrapped property deserializers
++                        tokens.writeFieldName(fieldName);
+                         tokens.copyCurrentStructure(p);
+-                        t = p.nextToken();
++                        // how about any setter? We'll get copies but...
++                        if (_anySetter != null) {
++                            _anySetter.deserializeAndSet(p, ctxt, bean, fieldName);
++                        }
+                     }
+                     tokens.writeEndObject();
+                     if (bean.getClass() != _beanType.getRawClass()) {

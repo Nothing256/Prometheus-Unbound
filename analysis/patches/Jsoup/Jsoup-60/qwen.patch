@@ -1,0 +1,31 @@
+diff --git a/src/main/java/org/jsoup/parser/TokenQueue.java b/src/main/java/org/jsoup/parser/TokenQueue.java
+index fc22b044..9aa9443b 100644
+--- a/src/main/java/org/jsoup/parser/TokenQueue.java
++++ b/src/main/java/org/jsoup/parser/TokenQueue.java
+@@ -264,6 +264,9 @@ public class TokenQueue {
+         char last = 0;
+         boolean inQuote = false;
+ 
++        // Track if we detect a condition where we might have unbalanced quotes inside balanced content
++        int initialPos = pos;
++
+         do {
+             if (isEmpty()) break;
+             Character c = consume();
+@@ -285,6 +288,16 @@ public class TokenQueue {
+                 end = pos; // don't include the outer match pair in the return
+             last = c;
+         } while (depth > 0);
++
++        // If we exit the loop with depth > 0, it means we couldn't find the closing bracket
++        // This happens when quotes cause the algorithm to skip processing closing brackets
++        // This indicates malformed input that should cause an error
++        if (depth > 0) {
++            // Reset position to try to provide a meaningful error
++            pos = initialPos;
++            throw new IllegalStateException("Could not find balanced marker for '" + open + "' and '" + close + "', potentially due to unbalanced quotes");
++        }
++
+         final String out = (end >= 0) ? queue.substring(start, end) : "";
+         return out;
+     }

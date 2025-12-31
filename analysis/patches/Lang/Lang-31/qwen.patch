@@ -1,0 +1,60 @@
+diff --git a/src/main/java/org/apache/commons/lang3/StringUtils.java b/src/main/java/org/apache/commons/lang3/StringUtils.java
+index a90b0673d..9ef28047d 100644
+--- a/src/main/java/org/apache/commons/lang3/StringUtils.java
++++ b/src/main/java/org/apache/commons/lang3/StringUtils.java
+@@ -1441,18 +1441,48 @@ public class StringUtils {
+ 		if (isEmpty(cs) || ArrayUtils.isEmpty(searchChars)) {
+ 			return false;
+ 		}
++
++		// Convert the input CharSequence to code points for proper character matching
+ 		int csLength = cs.length();
++		int[] csCodePoints = new int[csLength]; // Upper bound - actual will be less if there are supplementary chars
++		int codePointCount = 0;
++
++		for (int i = 0; i < csLength; ) {
++			int codePoint = Character.codePointAt(cs, i);
++			csCodePoints[codePointCount++] = codePoint;
++			i += Character.charCount(codePoint);
++		}
++
++		// Convert the search char array to code points too
+ 		int searchLength = searchChars.length;
+-		for (int i = 0; i < csLength; i++) {
+-			char ch = cs.charAt(i);
+-			for (int j = 0; j < searchLength; j++) {
+-				if (searchChars[j] == ch) {
+-						// ch is a supplementary character
+-						// ch is in the Basic Multilingual Plane
+-						return true;
++		int[] searchCodePoints = new int[searchLength]; // Upper bound
++		int searchCodePointCount = 0;
++
++		for (int i = 0; i < searchLength; ) {
++			if (i < searchLength - 1 &&
++				Character.isHighSurrogate(searchChars[i]) &&
++				Character.isLowSurrogate(searchChars[i + 1])) {
++				// This is a surrogate pair representing one supplementary character
++				int codePoint = Character.toCodePoint(searchChars[i], searchChars[i + 1]);
++				searchCodePoints[searchCodePointCount++] = codePoint;
++				i += 2; // Skip both surrogates
++			} else {
++				// This is a BMP character
++				searchCodePoints[searchCodePointCount++] = searchChars[i];
++				i++;
++			}
++		}
++
++		// Now check if any of the search code points exist in the string code points
++		for (int i = 0; i < searchCodePointCount; i++) {
++			int searchCodePoint = searchCodePoints[i];
++			for (int j = 0; j < codePointCount; j++) {
++				if (csCodePoints[j] == searchCodePoint) {
++					return true;
+ 				}
+ 			}
+ 		}
++
+ 		return false;
+ 	}
+ 

@@ -1,0 +1,96 @@
+diff --git a/src/main/java/org/apache/commons/math/linear/OpenMapRealVector.java b/src/main/java/org/apache/commons/math/linear/OpenMapRealVector.java
+index 5db488466..a03bef7cd 100644
+--- a/src/main/java/org/apache/commons/math/linear/OpenMapRealVector.java
++++ b/src/main/java/org/apache/commons/math/linear/OpenMapRealVector.java
+@@ -342,10 +342,21 @@ public class OpenMapRealVector extends AbstractRealVector
+     public OpenMapRealVector ebeDivide(RealVector v) {
+         checkVectorDimensions(v.getDimension());
+         OpenMapRealVector res = new OpenMapRealVector(this);
++        // Create a copy of the keys to avoid ConcurrentModificationException
++        int[] keys = new int[res.entries.size()];
++        double[] values = new double[res.entries.size()];
+         Iterator iter = res.entries.iterator();
++        int i = 0;
+         while (iter.hasNext()) {
+             iter.advance();
+-            res.setEntry(iter.key(), iter.value() / v.getEntry(iter.key()));
++            keys[i] = iter.key();
++            values[i] = iter.value() / v.getEntry(iter.key());
++            i++;
++        }
++
++        // Now apply all the changes
++        for (int j = 0; j < keys.length; j++) {
++            res.setEntry(keys[j], values[j]);
+         }
+         return res;
+     }
+@@ -355,10 +366,21 @@ public class OpenMapRealVector extends AbstractRealVector
+     public OpenMapRealVector ebeDivide(double[] v) {
+         checkVectorDimensions(v.length);
+         OpenMapRealVector res = new OpenMapRealVector(this);
++        // Create a copy of the keys to avoid ConcurrentModificationException
++        int[] keys = new int[res.entries.size()];
++        double[] values = new double[res.entries.size()];
+         Iterator iter = res.entries.iterator();
++        int i = 0;
+         while (iter.hasNext()) {
+             iter.advance();
+-            res.setEntry(iter.key(), iter.value() / v[iter.key()]);
++            keys[i] = iter.key();
++            values[i] = iter.value() / v[iter.key()];
++            i++;
++        }
++
++        // Now apply all the changes
++        for (int j = 0; j < keys.length; j++) {
++            res.setEntry(keys[j], values[j]);
+         }
+         return res;
+     }
+@@ -367,10 +389,21 @@ public class OpenMapRealVector extends AbstractRealVector
+     public OpenMapRealVector ebeMultiply(RealVector v) {
+         checkVectorDimensions(v.getDimension());
+         OpenMapRealVector res = new OpenMapRealVector(this);
++        // Create a copy of the keys to avoid ConcurrentModificationException
++        int[] keys = new int[res.entries.size()];
++        double[] values = new double[res.entries.size()];
+         Iterator iter = res.entries.iterator();
++        int i = 0;
+         while (iter.hasNext()) {
+             iter.advance();
+-            res.setEntry(iter.key(), iter.value() * v.getEntry(iter.key()));
++            keys[i] = iter.key();
++            values[i] = iter.value() * v.getEntry(iter.key());
++            i++;
++        }
++
++        // Now apply all the changes
++        for (int j = 0; j < keys.length; j++) {
++            res.setEntry(keys[j], values[j]);
+         }
+         return res;
+     }
+@@ -380,10 +413,21 @@ public class OpenMapRealVector extends AbstractRealVector
+     public OpenMapRealVector ebeMultiply(double[] v) {
+         checkVectorDimensions(v.length);
+         OpenMapRealVector res = new OpenMapRealVector(this);
++        // Create a copy of the keys to avoid ConcurrentModificationException
++        int[] keys = new int[res.entries.size()];
++        double[] values = new double[res.entries.size()];
+         Iterator iter = res.entries.iterator();
++        int i = 0;
+         while (iter.hasNext()) {
+             iter.advance();
+-            res.setEntry(iter.key(), iter.value() * v[iter.key()]);
++            keys[i] = iter.key();
++            values[i] = iter.value() * v[iter.key()];
++            i++;
++        }
++
++        // Now apply all the changes
++        for (int j = 0; j < keys.length; j++) {
++            res.setEntry(keys[j], values[j]);
+         }
+         return res;
+     }

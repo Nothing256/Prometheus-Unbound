@@ -1,0 +1,113 @@
+diff --git a/src/main/java/org/jsoup/safety/Cleaner.java b/src/main/java/org/jsoup/safety/Cleaner.java
+index 23000a1..b4c6d7e 100644
+--- a/src/main/java/org/jsoup/safety/Cleaner.java
++++ b/src/main/java/org/jsoup/safety/Cleaner.java
+@@ -65,50 +65,58 @@ private int copySafeNodes(Element source, Element dest) {
+    List<Node> sourceChildren = source.childNodes();
+    int numDiscarded = 0;
+
+    for (Node sourceChild : sourceChildren) {
++        try {
+            if (sourceChild instanceof Element) {
+                Element sourceEl = (Element) sourceChild;
+-                if (whitelist.isSafeTag(sourceEl.tagName())) { // safe, clone and copy safe attrs
+-                    ElementMeta meta = createSafeElement(sourceEl);
+-                    Element destChild = meta.el;
+-                    dest.appendChild(destChild);
+-
+-                    numDiscarded += meta.numAttribsDiscarded;
+-                    numDiscarded += copySafeNodes(sourceEl, destChild); // recurs
+-                } else { // not a safe tag, but it may have children (els or text) that are, so recurse
+-                    numDiscarded++;
+-                    numDiscarded += copySafeNodes(sourceEl, dest);
+-                }
++                String tagName;
++                boolean isSafeTag;
++
++                try {
++                    tagName = sourceEl.tagName();
++                    isSafeTag = whitelist.isSafeTag(tagName);
++                } catch (Exception e) {
++                    // if there's an issue getting the tag name or checking if it's safe,
++                    // treat it as unsafe to be safe
++                    isSafeTag = false;
++                }
++
++                if (isSafeTag) { // safe, clone and copy safe attrs
++                    ElementMeta meta = createSafeElement(sourceEl);
++                    Element destChild = meta.el;
++                    if (destChild != null) {  // defensive check
++                        dest.appendChild(destChild);
++                    }
++
++                    numDiscarded += meta.numAttribsDiscarded;
++                    numDiscarded += copySafeNodes(sourceEl, destChild); // recurs
++                } else { // not a safe tag, but it may have children (els or text) that are, so recurse
++                    numDiscarded++;
++                    numDiscarded += copySafeNodes(sourceEl, dest);
++                }
+            } else if (sourceChild instanceof TextNode) {
+                TextNode sourceText = (TextNode) sourceChild;
+                TextNode destText = new TextNode(sourceText.getWholeText(), sourceChild.baseUri());
+                dest.appendChild(destText);
+            } // else, we don't care about comments, xml proc instructions, etc
++        } catch (Exception e) {
++            // Skip any problematic children entirely 
++            numDiscarded++;
++        }
+    }
+    return numDiscarded;
+ }
+ 
+ private ElementMeta createSafeElement(Element sourceEl) {
+    String sourceTag = sourceEl.tagName();
+    Attributes destAttrs = new Attributes();
+    Element dest = new Element(Tag.valueOf(sourceTag), sourceEl.baseUri(), destAttrs);
+    int numDiscarded = 0;
+
+    Attributes sourceAttrs = sourceEl.attributes();
+    for (Attribute sourceAttr : sourceAttrs) {
++        try {
+            if (whitelist.isSafeAttribute(sourceTag, sourceEl, sourceAttr))
+                destAttrs.put(sourceAttr);
+            else
+                numDiscarded++;
++        } catch (Exception e) {
++            // If there's an issue determining if attribute is safe (e.g. NPE with special elements like frames),
++            // count it as discarded to be safe
++            numDiscarded++;
++        }
+    }
+    Attributes enforcedAttrs = whitelist.getEnforcedAttributes(sourceTag);
+    destAttrs.addAll(enforcedAttrs);
+
+    return new ElementMeta(dest, numDiscarded);
+ }
+
+diff --git a/src/main/java/org/jsoup/safety/Whitelist.java b/src/main/java/org/jsoup/safety/Whitelist.java
+index 456def..789ghi 100644
+--- a/src/main/java/org/jsoup/safety/Whitelist.java
++++ b/src/main/java/org/jsoup/safety/Whitelist.java
+@@ -346,12 +346,17 @@ private boolean testValidProtocol(Element el, Attribute attr, Set<Protocol> protocols) {
+    // try to resolve relative urls to abs, and optionally update the attribute so output html has abs.
+    // rels without a baseuri get removed
+    String value;
++    try {
+        value = el.absUrl(attr.getKey());
++    } catch (Exception e) {
++        // if absUrl fails (e.g., with NPE for certain elements like frames), fall back to the attribute value
++        value = attr.getValue();
++    }
+    if (value.length() == 0)
+        value = attr.getValue(); // if it could not be made abs, run as-is to allow custom unknown protocols
+    if (!preserveRelativeLinks)
+        attr.setValue(value);
+
+    for (Protocol protocol : protocols) {
+        String prot = protocol.toString() + ":";
+        if (value.toLowerCase().startsWith(prot)) {
+            return true;
+        }
+    }
+    return false;
+ }

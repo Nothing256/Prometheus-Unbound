@@ -1,0 +1,12 @@
+--- a/src/org/mockito/internal/stubbing/defaultanswers/ReturnsEmptyValues.java
++++ b/src/org/mockito/internal/stubbing/defaultanswers/ReturnsEmptyValues.java
+@@ -113,6 +113,8 @@
+         } else if (type == TreeMap.class) {
+             return new TreeMap<Object, Object>();
+         } else if (type == LinkedHashMap.class) {
+             return new LinkedHashMap<Object, Object>();
++        } else if (type == Iterable.class) {
++            return new ArrayList<Object>(); // ArrayList implements Iterable
+         }
+         //Let's not care about the rest of collections.
+         return null;

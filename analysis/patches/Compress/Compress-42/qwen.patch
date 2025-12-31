@@ -1,0 +1,17 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveEntry.java b/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveEntry.java
+index 5030da57..edc375f8 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveEntry.java
++++ b/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveEntry.java
+@@ -294,7 +294,11 @@ public int getUnixMode() {
+      * @return true if the entry represents a unix symlink, false otherwise.
+      */
+     public boolean isUnixSymlink() {
+-        return (getUnixMode() & UnixStat.LINK_FLAG) == UnixStat.LINK_FLAG;
++        int mode = getUnixMode();
++        // Only consider it a symlink if it has the link flag AND no other file type flags
++        return (mode & UnixStat.LINK_FLAG) == UnixStat.LINK_FLAG &&
++               (mode & UnixStat.FILE_FLAG) == 0 &&
++               (mode & UnixStat.DIR_FLAG) == 0;
+     }
+ 
+     /**

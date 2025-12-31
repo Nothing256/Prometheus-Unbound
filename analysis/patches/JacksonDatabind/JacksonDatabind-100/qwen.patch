@@ -1,0 +1,33 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/node/TreeTraversingParser.java b/src/main/java/com/fasterxml/jackson/databind/node/TreeTraversingParser.java
+index 9d2f74b35..09208c66a 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/node/TreeTraversingParser.java
++++ b/src/main/java/com/fasterxml/jackson/databind/node/TreeTraversingParser.java
+@@ -360,6 +360,28 @@ public class TreeTraversingParser extends ParserMinimalBase
+         if (n != null) {
+             // [databind#2096]: although `binaryValue()` works for real binary node
+             // and embedded "POJO" node, coercion from TextNode may require variant, so:
++            // For TextNode, we need to call getBinaryValue with the specific variant,
++            // not binaryValue() which uses only the default variant
++            if (n.isTextual()) {
++                try {
++                    // Cast to TextNode to access its getBinaryValue method that accepts Base64Variant
++                    if (n instanceof TextNode) {
++                        return ((TextNode) n).getBinaryValue(b64variant);
++                    } else {
++                        // For other textual nodes, try to get text and decode
++                        String text = n.asText();
++                        if (text != null && text.length() > 0) {
++                            return b64variant.decode(text);
++                        }
++                        // return empty byte array for empty text
++                        return new byte[0];
++                    }
++                } catch (IllegalArgumentException e) {
++                    // if decoding fails, re-throw as JsonParseException to match expected behavior
++                    throw new JsonParseException(this, "Failed to decode base64 content", e);
++                }
++            }
++            // For other node types, use the original logic
+             byte[] data = n.binaryValue();
+             if (data != null) {
+                 return data;

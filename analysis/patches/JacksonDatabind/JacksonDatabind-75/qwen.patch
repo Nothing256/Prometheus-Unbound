@@ -1,0 +1,15 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/ser/std/EnumSerializer.java b/src/main/java/com/fasterxml/jackson/databind/ser/std/EnumSerializer.java
+index 75c12b5c4..041bc146b 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/ser/std/EnumSerializer.java
++++ b/src/main/java/com/fasterxml/jackson/databind/ser/std/EnumSerializer.java
+@@ -229,7 +229,9 @@ public class EnumSerializer
+             return Boolean.FALSE;
+         }
+         // 01-Oct-2014, tatu: For convenience, consider "as-array" to also mean 'yes, use index')
+-        if (shape.isNumeric() || (shape == Shape.ARRAY)) {
++        // [databind#75] - Also consider specific number shapes that may not be covered by isNumeric()
++        if (shape.isNumeric() || (shape == Shape.ARRAY) || (shape == Shape.NUMBER)
++            || (shape == Shape.NUMBER_INT) || (shape == Shape.NUMBER_FLOAT)) {
+             return Boolean.TRUE;
+         }
+         // 07-Mar-2017, tatu: Also means `OBJECT` not available as property annotation...

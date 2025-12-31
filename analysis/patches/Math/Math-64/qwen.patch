@@ -1,0 +1,24 @@
+diff --git a/src/main/java/org/apache/commons/math/optimization/general/LevenbergMarquardtOptimizer.java b/src/main/java/org/apache/commons/math/optimization/general/LevenbergMarquardtOptimizer.java
+index 50914932e..3d588493a 100644
+--- a/src/main/java/org/apache/commons/math/optimization/general/LevenbergMarquardtOptimizer.java
++++ b/src/main/java/org/apache/commons/math/optimization/general/LevenbergMarquardtOptimizer.java
+@@ -814,14 +814,15 @@ public class LevenbergMarquardtOptimizer extends AbstractLeastSquaresOptimizer {
+                     ak2        = norm2;
+                 }
+             }
+-            if (ak2 <= qrRankingThreshold) {
+-                rank = k;
+-                return;
+-            }
+             int pk                  = permutation[nextColumn];
+             permutation[nextColumn] = permutation[k];
+             permutation[k]          = pk;
+ 
++            if (ak2 <= qrRankingThreshold * jacNorm[permutation[k]] * jacNorm[permutation[k]]) {
++                rank = k;
++                return;
++            }
++
+             // choose alpha such that Hk.u = alpha ek
+             double akk   = jacobian[k][pk];
+             double alpha = (akk > 0) ? -Math.sqrt(ak2) : Math.sqrt(ak2);

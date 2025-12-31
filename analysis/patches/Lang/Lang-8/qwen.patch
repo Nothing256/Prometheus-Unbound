@@ -1,0 +1,56 @@
+diff --git a/src/main/java/org/apache/commons/lang3/time/FastDatePrinter.java b/src/main/java/org/apache/commons/lang3/time/FastDatePrinter.java
+index 5c0edda2e..0760c955b 100644
+--- a/src/main/java/org/apache/commons/lang3/time/FastDatePrinter.java
++++ b/src/main/java/org/apache/commons/lang3/time/FastDatePrinter.java
+@@ -1095,9 +1095,7 @@ public class FastDatePrinter implements DatePrinter, Serializable {
+     private static class TimeZoneNameRule implements Rule {
+         private final Locale mLocale;
+         private final int mStyle;
+-        private final TimeZone zone;
+-        private final String mStandard;
+-        private final String mDaylight;
++        private final TimeZone mTimeZone;
+ 
+         /**
+          * Constructs an instance of {@code TimeZoneNameRule} with the specified properties.
+@@ -1109,10 +1107,7 @@ public class FastDatePrinter implements DatePrinter, Serializable {
+         TimeZoneNameRule(TimeZone timeZone, Locale locale, int style) {
+             mLocale = locale;
+             mStyle = style;
+-            zone = timeZone;
+-            
+-            mStandard = getTimeZoneDisplay(timeZone, false, style, locale);
+-            mDaylight = getTimeZoneDisplay(timeZone, true, style, locale);
++            mTimeZone = timeZone;
+         }
+ 
+         /**
+@@ -1123,7 +1118,9 @@ public class FastDatePrinter implements DatePrinter, Serializable {
+             // We have no access to the Calendar object that will be passed to
+             // appendTo so base estimate on the TimeZone passed to the
+             // constructor
+-            return Math.max(mStandard.length(), mDaylight.length());
++            return Math.max(
++                getTimeZoneDisplay(mTimeZone, false, mStyle, mLocale).length(),
++                getTimeZoneDisplay(mTimeZone, true, mStyle, mLocale).length());
+         }
+ 
+         /**
+@@ -1131,12 +1128,13 @@ public class FastDatePrinter implements DatePrinter, Serializable {
+          */
+         @Override
+         public void appendTo(StringBuffer buffer, Calendar calendar) {
+-            if (zone.useDaylightTime()
+-                    && calendar.get(Calendar.DST_OFFSET) != 0) {
+-                buffer.append(getTimeZoneDisplay(zone, true, mStyle, mLocale));
+-            } else {
+-                buffer.append(getTimeZoneDisplay(zone, false, mStyle, mLocale));
++            TimeZone timeZone = calendar.getTimeZone();
++            if (timeZone == null) {
++                timeZone = mTimeZone;
+             }
++            // Determine if the time represented by the calendar is in DST
++            boolean daylight = calendar.get(Calendar.DST_OFFSET) != 0;
++            buffer.append(getTimeZoneDisplay(timeZone, daylight, mStyle, mLocale));
+         }
+     }

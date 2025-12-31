@@ -1,0 +1,152 @@
+diff --git a/src/java/org/apache/commons/jxpath/ri/InfoSetUtil.java b/src/java/org/apache/commons/jxpath/ri/InfoSetUtil.java
+index 5b18495..41cb2e3 100644
+--- a/src/java/org/apache/commons/jxpath/ri/InfoSetUtil.java
++++ b/src/java/org/apache/commons/jxpath/ri/InfoSetUtil.java
+@@ -99,7 +99,7 @@ public class InfoSetUtil {
+             return ((Number) object).doubleValue();
+         }
+         if (object instanceof Boolean) {
+-            return ((Boolean) object).booleanValue() ? 0.0 : 1.0;
++            return ((Boolean) object).booleanValue() ? 1.0 : 0.0;
+         }
+         if (object instanceof String) {
+             if (object.equals("")) {
+diff --git a/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationGreaterThan.java b/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationGreaterThan.java
+index 3a053d4..979cd2c 100644
+--- a/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationGreaterThan.java
++++ b/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationGreaterThan.java
+@@ -16,6 +16,9 @@
+  */
+ package org.apache.commons.jxpath.ri.compiler;
+ 
++import java.util.Collections;
++import java.util.HashSet;
++
+ /**
+  * Implementation of Expression for the operation "&gt;".
+  *
+@@ -29,9 +32,121 @@ public class CoreOperationGreaterThan extends CoreOperationRelationalExpression
+     }
+ 
+     public Object computeValue(org.apache.commons.jxpath.ri.EvalContext context) {
+-        double l = org.apache.commons.jxpath.ri.InfoSetUtil.doubleValue(args[0].computeValue(context));
+-        double r = org.apache.commons.jxpath.ri.InfoSetUtil.doubleValue(args[1].computeValue(context));
+-        return l > r ? Boolean.TRUE : Boolean.FALSE;
++        // Handle nodeset operations like equal operations do
++        Object l = args[0].computeValue(context);
++        Object r = args[1].computeValue(context);
++
++        // Handle InitialContext and SelfContext like CoreOperationCompare
++        if (l instanceof org.apache.commons.jxpath.ri.axes.InitialContext) {
++            ((org.apache.commons.jxpath.ri.EvalContext) l).reset();
++        }
++
++        if (l instanceof org.apache.commons.jxpath.ri.axes.SelfContext) {
++            l = ((org.apache.commons.jxpath.ri.EvalContext) l).getSingleNodePointer();
++        }
++
++        if (r instanceof org.apache.commons.jxpath.ri.axes.InitialContext) {
++            ((org.apache.commons.jxpath.ri.EvalContext) r).reset();
++        }
++
++        if (r instanceof org.apache.commons.jxpath.ri.axes.SelfContext) {
++            r = ((org.apache.commons.jxpath.ri.EvalContext) r).getSingleNodePointer();
++        }
++
++        // Check for arrays and collections
++        boolean lIsCollection = isCollectionOrArray(l);
++        boolean rIsCollection = isCollectionOrArray(r);
++
++        if (lIsCollection && !rIsCollection) {
++            java.util.Iterator lit = getIterator(l);
++            return containsGreaterThan(lit, r);
++        }
++        else if (!lIsCollection && rIsCollection) {
++            java.util.Iterator rit = getIterator(r);
++            // For l > r, when l is single and r is collection,
++            // check if l > any element in r (equivalent to some element in r < l)
++            return containsLessThan(rit, l);
++        }
++        else if (lIsCollection && rIsCollection) {
++            java.util.Iterator lit = getIterator(l);
++            java.util.Iterator rit = getIterator(r);
++            return findGreaterThanMatch(lit, rit);
++        }
++        else {
++            // Both are single values - use original logic
++            double lVal = org.apache.commons.jxpath.ri.InfoSetUtil.doubleValue(l);
++            double rVal = org.apache.commons.jxpath.ri.InfoSetUtil.doubleValue(r);
++            return lVal > rVal;
++        }
++    }
++
++    private boolean isCollectionOrArray(Object obj) {
++        if (obj == null) {
++            return false;
++        }
++        if (obj instanceof java.util.Collection) {
++            return true;
++        }
++        if (obj.getClass().isArray()) {
++            return true;
++        }
++        return false;
++    }
++
++    private java.util.Iterator getIterator(Object obj) {
++        if (obj instanceof java.util.Collection) {
++            return ((java.util.Collection) obj).iterator();
++        }
++        else if (obj != null && obj.getClass().isArray()) {
++            return org.apache.commons.jxpath.util.ValueUtils.iterate(obj);
++        }
++        // For single values, return an iterator with one element
++        return java.util.Collections.singletonList(obj).iterator();
++    }
++
++    private boolean containsGreaterThan(java.util.Iterator it, Object value) {
++        while (it.hasNext()) {
++            Object element = it.next();
++            // Compare element > value
++            double elementValue = org.apache.commons.jxpath.ri.InfoSetUtil.doubleValue(element);
++            double valueValue = org.apache.commons.jxpath.ri.InfoSetUtil.doubleValue(value);
++            if (elementValue > valueValue) {
++                return true;
++            }
++        }
++        return false;
++    }
++
++    private boolean containsLessThan(java.util.Iterator it, Object value) {
++        while (it.hasNext()) {
++            Object element = it.next();
++            // Check if element < value, which is equivalent to value > element
++            double elementValue = org.apache.commons.jxpath.ri.InfoSetUtil.doubleValue(element);
++            double valueValue = org.apache.commons.jxpath.ri.InfoSetUtil.doubleValue(value);
++            if (elementValue < valueValue) {
++                return true;
++            }
++        }
++        return false;
++    }
++
++    private boolean findGreaterThanMatch(java.util.Iterator lit, java.util.Iterator rit) {
++        java.util.HashSet left = new java.util.HashSet();
++        while (lit.hasNext()) {
++            left.add(lit.next());
++        }
++        while (rit.hasNext()) {
++            Object rightElement = rit.next();
++            // Check if any element in left is greater than rightElement
++            for (Object leftElement : left) {
++                double leftValue = org.apache.commons.jxpath.ri.InfoSetUtil.doubleValue(leftElement);
++                double rightValue = org.apache.commons.jxpath.ri.InfoSetUtil.doubleValue(rightElement);
++                if (leftValue > rightValue) {
++                    return true;
++                }
++            }
++        }
++        return false;
+     }
+ 
+     public String getSymbol() {

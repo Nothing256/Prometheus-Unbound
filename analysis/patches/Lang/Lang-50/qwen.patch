@@ -1,0 +1,102 @@
+diff --git a/src/java/org/apache/commons/lang/time/FastDateFormat.java b/src/java/org/apache/commons/lang/time/FastDateFormat.java
+index 8a26f2831..2df57978e 100644
+--- a/src/java/org/apache/commons/lang/time/FastDateFormat.java
++++ b/src/java/org/apache/commons/lang/time/FastDateFormat.java
+@@ -282,24 +282,25 @@ public class FastDateFormat extends Format {
+             key = new Pair(key, timeZone);
+         }
+ 
++        Locale realLocale = locale;
+         if (locale != null) {
+             key = new Pair(key, locale);
++        } else {
++            realLocale = Locale.getDefault();
++            key = new Pair(key, realLocale);
+         }
+ 
+ 
+         FastDateFormat format = (FastDateFormat) cDateInstanceCache.get(key);
+         if (format == null) {
+-            if (locale == null) {
+-                locale = Locale.getDefault();
+-            }
+             try {
+-                SimpleDateFormat formatter = (SimpleDateFormat) DateFormat.getDateInstance(style, locale);
++                SimpleDateFormat formatter = (SimpleDateFormat) DateFormat.getDateInstance(style, realLocale);
+                 String pattern = formatter.toPattern();
+-                format = getInstance(pattern, timeZone, locale);
++                format = getInstance(pattern, timeZone, realLocale);
+                 cDateInstanceCache.put(key, format);
+-                
++
+             } catch (ClassCastException ex) {
+-                throw new IllegalArgumentException("No date pattern for locale: " + locale);
++                throw new IllegalArgumentException("No date pattern for locale: " + realLocale);
+             }
+         }
+         return format;
+@@ -368,24 +369,24 @@ public class FastDateFormat extends Format {
+         if (timeZone != null) {
+             key = new Pair(key, timeZone);
+         }
++        Locale realLocale = locale;
+         if (locale != null) {
+             key = new Pair(key, locale);
++        } else {
++            realLocale = Locale.getDefault();
++            key = new Pair(key, realLocale);
+         }
+ 
+         FastDateFormat format = (FastDateFormat) cTimeInstanceCache.get(key);
+         if (format == null) {
+-            if (locale == null) {
+-                locale = Locale.getDefault();
+-            }
+-
+             try {
+-                SimpleDateFormat formatter = (SimpleDateFormat) DateFormat.getTimeInstance(style, locale);
++                SimpleDateFormat formatter = (SimpleDateFormat) DateFormat.getTimeInstance(style, realLocale);
+                 String pattern = formatter.toPattern();
+-                format = getInstance(pattern, timeZone, locale);
++                format = getInstance(pattern, timeZone, realLocale);
+                 cTimeInstanceCache.put(key, format);
+-            
++
+             } catch (ClassCastException ex) {
+-                throw new IllegalArgumentException("No date pattern for locale: " + locale);
++                throw new IllegalArgumentException("No date pattern for locale: " + realLocale);
+             }
+         }
+         return format;
+@@ -462,24 +463,25 @@ public class FastDateFormat extends Format {
+         if (timeZone != null) {
+             key = new Pair(key, timeZone);
+         }
++        Locale realLocale = locale;
+         if (locale != null) {
+             key = new Pair(key, locale);
++        } else {
++            realLocale = Locale.getDefault();
++            key = new Pair(key, realLocale);
+         }
+ 
+         FastDateFormat format = (FastDateFormat) cDateTimeInstanceCache.get(key);
+         if (format == null) {
+-            if (locale == null) {
+-                locale = Locale.getDefault();
+-            }
+             try {
+                 SimpleDateFormat formatter = (SimpleDateFormat) DateFormat.getDateTimeInstance(dateStyle, timeStyle,
+-                        locale);
++                        realLocale);
+                 String pattern = formatter.toPattern();
+-                format = getInstance(pattern, timeZone, locale);
++                format = getInstance(pattern, timeZone, realLocale);
+                 cDateTimeInstanceCache.put(key, format);
+ 
+             } catch (ClassCastException ex) {
+-                throw new IllegalArgumentException("No date time pattern for locale: " + locale);
++                throw new IllegalArgumentException("No date time pattern for locale: " + realLocale);
+             }
+         }
+         return format;

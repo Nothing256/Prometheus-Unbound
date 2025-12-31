@@ -1,0 +1,49 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveEntry.java b/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveEntry.java
+index 0dea7a97..44dcb751 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveEntry.java
++++ b/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveEntry.java
+@@ -761,11 +761,12 @@ public class CpioArchiveEntry implements CpioConstants, ArchiveEntry {
+         case C_ISBLK:
+         case C_ISSOCK:
+         case C_ISNWK:
++        case 0: // Allow entries with permission bits set but file type bits as zero (e.g., from Redline RPM)
+             break;
+         default:
+             throw new IllegalArgumentException(
+                                                "Unknown mode. "
+-                                               + "Full: " + Long.toHexString(mode) 
++                                               + "Full: " + Long.toHexString(mode)
+                                                + " Masked: " + Long.toHexString(maskedMode));
+         }
+ 
+diff --git a/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveInputStream.java b/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveInputStream.java
+index 934eb0aa..db60ce86 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveInputStream.java
++++ b/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveInputStream.java
+@@ -344,7 +344,7 @@ public class CpioArchiveInputStream extends ArchiveInputStream implements
+         ret.setChksum(readAsciiLong(8, 16));
+         String name = readCString((int) namesize);
+         ret.setName(name);
+-        if (mode == 0 && !name.equals(CPIO_TRAILER)){
++        if ((mode & S_IFMT) == 0 && !name.equals(CPIO_TRAILER)){
+             throw new IOException("Mode 0 only allowed in the trailer. Found entry name: "+name + " Occured at byte: " + getBytesRead());
+         }
+         skip(ret.getHeaderPadCount());
+@@ -370,7 +370,7 @@ public class CpioArchiveInputStream extends ArchiveInputStream implements
+         ret.setSize(readAsciiLong(11, 8));
+         final String name = readCString((int) namesize);
+         ret.setName(name);
+-        if (mode == 0 && !name.equals(CPIO_TRAILER)){
++        if ((mode & S_IFMT) == 0 && !name.equals(CPIO_TRAILER)){
+             throw new IOException("Mode 0 only allowed in the trailer. Found entry: "+ name + " Occured at byte: " + getBytesRead());
+         }
+ 
+@@ -396,7 +396,7 @@ public class CpioArchiveInputStream extends ArchiveInputStream implements
+         ret.setSize(readBinaryLong(4, swapHalfWord));
+         final String name = readCString((int) namesize);
+         ret.setName(name);
+-        if (mode == 0 && !name.equals(CPIO_TRAILER)){
++        if ((mode & S_IFMT) == 0 && !name.equals(CPIO_TRAILER)){
+             throw new IOException("Mode 0 only allowed in the trailer. Found entry: "+name + "Occured at byte: " + getBytesRead());
+         }
+         skip(ret.getHeaderPadCount());

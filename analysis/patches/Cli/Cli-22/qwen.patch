@@ -1,0 +1,87 @@
+diff --git a/src/java/org/apache/commons/cli/PosixParser.java b/src/java/org/apache/commons/cli/PosixParser.java
+index 47ad0f7..fbc1df9 100644
+--- a/src/java/org/apache/commons/cli/PosixParser.java
++++ b/src/java/org/apache/commons/cli/PosixParser.java
+@@ -38,6 +38,7 @@ public class PosixParser extends Parser
+     private boolean eatTheRest;
+ 
+     /** holder for the current option */
++    private Option currentOption;
+ 
+     /** the command line Options */
+     private Options options;
+@@ -95,6 +96,7 @@ public class PosixParser extends Parser
+     {
+         init();
+         this.options = options;
++        this.currentOption = null;
+ 
+         // an iterator for the command line tokens
+         Iterator iter = Arrays.asList(arguments).iterator();
+@@ -117,9 +119,17 @@ public class PosixParser extends Parser
+                 }
+                 else
+                 {
+-                    
+                     tokens.add(opt);
+-                    if (pos != -1)
++                    if (pos == -1)
++                    {
++                        // Check if this option takes an argument
++                        Option optInstance = options.getOption(opt);
++                        if (optInstance != null && optInstance.hasArg())
++                        {
++                            this.currentOption = optInstance;
++                        }
++                    }
++                    else
+                     {
+                         tokens.add(token.substring(pos + 1));
+                     }
+@@ -130,12 +140,14 @@ public class PosixParser extends Parser
+             else if ("-".equals(token))
+             {
+                 tokens.add(token);
++                this.currentOption = null;
+             }
+             else if (token.startsWith("-"))
+             {
+                 if (token.length() == 2 || options.hasOption(token))
+                 {
+                     processOptionToken(token, stopAtNonOption);
++                    // Check if this option takes an argument - we need to identify this in processOptionToken
+                 }
+                 // requires bursting
+                 else
+@@ -143,6 +155,12 @@ public class PosixParser extends Parser
+                     burstToken(token, stopAtNonOption);
+                 }
+             }
++            // Check if the current token should be an argument of the previous option
++            else if (this.currentOption != null && this.currentOption.hasArg())
++            {
++                tokens.add(token);
++                this.currentOption = null;
++            }
+             else if (stopAtNonOption)
+             {
+                 processNonOptionToken(token);
+@@ -208,8 +226,17 @@ public class PosixParser extends Parser
+             eatTheRest = true;
+         }
+ 
+-
+         tokens.add(token);
++
++        // Check if this option takes an argument
++        if (options.hasOption(token))
++        {
++            Option opt = options.getOption(token);
++            if (opt != null && opt.hasArg())
++            {
++                this.currentOption = opt;
++            }
++        }
+     }
+ 
+     /**

@@ -1,0 +1,35 @@
+diff --git a/gson/src/main/java/com/google/gson/internal/$Gson$Types.java b/gson/src/main/java/com/google/gson/internal/$Gson$Types.java
+index c2372c79..f74d25a3 100644
+--- a/gson/src/main/java/com/google/gson/internal/$Gson$Types.java
++++ b/gson/src/main/java/com/google/gson/internal/$Gson$Types.java
+@@ -378,17 +378,29 @@ public final class $Gson$Types {
+         Type[] originalLowerBound = original.getLowerBounds();
+         Type[] originalUpperBound = original.getUpperBounds();
+ 
++        // Handle wildcards carefully to avoid infinite recursion
++        // For a wildcard of the form "? super T" (lower bounded)
+         if (originalLowerBound.length == 1) {
+           Type lowerBound = resolve(context, contextRawType, originalLowerBound[0]);
++          // Only create a new wildcard if the bound was actually resolved to something different
+           if (lowerBound != originalLowerBound[0]) {
+             return supertypeOf(lowerBound);
+           }
+-        } else if (originalUpperBound.length == 1) {
++          // Otherwise keep the original wildcard
++          return original;
++        }
++        // For a wildcard of the form "? extends T" (upper bounded but not Object)
++        else if (originalUpperBound.length == 1 && !originalUpperBound[0].equals(Object.class)) {
+           Type upperBound = resolve(context, contextRawType, originalUpperBound[0]);
++          // Only create a new wildcard if the bound was actually resolved to something different
+           if (upperBound != originalUpperBound[0]) {
+             return subtypeOf(upperBound);
+           }
++          // Otherwise keep the original wildcard
++          return original;
+         }
++
++        // For unbounded wildcard "?", or if no changes occurred, return as-is
+         return original;
+ 
+       } else {

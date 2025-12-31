@@ -1,0 +1,62 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/ArchiveStreamFactory.java b/src/main/java/org/apache/commons/compress/archivers/ArchiveStreamFactory.java
+index 6bd8f031..2ced0709 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/ArchiveStreamFactory.java
++++ b/src/main/java/org/apache/commons/compress/archivers/ArchiveStreamFactory.java
+@@ -357,7 +357,11 @@ public class ArchiveStreamFactory {
+                     return new CpioArchiveInputStream(in);
+                 }
+             } else if (ArjArchiveInputStream.matches(signature, signatureLength)) {
+-                    return new ArjArchiveInputStream(in);
++                    if (entryEncoding != null) {
++                        return new ArjArchiveInputStream(in, entryEncoding);
++                    } else {
++                        return new ArjArchiveInputStream(in);
++                    }
+             } else if (SevenZFile.matches(signature, signatureLength)) {
+                 throw new StreamingNotSupportedException(SEVEN_Z);
+             }
+@@ -368,7 +372,11 @@ public class ArchiveStreamFactory {
+             signatureLength = IOUtils.readFully(in, dumpsig);
+             in.reset();
+             if (DumpArchiveInputStream.matches(dumpsig, signatureLength)) {
+-                return new DumpArchiveInputStream(in, entryEncoding);
++                if (entryEncoding != null) {
++                    return new DumpArchiveInputStream(in, entryEncoding);
++                } else {
++                    return new DumpArchiveInputStream(in);
++                }
+             }
+ 
+             // Tar needs an even bigger buffer to check the signature; read the first block
+@@ -377,16 +385,28 @@ public class ArchiveStreamFactory {
+             signatureLength = IOUtils.readFully(in, tarheader);
+             in.reset();
+             if (TarArchiveInputStream.matches(tarheader, signatureLength)) {
+-                return new TarArchiveInputStream(in, entryEncoding);
++                if (entryEncoding != null) {
++                    return new TarArchiveInputStream(in, entryEncoding);
++                } else {
++                    return new TarArchiveInputStream(in);
++                }
+             }
+             // COMPRESS-117 - improve auto-recognition
+             if (signatureLength >= 512) {
+                 TarArchiveInputStream tais = null;
+                 try {
+-                    tais = new TarArchiveInputStream(new ByteArrayInputStream(tarheader));
++                    if (entryEncoding != null) {
++                        tais = new TarArchiveInputStream(new ByteArrayInputStream(tarheader), entryEncoding);
++                    } else {
++                        tais = new TarArchiveInputStream(new ByteArrayInputStream(tarheader));
++                    }
+                     // COMPRESS-191 - verify the header checksum
+                     if (tais.getNextTarEntry().isCheckSumOK()) {
+-                        return new TarArchiveInputStream(in, encoding);
++                        if (entryEncoding != null) {
++                            return new TarArchiveInputStream(in, entryEncoding);
++                        } else {
++                            return new TarArchiveInputStream(in);
++                        }
+                     }
+                 } catch (Exception e) { // NOPMD
+                     // can generate IllegalArgumentException as well

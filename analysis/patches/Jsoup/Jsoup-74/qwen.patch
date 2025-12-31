@@ -1,0 +1,35 @@
+diff --git a/src/main/java/org/jsoup/helper/StringUtil.java b/src/main/java/org/jsoup/helper/StringUtil.java
+index 439a7d60..3db90aca 100644
+--- a/src/main/java/org/jsoup/helper/StringUtil.java
++++ b/src/main/java/org/jsoup/helper/StringUtil.java
+@@ -128,7 +128,16 @@ public final class StringUtil {
+         // 160 is &nbsp; (non-breaking space). Not in the spec but expected.
+     }
+ 
+-        // zero width sp, zw non join, zw join, soft hyphen
++    /**
++     * Tests if a code point is an invisible character that should be removed from text.
++     * @param c code point to test
++     * @return true if code point is an invisible character to be removed from text, false otherwise
++     */
++    public static boolean isInvisibleChar(int c) {
++        // Zero width sp, zw non join, zw join, soft hyphen
++        // These characters have visual width of 0 and should be removed from text
++        return c == 8203 || c == 8204 || c == 8205 || c == 173; // U+200B, U+200C, U+200D, U+00AD
++    }
+ 
+     /**
+      * Normalise the whitespace within this string; multiple spaces collapse to a single, and all whitespace characters
+@@ -156,7 +165,11 @@ public final class StringUtil {
+         int c;
+         for (int i = 0; i < len; i+= Character.charCount(c)) {
+             c = string.codePointAt(i);
+-            if (isActuallyWhitespace(c)) {
++            if (isInvisibleChar(c)) {
++                // Skip invisible characters completely
++                continue;
++            }
++            else if (isActuallyWhitespace(c)) {
+                 if ((stripLeading && !reachedNonWhite) || lastWasWhite)
+                     continue;
+                 accum.append(' ');

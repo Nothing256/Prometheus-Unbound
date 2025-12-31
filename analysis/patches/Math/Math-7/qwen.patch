@@ -1,0 +1,14 @@
+diff --git a/src/main/java/org/apache/commons/math3/ode/AbstractIntegrator.java b/src/main/java/org/apache/commons/math3/ode/AbstractIntegrator.java
+index f24f87c39..c57730212 100644
+--- a/src/main/java/org/apache/commons/math3/ode/AbstractIntegrator.java
++++ b/src/main/java/org/apache/commons/math3/ode/AbstractIntegrator.java
+@@ -373,6 +373,9 @@ public abstract class AbstractIntegrator implements FirstOrderIntegrator {
+                     return eventT;
+                 }
+ 
++                // update the current event's state to maintain consistency
++                currentEvent.stepAccepted(eventT, eventY);
++
+                 // prepare handling of the remaining part of the step
+                 previousT = eventT;
+                 interpolator.setSoftPreviousTime(eventT);

@@ -1,0 +1,44 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/ArchiveStreamFactory.java b/src/main/java/org/apache/commons/compress/archivers/ArchiveStreamFactory.java
+index 37dfbe03..9e228a36 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/ArchiveStreamFactory.java
++++ b/src/main/java/org/apache/commons/compress/archivers/ArchiveStreamFactory.java
+@@ -32,6 +32,8 @@ import org.apache.commons.compress.archivers.jar.JarArchiveInputStream;
+ import org.apache.commons.compress.archivers.jar.JarArchiveOutputStream;
+ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
++import org.apache.commons.compress.archivers.tar.TarUtils;
++import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+ import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+ import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+ 
+@@ -234,15 +236,26 @@ public class ArchiveStreamFactory {
+             signatureLength = in.read(tarheader);
+             in.reset();
+             if (TarArchiveInputStream.matches(tarheader, signatureLength)) {
+-                return new TarArchiveInputStream(in);
++                // COMPRESS-191 - verify the header checksum
++                if (signatureLength >= 512) {
++                    // Check if the header has a valid checksum before accepting it as a tar file
++                    if (TarUtils.verifyCheckSum(tarheader)) {
++                        return new TarArchiveInputStream(in);
++                    }
++                    // If checksum is invalid, continue to look for other archive types or fail
++                } else {
++                    // Not enough data for checksum verification - don't treat as TAR
++                    // A valid TAR file should have at least 512 bytes
++                }
+             }
+-            // COMPRESS-117 - improve auto-recognition
++            // COMPRESS-117 - improve auto-recognition (for files that don't match standard magic but are still valid tar)
+             if (signatureLength >= 512) {
+                 try {
+                     TarArchiveInputStream tais = new TarArchiveInputStream(new ByteArrayInputStream(tarheader));
+-                    // COMPRESS-191 - verify the header checksum
+-                    tais.getNextEntry();
++                    TarArchiveEntry entry = (TarArchiveEntry) tais.getNextEntry();
++                    if (entry != null && entry.isCheckSumOK()) {
+                         return new TarArchiveInputStream(in);
++                    }
+                 } catch (Exception e) { // NOPMD
+                     // can generate IllegalArgumentException as well
+                     // as IOException

@@ -1,0 +1,109 @@
+diff --git a/src/main/java/org/apache/commons/math/linear/EigenDecompositionImpl.java b/src/main/java/org/apache/commons/math/linear/EigenDecompositionImpl.java
+index c4fd052..78e2f33 100644
+--- a/src/main/java/org/apache/commons/math/linear/EigenDecompositionImpl.java
++++ b/src/main/java/org/apache/commons/math/linear/EigenDecompositionImpl.java
+@@ -1479,12 +1479,15 @@
+                         gam = dN;
+                         a2 = 0.0;
+                         if (work[nn - 5]  >  work[nn - 7]) {
+-                            return;
++                            // Set default values when condition is not satisfied
++                            tau = 0.25 * dMin;
++                            tType = -4;
++                            break;
+                         }
+                         b2 = work[nn - 5] / work[nn - 7];
+                         np = nn - 9;
+                     } else {
+@@ -1484,12 +1484,15 @@
+                         np = nn - 2 * pingPong;
+                         b2 = work[np - 2];
+                         gam = dN1;
+                         if (work[np - 4]  >  work[np - 2]) {
+-                            return;
++                            // Set default values when condition is not satisfied
++                            tau = 0.25 * dMin;
++                            tType = -4;
++                            break;
+                         }
+                         a2 = work[np - 4] / work[np - 2];
+                         if (work[nn - 9]  >  work[nn - 11]) {
+@@ -1490,10 +1490,13 @@
+                         if (work[nn - 9]  >  work[nn - 11]) {
+-                            return;
++                            // Set default values when condition is not satisfied
++                            tau = 0.25 * dMin;
++                            tType = -4;
++                            break;
+                         }
+                         b2 = work[nn - 9] / work[nn - 11];
+                         np = nn - 13;
+@@ -1501,9 +1501,10 @@
+                         b1 = b2;
+                         if (work[i4]  >  work[i4 - 2]) {
+-                            return;
++                            // Skip this problematic computation and continue with the loop
++                            continue;
+                         }
+                         b2 = b2 * (work[i4] / work[i4 - 2]);
+                         a2 = a2 + b2;
+@@ -1545,12 +1545,15 @@
+                 final double gam = dN2;
+                 if (work[np - 8] > b2 || work[np - 4] > b1) {
+-                    return;
++                    // Set default values when condition is not satisfied
++                    tau = 0.25 * dMin;
++                    tType = -5;
++                    break;
+                 }
+                 double a2 = (work[np - 8] / b2) * (1 + work[np - 4] / b1);
+@@ -1560,9 +1560,10 @@
+                         b1 = b2;
+                         if (work[i4]  >  work[i4 - 2]) {
+-                            return;
++                            // Skip this problematic computation and continue with the loop
++                            continue;
+                         }
+                         b2 = b2 * (work[i4] / work[i4 - 2]);
+                         a2 = a2 + b2;
+@@ -1607,12 +1607,16 @@
+                 double s = 0.333 * dMin1;
+                 if (work[nn - 5] > work[nn - 7]) {
+-                    return;
++                    // Set default values when condition is not satisfied
++                    tau = 0.25 * dMin1;
++                    if (dMin1 == dN1) {
++                        tau = 0.5 * dMin1;
++                    }
++                    tType = -9;
++                    break;
+                 }
+                 double b1 = work[nn - 5] / work[nn - 7];
+@@ -1618,8 +1618,9 @@
+                         final double oldB1 = b1;
+                         if (work[i4] > work[i4 - 2]) {
+-                            return;
++                            // Continue with computation
++                            continue;
+                         }
+                         b1 = b1 * (work[i4] / work[i4 - 2]);
+                         b2 = b2 + b1;
+@@ -1658,12 +1658,15 @@
+                 final double s = 0.333 * dMin2;
+                 if (work[nn - 5] > work[nn - 7]) {
+-                    return;
++                    // Set default values when condition is not satisfied
++                    tau   = 0.25 * dMin2;
++                    tType = -11;
++                    break;
+                 }
+                 double b1 = work[nn - 5] / work[nn - 7];
+@@ -1666,7 +1666,8 @@
+                     for (int i4 = 4 * end - 9 + pingPong; i4 >= 4 * start + 2 + pingPong; i4 -= 4) {
+                         if (work[i4] > work[i4 - 2]) {
+-                            return;
++                            // Continue with computation
++                            continue;
+                         }
+                         b1 *= work[i4] / work[i4 - 2];
+                         b2 += b1;

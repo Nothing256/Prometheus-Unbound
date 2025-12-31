@@ -1,0 +1,71 @@
+diff --git a/src/main/java/org/jsoup/nodes/Node.java b/src/main/java/org/jsoup/nodes/Node.java
+index 01a4cd1c..07cc313c 100644
+--- a/src/main/java/org/jsoup/nodes/Node.java
++++ b/src/main/java/org/jsoup/nodes/Node.java
+@@ -438,9 +438,65 @@ public abstract class Node implements Cloneable {
+     protected void addChildren(int index, Node... children) {
+         Validate.noNullElements(children);
+         ensureChildNodes();
++
++        // Check if any of the children are already children of this node
++        boolean containsSelfChildren = false;
++        for (Node child : children) {
++            if (child.parentNode == this) {
++                containsSelfChildren = true;
++                break;
++            }
++        }
++
++        if (containsSelfChildren) {
++            // If some children are already our children, we need to handle this carefully
++            // First, remove all self-children in descending index order to prevent index shifting
++            List<Node> toRemove = new ArrayList<Node>();
++            for (Node child : children) {
++                if (child.parentNode == this) {
++                    toRemove.add(child);
++                }
++            }
++
++            if (!toRemove.isEmpty()) {
++                // Sort toRemove nodes by their sibling index in descending order
++                // Use simple bubble sort for Java 6 compatibility
++                for (int i = 0; i < toRemove.size() - 1; i++) {
++                    for (int j = i + 1; j < toRemove.size(); j++) {
++                        Node nodeI = toRemove.get(i);
++                        Node nodeJ = toRemove.get(j);
++                        if (nodeI.siblingIndex < nodeJ.siblingIndex) {
++                            // Swap
++                            toRemove.set(i, nodeJ);
++                            toRemove.set(j, nodeI);
++                        }
++                    }
++                }
++
++                // Remove them in this order to prevent index shifting
++                for (Node node : toRemove) {
++                    removeChild(node);
++                }
++
++                // Adjust the insertion index - if any removed nodes were at indices < original index,
++                // the actual insertion index should decrease
++                int originalIndex = index;
++                for (Node removedNode : toRemove) {
++                    if (removedNode.siblingIndex < originalIndex) {
++                        index--;
++                    }
++                }
++            }
++        }
++
++        // Now add all nodes to the specified index
++        // Add in reverse order so the first element in the array ends up at the specified index
++        // and maintains the relative order of the input array
+         for (int i = children.length - 1; i >= 0; i--) {
+             Node in = children[i];
+-            reparentChild(in);
++            if (in.parentNode != this) {
++                reparentChild(in);
++            }
+             childNodes.add(index, in);
+         }
+         reindexChildren(index);

@@ -1,0 +1,46 @@
+diff --git a/src/main/java/org/apache/commons/lang3/text/ExtendedMessageFormat.java b/src/main/java/org/apache/commons/lang3/text/ExtendedMessageFormat.java
+index a2cc1699c..0214448a6 100644
+--- a/src/main/java/org/apache/commons/lang3/text/ExtendedMessageFormat.java
++++ b/src/main/java/org/apache/commons/lang3/text/ExtendedMessageFormat.java
+@@ -254,22 +254,29 @@ public class ExtendedMessageFormat extends MessageFormat {
+         throw new UnsupportedOperationException();
+     }
+ 
+-    /**
+-     * Check if this extended message format is equal to another object.
+-     *
+-     * @param obj the object to compare to
+-     * @return true if this object equals the other, otherwise false
+-     */
++    @Override
++    public boolean equals(Object obj) {
++        if (obj == this) {
++            return true;
++        }
++        if (!(obj instanceof ExtendedMessageFormat)) {
++            return false;
++        }
++        ExtendedMessageFormat other = (ExtendedMessageFormat) obj;
++        return super.equals(other) // Compare MessageFormat state (pattern and locale)
++            && ObjectUtils.equals(this.registry, other.registry); // Compare registry
++    }
+ 
+-    /**
+-     * Return the hashcode.
+-     *
+-     * @return the hashcode
+-     */
++    @Override
++    public int hashCode() {
++        int result = super.hashCode(); // Get MessageFormat hashcode
++        result = 31 * result + ObjectUtils.hashCode(this.registry); // Include registry in hashcode
++        return result;
++    }
+ 
+     /**
+      * Get a custom format from a format description.
+-     * 
++     *
+      * @param desc String
+      * @return Format
+      */

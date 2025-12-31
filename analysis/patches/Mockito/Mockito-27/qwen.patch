@@ -1,0 +1,22 @@
+diff --git a/src/org/mockito/internal/util/MockUtil.java b/src/org/mockito/internal/util/MockUtil.java
+index 3c20596b0..bff55a650 100644
+--- a/src/org/mockito/internal/util/MockUtil.java
++++ b/src/org/mockito/internal/util/MockUtil.java
+@@ -62,8 +62,15 @@ public class MockUtil {
+ 
+     public <T> void resetMock(T mock) {
+         MockHandlerInterface<T> oldMockHandler = getMockHandler(mock);
+-        MockHandler<T> newMockHandler = new MockHandler<T>(oldMockHandler);
+-        MethodInterceptorFilter newFilter = new MethodInterceptorFilter(newMockHandler, (MockSettingsImpl) org.mockito.Mockito.withSettings().defaultAnswer(org.mockito.Mockito.RETURNS_DEFAULTS));
++        MockSettingsImpl settings = (MockSettingsImpl) oldMockHandler.getMockSettings();
++
++        // Get the underlying MockHandler from oldMockHandler
++        // If oldMockHandler was an InvocationNotifierHandler, we need to preserve the listener structure
++        MockHandler<T> newMockHandler = new MockHandler<T>(settings);
++
++        // Recreate the same structure as was originally created in newMethodInterceptorFilter
++        InvocationNotifierHandler<T> newInvocationNotifierHandler = new InvocationNotifierHandler<T>(newMockHandler, settings);
++
++        MethodInterceptorFilter newFilter = new MethodInterceptorFilter(newInvocationNotifierHandler, settings);
+         ((Factory) mock).setCallback(0, newFilter);
+     }

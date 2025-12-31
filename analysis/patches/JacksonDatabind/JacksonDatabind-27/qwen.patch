@@ -1,0 +1,56 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/impl/ExternalTypeHandler.java b/src/main/java/com/fasterxml/jackson/databind/deser/impl/ExternalTypeHandler.java
+index 75b930a0a..c48beb5c3 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/impl/ExternalTypeHandler.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/impl/ExternalTypeHandler.java
+@@ -85,7 +85,7 @@ public class ExternalTypeHandler
+      * at point where parser points to the first token of the value.
+      * Handling can mean either resolving type id it contains (if it matches type
+      * property name), or by buffering the value for further use.
+-     * 
++     *
+      * @return True, if the given property was properly handled
+      */
+     public boolean handlePropertyValue(JsonParser jp, DeserializationContext ctxt,
+@@ -111,13 +111,38 @@ public class ExternalTypeHandler
+         }
+         /* Minor optimization: let's deserialize properties as soon as
+          * we have all pertinent information:
++         * However, avoid immediate deserialization if bean is not the final object
++         * (e.g., when using property-based creators, bean might be a PropertyValueBuffer)
+          */
+         if (canDeserialize) {
+             String typeId = _typeIds[index];
+-            // clear stored data, to avoid deserializing+setting twice:
+-            _typeIds[index] = null;
+-            _deserializeAndSet(jp, ctxt, bean, index, typeId);
+-            _tokens[index] = null;
++            // Only do immediate deserialization if the bean is the actual target object
++            // and not a temporary buffer like PropertyValueBuffer
++            if (_mayResolveImmediately(bean, prop)) {
++                // clear stored data, to avoid deserializing+setting twice:
++                _typeIds[index] = null;
++                _deserializeAndSet(jp, ctxt, bean, index, typeId);
++                _tokens[index] = null;
++            }
++        }
++        return true;
++    }
++
++    /**
++     * Check whether we can immediately resolve and set the property on the bean.
++     * Avoid immediate resolution if the bean is a temporary buffer used during
++     * property-based creation.
++     */
++    private boolean _mayResolveImmediately(Object bean, ExtTypedProperty extProp) {
++        if (bean == null) {
++            return false;
++        }
++        // Check if bean is a PropertyValueBuffer or similar temporary structure
++        // used in property-based creation, which cannot be used with deserializeAndSet
++        // for creator properties
++        String beanClassName = bean.getClass().getName();
++        if (beanClassName.contains("PropertyValueBuffer")) {
++            return false;
+         }
+         return true;
+     }

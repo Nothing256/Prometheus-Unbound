@@ -1,0 +1,13 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/BasicDeserializerFactory.java b/src/main/java/com/fasterxml/jackson/databind/deser/BasicDeserializerFactory.java
+index a0cbf1615..c64b13e8d 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/BasicDeserializerFactory.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/BasicDeserializerFactory.java
+@@ -948,6 +948,8 @@ public abstract class BasicDeserializerFactory
+                 Class<?> raw = elemType.getRawClass();
+                 if (elemType.isPrimitive()) {
+                     return PrimitiveArrayDeserializers.forType(raw);
++                } else if (elemType.isArrayType() && elemType.getContentType().isPrimitive()) {
++                    return PrimitiveArrayDeserializers.forType(elemType.getContentType().getRawClass());
+                 } else if (raw == String.class) {
+                     return StringArrayDeserializer.instance;
+                 }

@@ -1,0 +1,17 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/type/TypeParser.java b/src/main/java/com/fasterxml/jackson/databind/type/TypeParser.java
+index c3697f5e5..fd2531c12 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/type/TypeParser.java
++++ b/src/main/java/com/fasterxml/jackson/databind/type/TypeParser.java
+@@ -119,8 +119,10 @@ public class TypeParser
+                 _pushbackToken = null;
+             } else {
+                 token = super.nextToken();
+-                _index += token.length();
+-                token = token.trim();
++                String trimmed = token.trim();
++                // Update index by the length of trimmed token to properly track processed content
++                _index += trimmed.length();
++                token = trimmed;
+             }
+             return token;
+         }

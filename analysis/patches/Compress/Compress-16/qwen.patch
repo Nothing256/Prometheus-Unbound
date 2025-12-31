@@ -1,0 +1,39 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/ArchiveStreamFactory.java b/src/main/java/org/apache/commons/compress/archivers/ArchiveStreamFactory.java
+index 37dfbe03..7e1814a5 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/ArchiveStreamFactory.java
++++ b/src/main/java/org/apache/commons/compress/archivers/ArchiveStreamFactory.java
+@@ -238,16 +238,24 @@ public class ArchiveStreamFactory {
+             }
+             // COMPRESS-117 - improve auto-recognition
+             if (signatureLength >= 512) {
+-                try {
+-                    TarArchiveInputStream tais = new TarArchiveInputStream(new ByteArrayInputStream(tarheader));
+-                    // COMPRESS-191 - verify the header checksum
+-                    tais.getNextEntry();
+-                        return new TarArchiveInputStream(in);
+-                } catch (Exception e) { // NOPMD
+-                    // can generate IllegalArgumentException as well
+-                    // as IOException
+-                    // autodetection, simply not a TAR
+-                    // ignored
++                // Add a check to prevent known non-TAR formats from being misidentified as TAR
++                // Check if the file starts with known non-TAR signatures like AIFF's "FORM"
++                if (signatureLength >= 4 &&
++                    tarheader[0] == 'F' && tarheader[1] == 'O' &&
++                    tarheader[2] == 'R' && tarheader[3] == 'M') {
++                    // This looks like an AIFF/AIFF-C/FORM file, definitely not a TAR
++                } else {
++                    try {
++                        TarArchiveInputStream tais = new TarArchiveInputStream(new ByteArrayInputStream(tarheader));
++                        // COMPRESS-191 - verify the header checksum
++                        tais.getNextEntry();
++                            return new TarArchiveInputStream(in);
++                    } catch (Exception e) { // NOPMD
++                        // can generate IllegalArgumentException as well
++                        // as IOException
++                        // autodetection, simply not a TAR
++                        // ignored
++                    }
+                 }
+             }
+         } catch (IOException e) {

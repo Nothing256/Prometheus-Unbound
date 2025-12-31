@@ -1,0 +1,20 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/ser/PropertyBuilder.java b/src/main/java/com/fasterxml/jackson/databind/ser/PropertyBuilder.java
+index 2bd24051f..47ef49b35 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/ser/PropertyBuilder.java
++++ b/src/main/java/com/fasterxml/jackson/databind/ser/PropertyBuilder.java
+@@ -159,7 +159,14 @@ public class PropertyBuilder
+                 if (prov.isEnabled(MapperFeature.CAN_OVERRIDE_ACCESS_MODIFIERS)) {
+                     am.fixAccess(_config.isEnabled(MapperFeature.OVERRIDE_PUBLIC_ACCESS_MODIFIERS));
+                 }
+-                valueToSuppress = getPropertyDefaultValue(propDef.getName(), am, actualType);
++                Object defaultBean = getDefaultBean();
++                if (defaultBean == null) {
++                    // When no default instance is available, revert to general handling where nulls are suppressed
++                    valueToSuppress = getDefaultValue(actualType);
++                    suppressNulls = true;
++                } else {
++                    valueToSuppress = getPropertyDefaultValue(propDef.getName(), am, actualType);
++                }
+             } else {
+                 valueToSuppress = getDefaultValue(actualType);
+                 suppressNulls = true;

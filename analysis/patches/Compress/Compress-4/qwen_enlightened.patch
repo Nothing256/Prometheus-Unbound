@@ -1,0 +1,41 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/jar/JarArchiveOutputStream.java b/src/main/java/org/apache/commons/compress/archivers/jar/JarArchiveOutputStream.java
+index 088eed97..668bbd94 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/jar/JarArchiveOutputStream.java
++++ b/src/main/java/org/apache/commons/compress/archivers/jar/JarArchiveOutputStream.java
+@@ -43,10 +43,34 @@ public class JarArchiveOutputStream extends ZipArchiveOutputStream {
+ 
+     // @throws ClassCastException if entry is not an instance of ZipArchiveEntry
+     public void putArchiveEntry(ArchiveEntry ze) throws IOException {
++        ZipArchiveEntry zipEntry = (ZipArchiveEntry) ze;
+         if (!jarMarkerAdded) {
+-            ((ZipArchiveEntry)ze).addAsFirstExtraField(JarMarker.getInstance());
++            zipEntry.addAsFirstExtraField(JarMarker.getInstance());
+             jarMarkerAdded = true;
+         }
+-        super.putArchiveEntry(ze);
++        // Call the parent method with the properly modified entry
++        super.putArchiveEntry(zipEntry);
++    }
++
++    private boolean closed = false;
++    private boolean hasFinished = false;
++
++    @Override
++    public void close() throws IOException {
++        if (!closed) {
++            if (!hasFinished) {
++                finish();
++            }
++            closed = true;
++        }
++        super.close();
++    }
++
++    @Override
++    public void finish() throws IOException {
++        if (!hasFinished) {
++            super.finish();
++            hasFinished = true;
++        }
+     }
+ }

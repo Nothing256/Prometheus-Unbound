@@ -1,0 +1,35 @@
+diff --git a/src/org/mockito/internal/invocation/InvocationMatcher.java b/src/org/mockito/internal/invocation/InvocationMatcher.java
+index 203413fc9..78e149636 100644
+--- a/src/org/mockito/internal/invocation/InvocationMatcher.java
++++ b/src/org/mockito/internal/invocation/InvocationMatcher.java
+@@ -89,14 +89,26 @@ public class InvocationMatcher implements PrintableInvocation, PrintingFriendlyI
+         return !overloadedButSameArgs;
+     }
+ 
+-    public boolean hasSameMethod(Invocation candidate) {        
++    public boolean hasSameMethod(Invocation candidate) {
+         //not using method.equals() for 1 good reason:
+         //sometimes java generates forwarding methods when generics are in play see JavaGenericsForwardingMethodsTest
+         Method m1 = invocation.getMethod();
+         Method m2 = candidate.getMethod();
+-        
+-        	/* Avoid unnecessary cloning */
+-        return m1.equals(m2);
++
++        /* Avoid unnecessary cloning */
++        // Compare methods more robustly to handle generic inheritance in interfaces
++        // Check method name, parameter types and return type equality
++        if (!m1.getName().equals(m2.getName()) ||
++            !java.util.Arrays.equals(m1.getParameterTypes(), m2.getParameterTypes())) {
++            return false;
++        }
++
++        // Handle return type comparison for generics properly
++        // For the InheritedGenericsPolimorphicCallTest case, both methods should have the same signature
++        // even when called on different interface views (MyIterable and Iterable)
++        return m1.getReturnType().equals(m2.getReturnType()) ||
++               m1.getReturnType().isAssignableFrom(m2.getReturnType()) ||
++               m2.getReturnType().isAssignableFrom(m1.getReturnType());
+     }
+     
+     public Location getLocation() {

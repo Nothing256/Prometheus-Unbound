@@ -1,0 +1,20 @@
+diff --git a/src/main/java/org/apache/commons/collections4/map/MultiValueMap.java b/src/main/java/org/apache/commons/collections4/map/MultiValueMap.java
+index d131af27..7f69b28b 100644
+--- a/src/main/java/org/apache/commons/collections4/map/MultiValueMap.java
++++ b/src/main/java/org/apache/commons/collections4/map/MultiValueMap.java
+@@ -176,6 +176,15 @@ public class MultiValueMap<K, V> extends AbstractMapDecorator<K, Object> impleme
+     private void readObject(final ObjectInputStream in) throws IOException, ClassNotFoundException {
+         in.defaultReadObject();
+         map = (Map<K, Object>) in.readObject(); // (1)
++
++        // Validate that the collection factory is safe - only allow Collection types
++        if (collectionFactory instanceof ReflectionFactory) {
++            ReflectionFactory<?> reflectionFactory = (ReflectionFactory<?>) collectionFactory;
++            // Since ReflectionFactory is a private inner class, we can access its clazz field directly
++            if (!Collection.class.isAssignableFrom(reflectionFactory.clazz)) {
++                throw new UnsupportedOperationException("Collection class must implement java.util.Collection: " + reflectionFactory.clazz);
++            }
++        }
+     }
+ 
+     //-----------------------------------------------------------------------

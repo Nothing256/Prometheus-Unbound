@@ -1,0 +1,14 @@
+--- Base64_original.java	2025-12-18 16:44:43
++++ src/java/org/apache/commons/codec/binary/Base64.java	2025-12-18 16:43:56
+@@ -583,7 +583,10 @@
+         // EOF (-1) and first time '=' character is encountered in stream.
+         // This approach makes the '=' padding characters completely optional.
+         if (eof && modulus != 0) {
+-            
++            // Check if buffer needs to be resized before accessing it
++            if (buffer == null || buffer.length - pos < 2) {
++                resizeBuffer();
++            }
+             x = x << 6;
+             switch (modulus) {
+                 case 2 :

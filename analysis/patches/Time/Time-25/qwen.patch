@@ -1,0 +1,14 @@
+diff --git a/src/main/java/org/joda/time/DateTimeZone.java b/src/main/java/org/joda/time/DateTimeZone.java
+index a320022c..14bfe5a2 100644
+--- a/src/main/java/org/joda/time/DateTimeZone.java
++++ b/src/main/java/org/joda/time/DateTimeZone.java
+@@ -893,7 +893,8 @@ public abstract class DateTimeZone implements Serializable {
+                 long nextLocal = nextTransition(instantAdjusted);
+                 long nextAdjusted = nextTransition(instantLocal - offsetAdjusted);
+                 if (nextLocal != nextAdjusted) {
+-                    return offsetLocal;
++                    // During overlap conditions, return the larger offset to favour daylight saving time
++                    return Math.max(offsetLocal, offsetAdjusted);
+                 }
+             }
+         }

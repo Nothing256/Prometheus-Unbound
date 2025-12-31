@@ -1,0 +1,137 @@
+diff --git a/src/java/org/apache/commons/jxpath/ri/model/beans/NullPropertyPointer.java b/src/java/org/apache/commons/jxpath/ri/model/beans/NullPropertyPointer.java
+index 8cbd118..44b7aae 100644
+--- a/src/java/org/apache/commons/jxpath/ri/model/beans/NullPropertyPointer.java
++++ b/src/java/org/apache/commons/jxpath/ri/model/beans/NullPropertyPointer.java
+@@ -16,8 +16,11 @@
+  */
+ package org.apache.commons.jxpath.ri.model.beans;
+ 
++import org.apache.commons.jxpath.AbstractFactory;
++import org.apache.commons.jxpath.JXPathAbstractFactoryException;
+ import org.apache.commons.jxpath.JXPathContext;
+ import org.apache.commons.jxpath.JXPathInvalidAccessException;
++import org.apache.commons.jxpath.JXPathException;
+ import org.apache.commons.jxpath.ri.QName;
+ import org.apache.commons.jxpath.ri.model.NodePointer;
+ 
+@@ -51,10 +54,6 @@ public class NullPropertyPointer extends PropertyPointer {
+         return null;
+     }
+ 
+-    public Object getImmediateNode() {
+-        return null;
+-    }
+-
+     public boolean isLeaf() {
+         return true;
+     }    
+@@ -101,24 +100,55 @@ public class NullPropertyPointer extends PropertyPointer {
+     }
+ 
+     public NodePointer createPath(JXPathContext context) {
++        // First, make sure parent path exists
+         NodePointer newParent = parent.createPath(context);
++
++        // Then, check if our property value in the parent is null and needs to be created by factory
++        Object parentBean = getBean();
++        if (parentBean != null) {
++            // Check if the property we represent is null and needs creation
++            Object propertyValue = getImmediateNode(); // This would be the value of our property in parent
++
++            // Since getImmediateNode() always returns null for NullPropertyPointer,
++            // we need to check the value directly in the parent object
++            if (parentBean instanceof java.util.Map) {
++                java.util.Map map = (java.util.Map) parentBean;
++                propertyValue = map.get(getPropertyName());
++            }
++            // For other types, getImmediateNode() should give us the value, but it always returns null
++            // So we'll rely on the map-specific check for now
++
++            if (propertyValue == null && parentBean instanceof java.util.Map) {
++                AbstractFactory factory = getAbstractFactory(context);
++                int inx = (getIndex() == WHOLE_COLLECTION ? 0 : getIndex());
++                boolean success = factory.createObject(
++                    context,
++                    this,
++                    parentBean,
++                    getPropertyName(),
++                    inx);
++
++                if (!success) {
++                    throw new JXPathAbstractFactoryException("Factory " + factory
++                            + " could not create an object for path: " + asPath());
++                }
++
++                // CRITICAL FIX: After factory call, check if the property value is still null
++                // If so, the factory claimed success but didn't actually create the object
++                Object newPropertyValue = ((java.util.Map) parentBean).get(getPropertyName());
++                if (newPropertyValue == null) {
++                    throw new JXPathException(
++                        "Factory indicated success but the object is still null - factory implementation is broken",
++                        new JXPathAbstractFactoryException("Factory " + factory + " improperly implemented for path: " + asPath()));
++                }
++            }
++        }
++
++        // Continue with original logic
+         if (isAttribute()) {
+             return newParent.createAttribute(context, getName());
+         }
+         else {
+-            // Consider these two use cases:
+-            // 1. The parent pointer of NullPropertyPointer is 
+-            //    a PropertyOwnerPointer other than NullPointer. When we call 
+-            //    createPath on it, it most likely returns itself. We then
+-            //    take a PropertyPointer from it and get the PropertyPointer
+-            //    to expand the collection for the corresponding property.
+-            //
+-            // 2. The parent pointer of NullPropertyPointer is a NullPointer.
+-            //    When we call createPath, it may return a PropertyOwnerPointer
+-            //    or it may return anything else, like a DOMNodePointer.
+-            //    In the former case we need to do exactly what we did in use 
+-            //    case 1.  In the latter case, we simply request that the 
+-            //    non-property pointer expand the collection by itself.
+             if (newParent instanceof PropertyOwnerPointer) {
+                 PropertyOwnerPointer pop = (PropertyOwnerPointer) newParent;
+                 newParent = pop.getPropertyPointer();
+@@ -128,19 +158,12 @@ public class NullPropertyPointer extends PropertyPointer {
+     }
+ 
+     public NodePointer createPath(JXPathContext context, Object value) {
+-        NodePointer newParent = parent.createPath(context);
+-        if (isAttribute()) {
+-            NodePointer pointer = newParent.createAttribute(context, getName());
+-            pointer.setValue(value);
+-            return pointer;
+-        }
+-        else {
+-            if (newParent instanceof PropertyOwnerPointer) {
+-                PropertyOwnerPointer pop = (PropertyOwnerPointer) newParent;
+-                newParent = pop.getPropertyPointer();
+-            }
+-            return newParent.createChild(context, getName(), index, value);
++        // If neccessary, expand collection
++        if (getIndex() != WHOLE_COLLECTION && getIndex() >= getLength()) {
++            createPath(context);
+         }
++        setValue(value);
++        return this;
+     }
+     
+     public NodePointer createChild(
+@@ -221,4 +244,15 @@ public class NullPropertyPointer extends PropertyPointer {
+         }
+         return string;
+     }
++
++    private AbstractFactory getAbstractFactory(JXPathContext context) {
++        AbstractFactory factory = context.getFactory();
++        if (factory == null) {
++            throw new JXPathException(
++                "Factory is not set on the "
++                    + "JXPathContext - cannot create path: "
++                    + asPath());
++        }
++        return factory;
++    }
+ }

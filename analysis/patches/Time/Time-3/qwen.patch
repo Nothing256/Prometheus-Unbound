@@ -1,0 +1,124 @@
+diff --git a/src/main/java/org/joda/time/MutableDateTime.java b/src/main/java/org/joda/time/MutableDateTime.java
+index 310f55d2..39f0d864 100644
+--- a/src/main/java/org/joda/time/MutableDateTime.java
++++ b/src/main/java/org/joda/time/MutableDateTime.java
+@@ -636,7 +636,10 @@ public class MutableDateTime
+         if (type == null) {
+             throw new IllegalArgumentException("Field must not be null");
+         }
+-            setMillis(type.getField(getChronology()).add(getMillis(), amount));
++        if (amount == 0) {
++            return;
++        }
++        setMillis(type.getField(getChronology()).add(getMillis(), amount));
+     }
+ 
+     //-----------------------------------------------------------------------
+@@ -657,7 +660,10 @@ public class MutableDateTime
+      * @throws IllegalArgumentException if the value is invalid
+      */
+     public void addYears(final int years) {
+-            setMillis(getChronology().years().add(getMillis(), years));
++        if (years == 0) {
++            return;
++        }
++        setMillis(getChronology().years().add(getMillis(), years));
+     }
+ 
+     //-----------------------------------------------------------------------
+@@ -678,7 +684,10 @@ public class MutableDateTime
+      * @throws IllegalArgumentException if the value is invalid
+      */
+     public void addWeekyears(final int weekyears) {
+-            setMillis(getChronology().weekyears().add(getMillis(), weekyears));
++        if (weekyears == 0) {
++            return;
++        }
++        setMillis(getChronology().weekyears().add(getMillis(), weekyears));
+     }
+ 
+     //-----------------------------------------------------------------------
+@@ -699,7 +708,10 @@ public class MutableDateTime
+      * @throws IllegalArgumentException if the value is invalid
+      */
+     public void addMonths(final int months) {
+-            setMillis(getChronology().months().add(getMillis(), months));
++        if (months == 0) {
++            return;
++        }
++        setMillis(getChronology().months().add(getMillis(), months));
+     }
+ 
+     //-----------------------------------------------------------------------
+@@ -720,7 +732,10 @@ public class MutableDateTime
+      * @throws IllegalArgumentException if the value is invalid
+      */
+     public void addWeeks(final int weeks) {
+-            setMillis(getChronology().weeks().add(getMillis(), weeks));
++        if (weeks == 0) {
++            return;
++        }
++        setMillis(getChronology().weeks().add(getMillis(), weeks));
+     }
+ 
+     //-----------------------------------------------------------------------
+@@ -761,7 +776,10 @@ public class MutableDateTime
+      * @throws IllegalArgumentException if the value is invalid
+      */
+     public void addDays(final int days) {
+-            setMillis(getChronology().days().add(getMillis(), days));
++        if (days == 0) {
++            return;
++        }
++        setMillis(getChronology().days().add(getMillis(), days));
+     }
+ 
+     //-----------------------------------------------------------------------
+@@ -782,7 +800,10 @@ public class MutableDateTime
+      * @throws IllegalArgumentException if the value is invalid
+      */
+     public void addHours(final int hours) {
+-            setMillis(getChronology().hours().add(getMillis(), hours));
++        if (hours == 0) {
++            return;
++        }
++        setMillis(getChronology().hours().add(getMillis(), hours));
+     }
+     
+     //-----------------------------------------------------------------------
+@@ -813,7 +834,10 @@ public class MutableDateTime
+      * @throws IllegalArgumentException if the value is invalid
+      */
+     public void addMinutes(final int minutes) {
+-            setMillis(getChronology().minutes().add(getMillis(), minutes));
++        if (minutes == 0) {
++            return;
++        }
++        setMillis(getChronology().minutes().add(getMillis(), minutes));
+     }
+ 
+     //-----------------------------------------------------------------------
+@@ -844,7 +868,10 @@ public class MutableDateTime
+      * @throws IllegalArgumentException if the value is invalid
+      */
+     public void addSeconds(final int seconds) {
+-            setMillis(getChronology().seconds().add(getMillis(), seconds));
++        if (seconds == 0) {
++            return;
++        }
++        setMillis(getChronology().seconds().add(getMillis(), seconds));
+     }
+ 
+     //-----------------------------------------------------------------------
+@@ -877,7 +904,10 @@ public class MutableDateTime
+      * @throws IllegalArgumentException if the value is invalid
+      */
+     public void addMillis(final int millis) {
+-            setMillis(getChronology().millis().add(getMillis(), millis));
++        if (millis == 0) {
++            return;
++        }
++        setMillis(getChronology().millis().add(getMillis(), millis));
+     }
+ 
+     //-----------------------------------------------------------------------

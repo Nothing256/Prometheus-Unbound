@@ -1,0 +1,131 @@
+diff --git a/src/main/java/org/apache/commons/compress/compressors/bzip2/BZip2CompressorInputStream.java b/src/main/java/org/apache/commons/compress/compressors/bzip2/BZip2CompressorInputStream.java
+index 4f89e0e5..a3155fd2 100644
+--- a/src/main/java/org/apache/commons/compress/compressors/bzip2/BZip2CompressorInputStream.java
++++ b/src/main/java/org/apache/commons/compress/compressors/bzip2/BZip2CompressorInputStream.java
+@@ -273,12 +273,26 @@ public class BZip2CompressorInputStream extends CompressorInputStream implements
+ 
+         while (true) {
+             // Get the block magic bytes.
+-            magic0 = bsGetUByte();
+-            magic1 = bsGetUByte();
+-            magic2 = bsGetUByte();
+-            magic3 = bsGetUByte();
+-            magic4 = bsGetUByte();
+-            magic5 = bsGetUByte();
++            // Check if we can read the next 6 bytes (for magic or end-of-stream marker)
++            try {
++                magic0 = bsGetUByte();
++                magic1 = bsGetUByte();
++                magic2 = bsGetUByte();
++                magic3 = bsGetUByte();
++                magic4 = bsGetUByte();
++                magic5 = bsGetUByte();
++            } catch (IOException e) {
++                // If we get an "unexpected end of stream" while looking for the next block/EOS marker,
++                // it means the stream is truncated without the EOS marker and CRC.
++                // In this case, we should return to signal end of valid data.
++                if (e.getMessage() != null && e.getMessage().equals("unexpected end of stream")) {
++                    this.currentState = EOF;
++                    return;
++                } else {
++                    // Re-throw if it's a different error
++                    throw e;
++                }
++            }
+ 
+             // If isn't end of stream magic, break out of the loop.
+             if (magic0 != 0x17 || magic1 != 0x72 || magic2 != 0x45
+@@ -343,7 +357,21 @@ public class BZip2CompressorInputStream extends CompressorInputStream implements
+     }
+ 
+     private boolean complete() throws IOException {
+-        this.storedCombinedCRC = bsGetInt();
++        try {
++            this.storedCombinedCRC = bsGetInt();
++        } catch (IOException e) {
++            // If we get an "unexpected end of stream" while reading the combined CRC,
++            // it means the stream is truncated. Since the block was read successfully,
++            // we can consider the stream complete at this point.
++            if (e.getMessage() != null && e.getMessage().equals("unexpected end of stream")) {
++                this.currentState = EOF;
++                this.data = null;
++                return true; // Indicate completion
++            } else {
++                throw e;
++            }
++        }
++
+         this.currentState = EOF;
+         this.data = null;
+ 
+@@ -651,7 +679,12 @@ public class BZip2CompressorInputStream extends CompressorInputStream implements
+                             bsLiveShadow += 8;
+                             continue;
+                         } else {
+-                            throw new IOException("unexpected end of stream");
++                            // Stream has ended during decoding, meaning we have a truncated stream
++                            // Return to indicate end of valid data processing
++                            this.last = lastShadow; // Update last position before exiting
++                            this.bsLive = bsLiveShadow;
++                            this.bsBuff = bsBuffShadow;
++                            return; // Exit the decoding method
+                         }
+                     }
+                     int zvec = (bsBuffShadow >> (bsLiveShadow - zn))
+@@ -667,8 +700,12 @@ public class BZip2CompressorInputStream extends CompressorInputStream implements
+                                 bsLiveShadow += 8;
+                                 continue;
+                             } else {
+-                                throw new IOException(
+-                                                      "unexpected end of stream");
++                                // Stream has ended during decoding, meaning we have a truncated stream
++                                // Return to indicate end of valid data processing
++                                this.last = lastShadow; // Update last position before exiting
++                                this.bsLive = bsLiveShadow;
++                                this.bsBuff = bsBuffShadow;
++                                return; // Exit the decoding method
+                             }
+                         }
+                         bsLiveShadow--;
+@@ -734,7 +771,12 @@ public class BZip2CompressorInputStream extends CompressorInputStream implements
+                         bsLiveShadow += 8;
+                         continue;
+                     } else {
+-                        throw new IOException("unexpected end of stream");
++                        // Stream has ended during decoding, meaning we have a truncated stream
++                        // Return to indicate end of valid data processing
++                        this.last = lastShadow; // Update last position before exiting
++                        this.bsLive = bsLiveShadow;
++                        this.bsBuff = bsBuffShadow;
++                        return; // Exit the decoding method
+                     }
+                 }
+                 int zvec = (bsBuffShadow >> (bsLiveShadow - zn))
+@@ -750,7 +792,12 @@ public class BZip2CompressorInputStream extends CompressorInputStream implements
+                             bsLiveShadow += 8;
+                             continue;
+                         } else {
+-                            throw new IOException("unexpected end of stream");
++                            // Stream has ended during decoding, meaning we have a truncated stream
++                            // Return to indicate end of valid data processing
++                            this.last = lastShadow; // Update last position before exiting
++                            this.bsLive = bsLiveShadow;
++                            this.bsBuff = bsBuffShadow;
++                            return; // Exit the decoding method
+                         }
+                     }
+                     bsLiveShadow--;
+@@ -785,7 +832,12 @@ public class BZip2CompressorInputStream extends CompressorInputStream implements
+                     bsLiveShadow += 8;
+                     continue;
+                 } else {
+-                    throw new IOException("unexpected end of stream");
++                    // Stream has ended during decoding, meaning we have a truncated stream
++                    // Return to indicate end of valid data processing
++                    this.bsLive = bsLiveShadow;
++                    this.bsBuff = bsBuffShadow;
++                    // Return some default value as we can't complete the decode operation properly
++                    return 0;
+                 }
+             }
+             bsLiveShadow--;

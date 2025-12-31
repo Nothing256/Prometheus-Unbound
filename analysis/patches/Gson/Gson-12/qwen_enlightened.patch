@@ -1,0 +1,27 @@
+diff --git a/gson/src/main/java/com/google/gson/internal/bind/JsonTreeReader.java b/gson/src/main/java/com/google/gson/internal/bind/JsonTreeReader.java
+index 2e7644f0..9f780e97 100644
+--- a/gson/src/main/java/com/google/gson/internal/bind/JsonTreeReader.java
++++ b/gson/src/main/java/com/google/gson/internal/bind/JsonTreeReader.java
+@@ -256,12 +256,19 @@ public final class JsonTreeReader extends JsonReader {
+   @Override public void skipValue() throws IOException {
+     if (peek() == JsonToken.NAME) {
+       nextName();
+-      pathNames[stackSize - 2] = "null";
++      if (stackSize >= 2) {
++        pathNames[stackSize - 2] = "null";
++      }
+     } else {
++      // Store the current stack size before popping so we can safely access path arrays
++      int currentStackSize = stackSize;
+       popStack();
+-        pathNames[stackSize - 1] = "null";
++      // After popping, if there are still elements in the stack, update the path arrays
++      if (currentStackSize > 1) {
++        pathNames[currentStackSize - 2] = "null";
++        pathIndices[currentStackSize - 2]++;
++      }
+     }
+-      pathIndices[stackSize - 1]++;
+   }
+ 
+   @Override public String toString() {

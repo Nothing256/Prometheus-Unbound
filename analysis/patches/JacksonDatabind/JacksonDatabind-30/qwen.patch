@@ -1,0 +1,42 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/jsontype/TypeDeserializer.java b/src/main/java/com/fasterxml/jackson/databind/jsontype/TypeDeserializer.java
+index 3821a68e8..383bd3ec9 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/jsontype/TypeDeserializer.java
++++ b/src/main/java/com/fasterxml/jackson/databind/jsontype/TypeDeserializer.java
+@@ -1,10 +1,12 @@
+ package com.fasterxml.jackson.databind.jsontype;
+ 
+ import java.io.IOException;
++import java.math.BigDecimal;
+ 
+ import com.fasterxml.jackson.core.*;
+ import com.fasterxml.jackson.databind.BeanProperty;
+ import com.fasterxml.jackson.databind.DeserializationContext;
++import com.fasterxml.jackson.databind.DeserializationFeature;
+ import com.fasterxml.jackson.databind.JavaType;
+ import com.fasterxml.jackson.databind.JsonDeserializer;
+ import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+@@ -156,12 +158,24 @@ public abstract class TypeDeserializer
+             if (base.isAssignableFrom(Integer.class)) {
+                 return jp.getIntValue();
+             }
++            if (base.isAssignableFrom(BigDecimal.class)) {
++                return jp.getDecimalValue();
++            }
+             break;
+ 
+         case VALUE_NUMBER_FLOAT:
++            // When USE_BIG_DECIMAL_FOR_FLOATS is enabled and target could be BigDecimal, prefer BigDecimal
++            if (ctxt.isEnabled(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS) && base.isAssignableFrom(BigDecimal.class)) {
++                return jp.getDecimalValue();
++            }
++            // Otherwise, use Double as before
+             if (base.isAssignableFrom(Double.class)) {
+                 return Double.valueOf(jp.getDoubleValue());
+             }
++            // If target can be BigDecimal but feature is not enabled, still allow it as natural type
++            if (base.isAssignableFrom(BigDecimal.class)) {
++                return jp.getDecimalValue();
++            }
+             break;
+         case VALUE_TRUE:
+             if (base.isAssignableFrom(Boolean.class)) {

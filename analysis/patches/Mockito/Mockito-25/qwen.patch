@@ -1,0 +1,220 @@
+diff --git a/src/org/mockito/internal/stubbing/defaultanswers/ReturnsDeepStubs.java b/src/org/mockito/internal/stubbing/defaultanswers/ReturnsDeepStubs.java
+index 5e45819..9b8a89b 100644
+--- a/src/org/mockito/internal/stubbing/defaultanswers/ReturnsDeepStubs.java
++++ b/src/org/mockito/internal/stubbing/defaultanswers/ReturnsDeepStubs.java
+@@ -1,12 +1,25 @@
+ /*
+  * Copyright (c) 2007 Mockito contributors
+  * This program is made available under the terms of the MIT License.
+  */
+ package org.mockito.internal.stubbing.defaultanswers;
+ 
+ import org.mockito.internal.InternalMockHandler;
+ import org.mockito.internal.creation.settings.CreationSettings;
+ import org.mockito.internal.stubbing.InvocationContainerImpl;
+ import org.mockito.internal.stubbing.StubbedInvocationMatcher;
+ import org.mockito.internal.util.MockCreationValidator;
+ import org.mockito.internal.util.MockUtil;
+ import org.mockito.internal.util.reflection.GenericMetadataSupport;
+ import org.mockito.invocation.InvocationOnMock;
+ import org.mockito.stubbing.Answer;
+ 
+-import java.io.Serializable;
++import java.io.IOException;
++import java.io.ObjectInputStream;
++import java.io.ObjectOutputStream;
++import java.io.Serializable;
++import java.lang.reflect.ParameterizedType;
++import java.lang.reflect.Type;
++import java.lang.reflect.TypeVariable;
++import java.lang.reflect.WildcardType;
++import java.util.IdentityHashMap;
++import java.util.Map;
+ 
+ 
+ /**
+  * Returning deep stub implementation.
+  *
+  * Will return previously created mock if the invocation matches.
+  *
+  * <p>Supports nested generic information, with this answer you can write code like this :
+  *
+  * <pre class="code"><code class="java">
+  *     interface GenericsNest&lt;K extends Comparable&lt;K&gt; & Cloneable&gt; extends Map&lt;K, Set&lt;Number&gt;&gt; {}
+  *
+  *     GenericsNest&lt;?&gt; mock = mock(GenericsNest.class, new ReturnsGenericDeepStubs());
+  *     Number number = mock.entrySet().iterator().next().getValue().iterator().next();
+  * </code></pre>
+  * </p>
+  *
+  * @see org.mockito.Mockito#RETURNS_DEEP_STUBS
+  * @see org.mockito.Answers#RETURNS_DEEP_STUBS
+  */
+ public class ReturnsDeepStubs implements Answer<Object>, Serializable {
+     
+     private static final long serialVersionUID = -7105341425736035847L;
+ 
+     private ReturnsEmptyValues delegate = new ReturnsEmptyValues();
++
++    // Store generic metadata context for mock objects created by this class
++    private transient Map<Object, GenericMetadataSupport> mockContexts = new IdentityHashMap<Object, GenericMetadataSupport>();
++
+     public Object answer(InvocationOnMock invocation) throws Throwable {
++        GenericMetadataSupport returnTypeGenericMetadata;
++        // Check if this mock has a stored generic context
++        if (mockContexts.containsKey(invocation.getMock())) {
++            returnTypeGenericMetadata = mockContexts.get(invocation.getMock()).resolveGenericReturnType(invocation.getMethod());
++        } else {
++            returnTypeGenericMetadata = actualParameterizedType(invocation.getMock()).resolveGenericReturnType(invocation.getMethod());
++        }
++
++        Class<?> rawType = returnTypeGenericMetadata.rawType();
++        if (!new MockCreationValidator().isTypeMockable(rawType)) {
++            return delegate.returnValueFor(rawType);
++        }
++
++        // When there's contextual generic info, also check if it contains non-mockable types
++        if (mockContexts.containsKey(invocation.getMock()) && hasNonMockableTypeInResolvedSignature(returnTypeGenericMetadata)) {
++            return delegate.returnValueFor(rawType);
++        }
++
++        return getMock(invocation, returnTypeGenericMetadata);
++    }
++
++    private Object getMock(InvocationOnMock invocation, GenericMetadataSupport returnTypeGenericMetadata) throws Throwable {
+     	InternalMockHandler<Object> handler = new MockUtil().getMockHandler(invocation.getMock());
+     	InvocationContainerImpl container = (InvocationContainerImpl) handler.getInvocationContainer();
+ 
+         // matches invocation for verification
+         for (StubbedInvocationMatcher stubbedInvocationMatcher : container.getStubbedInvocations()) {
+     		if(container.getInvocationForStubbing().matches(stubbedInvocationMatcher.getInvocation())) {
+     			return stubbedInvocationMatcher.answer(invocation);
+     		}
+ 		}
+ 
+         // deep stub
+-        return recordDeepStubMock(invocation, container);
++        return recordDeepStubMock(invocation, container, returnTypeGenericMetadata);
+     }
+ 
+     /**
+      * Creates a mock using the Generics Metadata.
+      *
+      * @param returnTypeGenericMetadata The metadata to use to create the new mock.
+      * @return The mock
+      */
+-    
+-    
+-    
+-    private Object recordDeepStubMock(InvocationOnMock invocation, InvocationContainerImpl container) {
++    private Object recordDeepStubMock(InvocationOnMock invocation, InvocationContainerImpl container, GenericMetadataSupport returnTypeGenericMetadata) {
+         Class<?> clz = invocation.getMethod().getReturnType();
+         final Object mock = org.mockito.Mockito.mock(clz, this);
+ 
+-        container.addAnswer(new Answer<Object>() {
++        // Store the generic metadata context for this mock so nested calls can use it
++        // Only if the type contains non-mockable type variables (to handle cases like Iterator<NonMockableType>)
++        if (hasNonMockableTypeInResolvedSignature(returnTypeGenericMetadata)) {
++            mockContexts.put(mock, returnTypeGenericMetadata);
++        }
++
++        container.addAnswer(new Answer<Object>() {
+             public Object answer(InvocationOnMock invocation) throws Throwable {
+                 return mock;
+             }
+         }, false);
+ 
+         return mock;
+     }
+ 
+     protected GenericMetadataSupport actualParameterizedType(Object mock) {
+         CreationSettings mockSettings = (CreationSettings) new MockUtil().getMockHandler(mock).getMockSettings();
+         return GenericMetadataSupport.inferFrom(mockSettings.getTypeToMock());
+     }
++    
++    /**
++     * Checks if the generic metadata contains non-mockable types in its signature
++     */
++    private boolean hasNonMockableTypeInResolvedSignature(GenericMetadataSupport metadata) {
++        for (Type actualType : metadata.actualTypeArguments().values()) {
++            if (!isTypeMockableFully(actualType, new java.util.HashSet<Type>())) {
++                return true;
++            }
++        }
++        for (Type extraInterface : metadata.extraInterfaces()) {
++            if (!isTypeMockableFully(extraInterface, new java.util.HashSet<Type>())) {
++                return true;
++            }
++        }
++        return false;
++    }
++
++    /**
++     * Determines if a Type is mockable recursively, including checking type variable bounds
++     */
++    private boolean isTypeMockableFully(Type type, java.util.Set<Type> visited) {
++        if (visited.contains(type)) {
++            return true; // Prevent infinite recursion, assume mockable
++        }
++        
++        if (type instanceof Class) {
++            return new MockCreationValidator().isTypeMockable((Class<?>) type);
++        } else if (type instanceof TypeVariable) {
++            // Add to visited set to prevent infinite recursion
++            visited.add(type);
++            TypeVariable<?> typeVar = (TypeVariable<?>) type;
++            // Check each bound of the type variable
++            for (Type bound : typeVar.getBounds()) {
++                if (bound instanceof Class && !new MockCreationValidator().isTypeMockable((Class<?>) bound)) {
++                    return false;
++                }
++                // For recursively bound types like K extends Comparable<K>, check them too
++                if (!isTypeMockableFully(bound, visited)) {
++                    return false;
++                }
++            }
++            return true;
++        } else if (type instanceof ParameterizedType) {
++            ParameterizedType paramType = (ParameterizedType) type;
++            visited.add(type);
++            // Check the raw type
++            if (!isTypeMockableFully(paramType.getRawType(), visited)) {
++                return false;
++            }
++            // Check type arguments recursively
++            for (Type typeArg : paramType.getActualTypeArguments()) {
++                if (!isTypeMockableFully(typeArg, visited)) {
++                    return false;
++                }
++            }
++            return true;
++        } else if (type instanceof WildcardType) {
++            WildcardType wildcard = (WildcardType) type;
++            visited.add(type);
++            // For wildcards, check both upper and lower bounds
++            for (Type bound : wildcard.getUpperBounds()) {
++                if (!isTypeMockableFully(bound, visited)) {
++                    return false;
++                }
++            }
++            for (Type bound : wildcard.getLowerBounds()) {
++                if (!isTypeMockableFully(bound, visited)) {
++                    return false;
++                }
++            }
++            return true;
++        }
++        // For other types, assume they're mockable
++        return true;
++    }
++
++    // Custom serialization to handle the transient mockContexts map
++    private void writeObject(ObjectOutputStream out) throws IOException {
++        out.defaultWriteObject();
++    }
++
++    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
++        in.defaultReadObject();
++        mockContexts = new IdentityHashMap<Object, GenericMetadataSupport>();
++    }
+ }

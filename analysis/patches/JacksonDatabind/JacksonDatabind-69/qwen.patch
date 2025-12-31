@@ -1,0 +1,23 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/impl/CreatorCollector.java b/src/main/java/com/fasterxml/jackson/databind/deser/impl/CreatorCollector.java
+index b3030afdc..a4318750e 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/impl/CreatorCollector.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/impl/CreatorCollector.java
+@@ -208,15 +208,15 @@ public class CreatorCollector
+     }
+     @Deprecated // since 2.5
+     public void addIntCreator(AnnotatedWithParams creator) {
+-        addBooleanCreator(creator, false);
++        addIntCreator(creator, false);
+     }
+     @Deprecated // since 2.5
+     public void addLongCreator(AnnotatedWithParams creator) {
+-        addBooleanCreator(creator, false);
++        addLongCreator(creator, false);
+     }
+     @Deprecated // since 2.5
+     public void addDoubleCreator(AnnotatedWithParams creator) {
+-        addBooleanCreator(creator, false);
++        addDoubleCreator(creator, false);
+     }
+     @Deprecated // since 2.5
+     public void addBooleanCreator(AnnotatedWithParams creator) {

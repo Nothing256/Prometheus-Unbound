@@ -1,0 +1,36 @@
+diff --git a/src/java/org/apache/commons/jxpath/ri/compiler/CoreFunction.java b/src/java/org/apache/commons/jxpath/ri/compiler/CoreFunction.java
+index f717190..3b35de4 100644
+--- a/src/java/org/apache/commons/jxpath/ri/compiler/CoreFunction.java
++++ b/src/java/org/apache/commons/jxpath/ri/compiler/CoreFunction.java
+@@ -490,7 +490,7 @@ public class CoreFunction extends Operation {
+ 
+         String s1 = InfoSetUtil.stringValue(getArg1().computeValue(context));
+         double from = InfoSetUtil.doubleValue(getArg2().computeValue(context));
+-        if (Double.isNaN(from)) {
++        if (Double.isNaN(from) || Double.isInfinite(from)) {
+             return "";
+         }
+ 
+@@ -506,6 +506,9 @@ public class CoreFunction extends Operation {
+         }
+         double length =
+             InfoSetUtil.doubleValue(getArg3().computeValue(context));
++        if (Double.isNaN(length)) {
++            return "";
++        }
+         length = Math.round(length);
+         if (length < 0) {
+             return "";
+@@ -665,6 +668,12 @@ public class CoreFunction extends Operation {
+     protected Object functionRound(EvalContext context) {
+         assertArgCount(1);
+         double v = InfoSetUtil.doubleValue(getArg1().computeValue(context));
++        if (Double.isNaN(v)) {
++            return new Double(Double.NaN);
++        }
++        else if (Double.isInfinite(v)) {
++            return new Double(v);
++        }
+         return new Double(Math.round(v));
+     }
+ 

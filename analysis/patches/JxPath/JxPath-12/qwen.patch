@@ -1,0 +1,81 @@
+diff --git a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodeIterator.java b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodeIterator.java
+index 6102340..b3a5cab 100644
+--- a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodeIterator.java
++++ b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodeIterator.java
+@@ -138,6 +138,8 @@ public class DOMNodeIterator implements NodeIterator {
+     }
+ 
+     private boolean testChild() {
+-        return DOMNodePointer.testNode(child, nodeTest);
++        // Get the namespace resolver from the parent to handle namespace-unaware documents with external namespace registrations
++        org.apache.commons.jxpath.ri.NamespaceResolver resolver = parent.getNamespaceResolver();
++        return DOMNodePointer.testNode(child, nodeTest, resolver);
+     }
+ }
+\ No newline at end of file
+diff --git a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java
+index de50adf..ea8856f 100644
+--- a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java
++++ b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java
+@@ -27,6 +27,7 @@ import org.apache.commons.jxpath.JXPathException;
+ import org.apache.commons.jxpath.Pointer;
+ import org.apache.commons.jxpath.ri.Compiler;
+ import org.apache.commons.jxpath.ri.QName;
++import org.apache.commons.jxpath.ri.NamespaceResolver;
+ import org.apache.commons.jxpath.ri.compiler.NodeNameTest;
+ import org.apache.commons.jxpath.ri.compiler.NodeTest;
+ import org.apache.commons.jxpath.ri.compiler.NodeTypeTest;
+@@ -85,6 +86,10 @@ public class DOMNodePointer extends NodePointer {
+     }
+ 
+     public static boolean testNode(Node node, NodeTest test) {
++        return testNode(node, test, null);
++    }
++
++    public static boolean testNode(Node node, NodeTest test, org.apache.commons.jxpath.ri.NamespaceResolver resolver) {
+         if (test == null) {
+             return true;
+         }
+@@ -104,7 +109,15 @@ public class DOMNodePointer extends NodePointer {
+             if (wildcard
+                 || testName.getName()
+                         .equals(DOMNodePointer.getLocalName(node))) {
+-                String nodeNS = DOMNodePointer.getNamespaceURI(node);
++                String nodeNS = getNamespaceURI(node);
++                // If namespace is null from DOM (e.g., due to namespace-unaware parsing) but node has prefix,
++                // try to resolve the prefix using the provided namespace resolver
++                if (nodeNS == null) {
++                    String prefix = getPrefix(node);
++                    if (prefix != null && !"".equals(prefix) && resolver != null) {
++                        nodeNS = resolver.getNamespaceURI(prefix);
++                    }
++                }
+                 return equalStrings(namespaceURI, nodeNS);
+             }
+             return false;
+@@ -222,13 +235,24 @@ public class DOMNodePointer extends NodePointer {
+             if (namespace == null || namespace.equals("")) {
+                 namespace = NodePointer.UNKNOWN_NAMESPACE;
+             }
++
++            // If namespace still not found from document, try the namespace resolver
++            if (namespace == NodePointer.UNKNOWN_NAMESPACE) {
++                NamespaceResolver resolver = getNamespaceResolver();
++                if (resolver != null) {
++                    String resolvedNamespace = resolver.getNamespaceURI(prefix);
++                    if (resolvedNamespace != null) {
++                        namespace = resolvedNamespace;
++                    }
++                }
++            }
+         }
+ 
+         namespaces.put(prefix, namespace);
+         if (namespace == UNKNOWN_NAMESPACE) {
+             return null;
+         }
+-        
++
+         // TBD: We are supposed to resolve relative URIs to absolute ones.
+         return namespace;
+     }

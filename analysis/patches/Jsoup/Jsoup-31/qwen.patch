@@ -1,0 +1,217 @@
+diff --git a/src/main/java/org/jsoup/parser/Token.java b/src/main/java/org/jsoup/parser/Token.java
+index 2d5643b6..e3867fad 100644
+--- a/src/main/java/org/jsoup/parser/Token.java
++++ b/src/main/java/org/jsoup/parser/Token.java
+@@ -207,6 +207,28 @@ abstract class Token {
+         }
+     }
+ 
++    static class ProcessingInstruction extends Token {
++        final StringBuilder name = new StringBuilder();
++        final StringBuilder data = new StringBuilder();
++
++        ProcessingInstruction() {
++            type = TokenType.ProcessingInstruction;
++        }
++
++        String getName() {
++            return name.toString();
++        }
++
++        String getData() {
++            return data.toString();
++        }
++
++        @Override
++        public String toString() {
++            return "<?" + getName() + " " + getData() + "?>";
++        }
++    }
++
+     boolean isDoctype() {
+         return type == TokenType.Doctype;
+     }
+@@ -251,12 +273,21 @@ abstract class Token {
+         return type == TokenType.EOF;
+     }
+ 
++    boolean isProcessingInstruction() {
++        return type == TokenType.ProcessingInstruction;
++    }
++
++    ProcessingInstruction asProcessingInstruction() {
++        return (ProcessingInstruction) this;
++    }
++
+     enum TokenType {
+         Doctype,
+         StartTag,
+         EndTag,
+         Comment,
+         Character,
+-        EOF
++        EOF,
++        ProcessingInstruction
+     }
+ }
+diff --git a/src/main/java/org/jsoup/parser/Tokeniser.java b/src/main/java/org/jsoup/parser/Tokeniser.java
+index 34458558..0c43ed53 100644
+--- a/src/main/java/org/jsoup/parser/Tokeniser.java
++++ b/src/main/java/org/jsoup/parser/Tokeniser.java
+@@ -14,6 +14,7 @@ class Tokeniser {
+ 
+     private CharacterReader reader; // html input
+     private ParseErrorList errors; // errors found while tokenising
++    private boolean isXmlMode = false;
+ 
+     private TokeniserState state = TokeniserState.Data; // current tokenisation state
+     private Token emitPending; // the token we are about to emit on next read
+@@ -24,12 +25,22 @@ class Tokeniser {
+     Token.Tag tagPending; // tag we are building up
+     Token.Doctype doctypePending; // doctype building up
+     Token.Comment commentPending; // comment building up
++    Token.ProcessingInstruction processingInstructionPending; // processing instruction building up
+     private Token.StartTag lastStartTag; // the last start tag emitted, to test appropriate end tag
+     private boolean selfClosingFlagAcknowledged = true;
+ 
+-    Tokeniser(CharacterReader reader, ParseErrorList errors) {
++    Tokeniser(CharacterReader reader, ParseErrorList errors, boolean isXmlMode) {
+         this.reader = reader;
+         this.errors = errors;
++        this.isXmlMode = isXmlMode;
++    }
++
++    Tokeniser(CharacterReader reader, ParseErrorList errors) {
++        this(reader, errors, false); // default to HTML mode
++    }
++
++    boolean isXmlMode() {
++        return isXmlMode;
+     }
+ 
+     Token read() {
+@@ -172,6 +183,14 @@ class Tokeniser {
+         emit(commentPending);
+     }
+ 
++    void createProcessingInstructionPending() {
++        processingInstructionPending = new Token.ProcessingInstruction();
++    }
++
++    void emitProcessingInstructionPending() {
++        emit((Token)processingInstructionPending);
++    }
++
+     void createDoctypePending() {
+         doctypePending = new Token.Doctype();
+     }
+diff --git a/src/main/java/org/jsoup/parser/TokeniserState.java b/src/main/java/org/jsoup/parser/TokeniserState.java
+index 2a46cf2f..27ff955a 100644
+--- a/src/main/java/org/jsoup/parser/TokeniserState.java
++++ b/src/main/java/org/jsoup/parser/TokeniserState.java
+@@ -145,7 +145,12 @@ enum TokeniserState {
+                     t.advanceTransition(EndTagOpen);
+                     break;
+                 case '?':
+-                    t.advanceTransition(BogusComment);
++                    if (t.isXmlMode()) {
++                        t.createProcessingInstructionPending();
++                        t.transition(ProcessingInstructionExpectName);
++                    } else {
++                        t.advanceTransition(BogusComment);
++                    }
+                     break;
+                 default:
+                     if (r.matchesLetter()) {
+@@ -1097,6 +1102,47 @@ enum TokeniserState {
+             t.advanceTransition(Data);
+         }
+     },
++    ProcessingInstructionExpectName {
++        void read(Tokeniser t, CharacterReader r) {
++            // <?name (note: not necessarily 'xml' - could be any PI like <?xslt ...)
++            String target = r.consumeLetterThenDigitSequence();
++            t.processingInstructionPending.name.append(target);
++            if (target.length() > 0) {
++                t.transition(ProcessingInstructionExpectWsThenData);
++            } else {
++                t.error(this);
++                t.transition(BogusComment);
++            }
++        }
++    },
++    ProcessingInstructionExpectWsThenData {
++        void read(Tokeniser t, CharacterReader r) {
++            // eat any leading whitespace
++            if (r.matchesAny('\t', '\n', '\r', '\f', ' ')) {
++                r.advance();
++            } else if (r.matches('>')) {
++                // empty data: <?name?>
++                r.advance();
++                t.emitProcessingInstructionPending();
++                t.transition(Data);
++            } else {
++                t.transition(ProcessingInstructionData);
++            }
++        }
++    },
++    ProcessingInstructionData {
++        void read(Tokeniser t, CharacterReader r) {
++            // read data section of PI, emit when closing ?>
++            if (r.current() == '?' && r.matchConsume(">")) {
++                // end of PI
++                t.emitProcessingInstructionPending();
++                t.transition(Data);
++            } else {
++                t.processingInstructionPending.data.append(r.consume());
++                t.transition(ProcessingInstructionData); // continue reading data
++            }
++        }
++    },
+     MarkupDeclarationOpen {
+         void read(Tokeniser t, CharacterReader r) {
+             if (r.matchConsume("--")) {
+diff --git a/src/main/java/org/jsoup/parser/XmlTreeBuilder.java b/src/main/java/org/jsoup/parser/XmlTreeBuilder.java
+index 11eae8ba..598371e8 100644
+--- a/src/main/java/org/jsoup/parser/XmlTreeBuilder.java
++++ b/src/main/java/org/jsoup/parser/XmlTreeBuilder.java
+@@ -11,7 +11,10 @@ import java.util.Iterator;
+ public class XmlTreeBuilder extends TreeBuilder {
+     @Override
+     protected void initialiseParse(String input, String baseUri, ParseErrorList errors) {
+-        super.initialiseParse(input, baseUri, errors);
++        super.initialiseParse(input, baseUri, errors); // Use parent to set up doc, reader, errors, stack, baseUri
++        // But replace tokeniser with XML mode
++        tokeniser = new Tokeniser(reader, errors, true); // explicitly XML mode for XML parser
++
+         stack.add(doc); // place the document onto the stack. differs from HtmlTreeBuilder (not on stack)
+     }
+ 
+@@ -34,6 +37,9 @@ public class XmlTreeBuilder extends TreeBuilder {
+             case Doctype:
+                 insert(token.asDoctype());
+                 break;
++            case ProcessingInstruction:
++                insert(token.asProcessingInstruction());
++                break;
+             case EOF: // could put some normalisation here if desired
+                 break;
+             default:
+@@ -77,6 +83,17 @@ public class XmlTreeBuilder extends TreeBuilder {
+         insertNode(doctypeNode);
+     }
+ 
++    void insert(Token.ProcessingInstruction pi) {
++        // Create an XmlDeclaration node for XML processing instructions
++        // The data should be "name data" format, e.g., "xml encoding='UTF-8' "
++        String data = pi.getName();
++        if (pi.getData().length() > 0) {
++            data += " " + pi.getData().trim(); // Add space and trim extra whitespace
++        }
++        XmlDeclaration decl = new XmlDeclaration(data, baseUri, false); // false to get <? ... ?> format
++        insertNode(decl);
++    }
++
+     /**
+      * If the stack contains an element with this tag's name, pop up the stack to remove the first occurrence. If not
+      * found, skips.

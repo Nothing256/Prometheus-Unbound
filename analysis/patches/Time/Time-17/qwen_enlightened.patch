@@ -1,0 +1,65 @@
+diff --git a/src/main/java/org/joda/time/DateTime.java b/src/main/java/org/joda/time/DateTime.java
+index 6cb6dc31..afd53b70 100644
+--- a/src/main/java/org/joda/time/DateTime.java
++++ b/src/main/java/org/joda/time/DateTime.java
+@@ -662,7 +662,7 @@ public final class DateTime
+      * @return a copy of this datetime with the earliest valid offset for the local datetime
+      */
+     public DateTime withEarlierOffsetAtOverlap() {
+-        long newMillis = getZone().adjustOffset(getMillis(), false);
++        long newMillis = getZone().adjustOffset(getMillis(), true);
+         return withMillis(newMillis);
+     }
+ 
+@@ -682,7 +682,7 @@ public final class DateTime
+      * @return a copy of this datetime with the latest valid offset for the local datetime
+      */
+     public DateTime withLaterOffsetAtOverlap() {
+-        long newMillis = getZone().adjustOffset(getMillis(), true);
++        long newMillis = getZone().adjustOffset(getMillis(), false);
+         return withMillis(newMillis);
+     }
+ 
+diff --git a/src/main/java/org/joda/time/DateTimeZone.java b/src/main/java/org/joda/time/DateTimeZone.java
+index 74a3802a..5ba963d5 100644
+--- a/src/main/java/org/joda/time/DateTimeZone.java
++++ b/src/main/java/org/joda/time/DateTimeZone.java
+@@ -1155,28 +1155,29 @@ public abstract class DateTimeZone implements Serializable {
+ 
+     /**
+      * Adjusts the offset to be the earlier or later one during an overlap.
+-     * 
++     *
+      * @param instant  the instant to adjust
+-     * @param earlierOrLater  false for earlier, true for later
++     * @param earlierOrLater  true for earlier, false for later
+      * @return the adjusted instant millis
+      */
+     public long adjustOffset(long instant, boolean earlierOrLater) {
+         // a bit messy, but will work in all non-pathological cases
+-        
++
+         // evaluate 3 hours before and after to work out if anything is happening
+         long instantBefore = convertUTCToLocal(instant - 3 * DateTimeConstants.MILLIS_PER_HOUR);
+         long instantAfter = convertUTCToLocal(instant + 3 * DateTimeConstants.MILLIS_PER_HOUR);
+         if (instantBefore == instantAfter) {
+             return instant;  // not an overlap (less than is a gap, equal is normal case)
+         }
+-        
++
+         // work out range of instants that have duplicate local times
+         long local = convertUTCToLocal(instant);
+-        return convertLocalToUTC(local, false, earlierOrLater ? instantAfter : instantBefore);
+-        
+-        // calculate result
+-          // currently in later offset
+-          // currently in earlier offset
++        // THE BUG: The original code was using local times as UTC reference times
++        // Use the UTC instants directly for the originalInstantUTC parameter
++        long refBefore = instant - 3 * DateTimeConstants.MILLIS_PER_HOUR;  // UTC
++        long refAfter = instant + 3 * DateTimeConstants.MILLIS_PER_HOUR;    // UTC
++        // Use proper UTC instants as reference: true (earlier) -> refBefore, false (later) -> refAfter
++        return convertLocalToUTC(local, false, earlierOrLater ? refBefore : refAfter);
+     }
+ //    System.out.println(new DateTime(transitionStart, DateTimeZone.UTC) + " " + new DateTime(transitionStart, this));
+ 

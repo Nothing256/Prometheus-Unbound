@@ -1,0 +1,63 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializerBase.java b/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializerBase.java
+index ac95adca7..854cf9c47 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializerBase.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializerBase.java
+@@ -1333,6 +1333,23 @@ public abstract class BeanDeserializerBase
+     {
+         // note: can not call `_delegateDeserializer()` since order reversed here:
+         if (_arrayDelegateDeserializer != null) {
++            // First check if we need to unwrap single value arrays (similar to non-delegate path)
++            if (ctxt.isEnabled(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS)) {
++                JsonToken t = p.nextToken();
++                if (t == JsonToken.END_ARRAY && ctxt.isEnabled(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT)) {
++                    return null;
++                }
++                Object value = _arrayDelegateDeserializer.deserialize(p, ctxt);
++                Object bean = _valueInstantiator.createUsingArrayDelegate(ctxt, value);
++                if (p.nextToken() != JsonToken.END_ARRAY) {
++                    handleMissingEndArrayForSingle(p, ctxt);
++                }
++                if (_injectables != null) {
++                    injectValues(ctxt, bean);
++                }
++                return bean;
++            }
++            // Normal array delegate processing
+             try {
+                 Object bean = _valueInstantiator.createUsingArrayDelegate(ctxt, _arrayDelegateDeserializer.deserialize(p, ctxt));
+                 if (_injectables != null) {
+@@ -1345,16 +1362,31 @@ public abstract class BeanDeserializerBase
+         }
+         // fallback to non-array delegate
+         if (_delegateDeserializer != null) {
++            // Also check for unwrapping in the fallback case to handle chained creators
++            if (ctxt.isEnabled(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS)) {
++                JsonToken t = p.nextToken();
++                if (t == JsonToken.END_ARRAY && ctxt.isEnabled(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT)) {
++                    return null;
++                }
++                Object value = _delegateDeserializer.deserialize(p, ctxt);
++                Object bean = _valueInstantiator.createUsingDelegate(ctxt, value);
++                if (p.nextToken() != JsonToken.END_ARRAY) {
++                    handleMissingEndArrayForSingle(p, ctxt);
++                }
++                if (_injectables != null) {
++                    injectValues(ctxt, bean);
++                }
++                return bean;
++            }
+             try {
+-            Object bean = _valueInstantiator.createUsingArrayDelegate(ctxt,
++            Object bean = _valueInstantiator.createUsingDelegate(ctxt,
+                     _delegateDeserializer.deserialize(p, ctxt));
+             if (_injectables != null) {
+                 injectValues(ctxt, bean);
+             }
+             return bean;
+             } catch (Exception e) {
+-                wrapInstantiationProblem(e, ctxt);
+-                return null;
++                return wrapInstantiationProblem(e, ctxt);
+             }
+         }
+         if (ctxt.isEnabled(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS)) {

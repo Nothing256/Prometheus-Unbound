@@ -1,0 +1,45 @@
+diff --git a/src/java/org/apache/commons/lang/LocaleUtils.java b/src/java/org/apache/commons/lang/LocaleUtils.java
+index ceb886e89..668d0d7a1 100644
+--- a/src/java/org/apache/commons/lang/LocaleUtils.java
++++ b/src/java/org/apache/commons/lang/LocaleUtils.java
+@@ -42,7 +42,7 @@ public class LocaleUtils {
+     /** Unmodifiable list of available locales. */
+     private static final List cAvailableLocaleList;
+     /** Unmodifiable set of available locales. */
+-    private static Set cAvailableLocaleSet;
++    private static final Set cAvailableLocaleSet;
+     /** Unmodifiable map of language locales by country. */
+     private static final Map cLanguagesByCountry = Collections.synchronizedMap(new HashMap());
+     /** Unmodifiable map of country locales by language. */
+@@ -50,6 +50,7 @@ public class LocaleUtils {
+     static {
+         List list = Arrays.asList(Locale.getAvailableLocales());
+         cAvailableLocaleList = Collections.unmodifiableList(list);
++        cAvailableLocaleSet = Collections.unmodifiableSet(new HashSet(list));
+     }
+ 
+     /**
+@@ -195,7 +196,7 @@ public class LocaleUtils {
+     //-----------------------------------------------------------------------
+     /**
+      * <p>Obtains an unmodifiable set of installed locales.</p>
+-     * 
++     *
+      * <p>This method is a wrapper around {@link Locale#getAvailableLocales()}.
+      * It is more efficient, as the JDK method must create a new array each
+      * time it is called.</p>
+@@ -203,13 +204,7 @@ public class LocaleUtils {
+      * @return the unmodifiable set of available locales
+      */
+     public static Set availableLocaleSet() {
+-        Set set = cAvailableLocaleSet;
+-        if (set == null) {
+-            set = new HashSet(availableLocaleList());
+-            set = Collections.unmodifiableSet(set);
+-            cAvailableLocaleSet = set;
+-        }
+-        return set;
++        return cAvailableLocaleSet;
+     }
+ 
+     //-----------------------------------------------------------------------

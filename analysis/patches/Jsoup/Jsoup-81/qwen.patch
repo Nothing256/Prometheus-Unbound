@@ -1,0 +1,41 @@
+diff --git a/src/main/java/org/jsoup/helper/DataUtil.java b/src/main/java/org/jsoup/helper/DataUtil.java
+index 0d52d389..66a9aeb0 100644
+--- a/src/main/java/org/jsoup/helper/DataUtil.java
++++ b/src/main/java/org/jsoup/helper/DataUtil.java
+@@ -127,15 +127,28 @@ public final class DataUtil {
+                     break;
+             }
+ 
+-            // look for <?xml encoding='ISO-8859-1'?>
++            // look for <?xml encoding='ISO-8859-1'?> - check in the original string before HTML parsing
++            if (foundCharset == null) {
++                // Pattern to match XML declaration: <?xml version="..." encoding="..."?>
++                java.util.regex.Pattern xmlEncodingPattern = java.util.regex.Pattern.compile(
++                    "(?i)<\\?xml[^>]*encoding\\s*=\\s*([\"'])([^\"'>]*)\\1[^>]*\\?>"
++                );
++                java.util.regex.Matcher xmlMatcher = xmlEncodingPattern.matcher(docData);
++                if (xmlMatcher.find()) {
++                    foundCharset = xmlMatcher.group(2);
++                }
++            }
++
++            // fallback: look for XML declaration as XmlDeclaration node (for cases where it gets parsed that way)
+             if (foundCharset == null && doc.childNodeSize() > 0) {
+-                Node first = doc.childNode(0);
+-                XmlDeclaration decl = null;
+-                if (first instanceof XmlDeclaration)
+-                    decl = (XmlDeclaration) first;
+-                if (decl != null) {
+-                    if (decl.name().equalsIgnoreCase("xml"))
+-                        foundCharset = decl.attr("encoding");
++                for (Node node : doc.childNodes()) {
++                    if (node instanceof XmlDeclaration) {
++                        XmlDeclaration decl = (XmlDeclaration) node;
++                        if (decl.name().equalsIgnoreCase("xml")) {
++                            foundCharset = decl.attr("encoding");
++                            break;
++                        }
++                    }
+                 }
+             }
+             foundCharset = validateCharset(foundCharset);

@@ -1,0 +1,24 @@
+diff --git a/src/main/java/org/apache/commons/math/ode/AbstractIntegrator.java b/src/main/java/org/apache/commons/math/ode/AbstractIntegrator.java
+index 544124fe7..b59e5709e 100644
+--- a/src/main/java/org/apache/commons/math/ode/AbstractIntegrator.java
++++ b/src/main/java/org/apache/commons/math/ode/AbstractIntegrator.java
+@@ -354,6 +354,19 @@ public abstract class AbstractIntegrator implements FirstOrderIntegrator {
+                     occuringEvents.add(currentEvent);
+                 }
+ 
++                // Remove any remaining events in occuringEvents that would occur
++                // at times before or at the current event time, as they are now obsolete
++                // after the current event occurred and possibly changed the state
++                Iterator<EventState> remainingIter = occuringEvents.iterator();
++                while (remainingIter.hasNext()) {
++                    EventState remainingEvent = remainingIter.next();
++                    if (orderingSign * Double.compare(remainingEvent.getEventTime(), eventT) <= 0) {
++                        // This event is scheduled for a time <= current event time
++                        // and is therefore obsolete after the current event occurred
++                        remainingIter.remove();
++                    }
++                }
++
+             }
+ 
+             interpolator.setInterpolatedTime(currentT);

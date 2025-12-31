@@ -1,0 +1,28 @@
+diff --git a/src/main/java/org/apache/commons/collections4/collection/UnmodifiableBoundedCollection.java b/src/main/java/org/apache/commons/collections4/collection/UnmodifiableBoundedCollection.java
+index 5a9a9a50..ab9bbf16 100644
+--- a/src/main/java/org/apache/commons/collections4/collection/UnmodifiableBoundedCollection.java
++++ b/src/main/java/org/apache/commons/collections4/collection/UnmodifiableBoundedCollection.java
+@@ -54,7 +54,11 @@ public final class UnmodifiableBoundedCollection<E> extends AbstractCollectionDe
+      * @throws IllegalArgumentException if {@code coll} is {@code null}
+      * @since 4.0
+      */
++    @SuppressWarnings("unchecked")
+     public static <E> BoundedCollection<E> unmodifiableBoundedCollection(final BoundedCollection<? extends E> coll) {
++        if (coll instanceof UnmodifiableBoundedCollection) {
++            return (UnmodifiableBoundedCollection<E>) coll;
++        }
+         return new UnmodifiableBoundedCollection<E>(coll);
+     }
+ 
+@@ -88,6 +92,11 @@ public final class UnmodifiableBoundedCollection<E> extends AbstractCollectionDe
+             }
+         }
+ 
++        // Check if the underlying BoundedCollection is already an UnmodifiableBoundedCollection
++        if (coll instanceof UnmodifiableBoundedCollection) {
++            return (UnmodifiableBoundedCollection<E>) coll;
++        }
++
+         if (coll instanceof BoundedCollection == false) {
+             throw new IllegalArgumentException("The collection is not a bounded collection");
+         }

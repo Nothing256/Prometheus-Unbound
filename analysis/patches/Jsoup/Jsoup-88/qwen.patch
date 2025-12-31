@@ -1,0 +1,8 @@
+--- /tmp/Attribute_original.java	2025-12-24 01:52:40
++++ /Users/nothing/workspace/prometheus_workdir_qwen/jsoup_88_blind_auto/src/main/java/org/jsoup/nodes/Attribute.java	2025-12-24 01:52:40
+@@ -78,6 +78,6 @@
+     */
+    public String getValue() {
+-        return val;
++        return val == null && Attribute.isBooleanAttribute(key) ? "" : val;
+    }

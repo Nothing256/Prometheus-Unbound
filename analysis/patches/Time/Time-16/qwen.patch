@@ -1,0 +1,15 @@
+diff --git a/src/main/java/org/joda/time/format/DateTimeParserBucket.java b/src/main/java/org/joda/time/format/DateTimeParserBucket.java
+index 4c5f5b47..6483701a 100644
+--- a/src/main/java/org/joda/time/format/DateTimeParserBucket.java
++++ b/src/main/java/org/joda/time/format/DateTimeParserBucket.java
+@@ -354,7 +354,9 @@ public class DateTimeParserBucket {
+             DurationField days = DurationFieldType.days().getField(iChrono);
+             DurationField first = savedFields[0].iField.getDurationField();
+             if (compareReverse(first, months) >= 0 && compareReverse(first, days) <= 0) {
+-                saveField(DateTimeFieldType.year(), iDefaultYear);
++                // Use the year from the base instant rather than iDefaultYear
++                int year = iChrono.year().get(iMillis);
++                saveField(DateTimeFieldType.year(), year);
+                 return computeMillis(resetFields, text);
+             }
+         }

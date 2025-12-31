@@ -1,0 +1,41 @@
+diff --git a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMAttributeIterator.java b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMAttributeIterator.java
+index a2ee4db..b606eb0 100644
+--- a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMAttributeIterator.java
++++ b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMAttributeIterator.java
+@@ -81,6 +81,12 @@ public class DOMAttributeIterator implements NodeIterator {
+         if (testLocalName.equals("*") || testLocalName.equals(nodeLocalName)) {
+             String testPrefix = name.getPrefix();
+ 
++            // If we're doing general wildcard match (@*) with no prefix, accept any attribute
++            if (testLocalName.equals("*") && testPrefix == null) {
++                return true;
++            }
++
++            // For specific prefix wildcard (like @prefix:*) or specific attribute name, check prefix/namespace
+             if (equalStrings(testPrefix, nodePrefix)) {
+                 return true;
+             }
+diff --git a/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMAttributeIterator.java b/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMAttributeIterator.java
+index db0b14d..3bb32a2 100644
+--- a/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMAttributeIterator.java
++++ b/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMAttributeIterator.java
+@@ -79,7 +79,18 @@ public class JDOMAttributeIterator implements NodeIterator {
+                 List allAttributes = element.getAttributes();
+                 for (int i = 0; i < allAttributes.size(); i++) {
+                     Attribute attr = (Attribute) allAttributes.get(i);
+-                    if (attr.getNamespace().equals(ns)) {
++                    // If we're doing general wildcard match (@*) with no prefix, accept any attribute
++                    // (but exclude xmlns attributes)
++                    if (prefix == null) {
++                        // Check if this is an xmlns declaration attribute to skip it
++                        boolean isXmlns = ("xmlns".equals(attr.getName()) && "".equals(attr.getNamespaceURI())) ||
++                                          "xmlns".equals(attr.getNamespace().getPrefix());
++                        if (!isXmlns) {
++                            attributes.add(attr);
++                        }
++                    }
++                    else if (attr.getNamespace().equals(ns)) {
++                        // Specific namespace match
+                         attributes.add(attr);
+                     }
+                 }

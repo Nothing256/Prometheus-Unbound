@@ -1,0 +1,31 @@
+--- original_ShapeList.java	2025-12-21 11:00:06
++++ fixed_ShapeList.java	2025-12-21 11:00:06
+@@ -158,10 +158,26 @@
+             ClassNotFoundException {
+
+        stream.defaultReadObject();
++        // Initialize the internal storage array to prevent NullPointerException
++        // This follows the same pattern as AbstractObjectList.readObject()
++        java.lang.reflect.Field objectsField;
++        try {
++            objectsField = AbstractObjectList.class.getDeclaredField("objects");
++            objectsField.setAccessible(true);
++            // Get the size after defaultReadObject restores it
++            java.lang.reflect.Field sizeField = AbstractObjectList.class.getDeclaredField("size");
++            sizeField.setAccessible(true);
++            int currentSize = sizeField.getInt(this);
++            objectsField.set(this, new Object[currentSize]);
++        } catch (Exception e) {
++            // If reflection fails, we can't proceed properly
++            throw new RuntimeException("Failed to initialize internal storage during deserialization", e);
++        }
+        
+         int count = stream.readInt();
+         for (int i = 0; i < count; i++) {
+             int index = stream.readInt();
+             if (index != -1) {
+                 setShape(index, SerialUtilities.readShape(stream));
+             }
+         }
+
+    }

@@ -1,0 +1,25 @@
+diff --git a/src/java/org/apache/commons/cli/PosixParser.java b/src/java/org/apache/commons/cli/PosixParser.java
+index 08a9280..d9f410c 100644
+--- a/src/java/org/apache/commons/cli/PosixParser.java
++++ b/src/java/org/apache/commons/cli/PosixParser.java
+@@ -213,7 +213,7 @@ public class PosixParser extends Parser {
+ 
+     /**
+      * <p>If an {@link Option} exists for <code>token</code> then
+-     * set the current option and add the token to the processed 
++     * set the current option and add the token to the processed
+      * list.</p>
+      *
+      * <p>If an {@link Option} does not exist and <code>stopAtNonOption</code>
+@@ -236,6 +236,11 @@ public class PosixParser extends Parser {
+             eatTheRest = true;
+             tokens.add(token);
+         }
++        else
++        {
++            // Add the unrecognized option to tokens so that the main parser can detect it
++            tokens.add(token);
++        }
+     }
+ 
+     /**

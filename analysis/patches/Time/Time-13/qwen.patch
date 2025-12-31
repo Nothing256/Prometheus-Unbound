@@ -1,0 +1,41 @@
+diff --git a/src/main/java/org/joda/time/format/PeriodFormatterBuilder.java b/src/main/java/org/joda/time/format/PeriodFormatterBuilder.java
+index 6c8e9c60..03cfd4bc 100644
+--- a/src/main/java/org/joda/time/format/PeriodFormatterBuilder.java
++++ b/src/main/java/org/joda/time/format/PeriodFormatterBuilder.java
+@@ -1099,7 +1099,7 @@ public class PeriodFormatterBuilder {
+                 // plus one for the decimal point
+                 sum++;
+                 if (iFieldType == SECONDS_OPTIONAL_MILLIS &&
+-                        (Math.abs(valueLong) % DateTimeConstants.MILLIS_PER_SECOND) == 0) {
++                        (valueLong % DateTimeConstants.MILLIS_PER_SECOND) == 0) {
+                     sum -= 4; // remove three digits and decimal point
+                 }
+                 // reset valueLong to refer to the seconds part for the prefic/suffix calculation
+@@ -1137,10 +1137,10 @@ public class PeriodFormatterBuilder {
+                 FormatUtils.appendPaddedInteger(buf, value, minDigits);
+             }
+             if (iFieldType >= SECONDS_MILLIS) {
+-                int dp = (int) (Math.abs(valueLong) % DateTimeConstants.MILLIS_PER_SECOND);
+-                if (iFieldType == SECONDS_MILLIS || dp > 0) {
++                int dp = (int) (valueLong % DateTimeConstants.MILLIS_PER_SECOND);
++                if (iFieldType == SECONDS_MILLIS || dp != 0) {
+                     buf.append('.');
+-                    FormatUtils.appendPaddedInteger(buf, dp, 3);
++                    FormatUtils.appendPaddedInteger(buf, Math.abs(dp), 3);
+                 }
+             }
+             if (iSuffix != null) {
+@@ -1168,10 +1168,10 @@ public class PeriodFormatterBuilder {
+                 FormatUtils.writePaddedInteger(out, value, minDigits);
+             }
+             if (iFieldType >= SECONDS_MILLIS) {
+-                int dp = (int) (Math.abs(valueLong) % DateTimeConstants.MILLIS_PER_SECOND);
+-                if (iFieldType == SECONDS_MILLIS || dp > 0) {
++                int dp = (int) (valueLong % DateTimeConstants.MILLIS_PER_SECOND);
++                if (iFieldType == SECONDS_MILLIS || dp != 0) {
+                     out.write('.');
+-                    FormatUtils.writePaddedInteger(out, dp, 3);
++                    FormatUtils.writePaddedInteger(out, Math.abs(dp), 3);
+                 }
+             }
+             if (iSuffix != null) {

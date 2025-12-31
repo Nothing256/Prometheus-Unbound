@@ -1,0 +1,23 @@
+diff --git a/src/main/java/org/joda/time/Period.java b/src/main/java/org/joda/time/Period.java
+index f4047933..ebcf4a8f 100644
+--- a/src/main/java/org/joda/time/Period.java
++++ b/src/main/java/org/joda/time/Period.java
+@@ -1625,8 +1625,16 @@ public final class Period
+         int years = getYears();
+         int months = getMonths();
+         if (years != 0 || months != 0) {
+-            years = FieldUtils.safeAdd(years, months / 12);
+-            months = months % 12;
++            // Convert years to months if the target type doesn't support years but supports months
++            if (!type.isSupported(DurationFieldType.years()) && type.isSupported(DurationFieldType.months())) {
++                months = FieldUtils.safeAdd(FieldUtils.safeMultiply(years, 12), months);
++                years = 0;
++            } else {
++                // Standard normalization: convert excess months to years
++                years = FieldUtils.safeAdd(years, months / 12);
++                months = months % 12;
++            }
++
+             if (years != 0) {
+                 result = result.withYears(years);
+             }

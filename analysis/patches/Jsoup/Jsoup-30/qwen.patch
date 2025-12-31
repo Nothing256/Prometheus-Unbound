@@ -1,0 +1,15 @@
+diff --git a/src/main/java/org/jsoup/safety/Cleaner.java b/src/main/java/org/jsoup/safety/Cleaner.java
+index e4d45bd2..d5bf99f8 100644
+--- a/src/main/java/org/jsoup/safety/Cleaner.java
++++ b/src/main/java/org/jsoup/safety/Cleaner.java
+@@ -90,6 +90,10 @@ public class Cleaner {
+                 TextNode sourceText = (TextNode) source;
+                 TextNode destText = new TextNode(sourceText.getWholeText(), source.baseUri());
+                 destination.appendChild(destText);
++            } else {
++                // This node is not an element or text node (e.g. Comment, DocumentType, XmlDeclaration)
++                // These are not allowed in safe HTML, so discard them
++                numDiscarded++;
+             }
+         }
+         return numDiscarded;

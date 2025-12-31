@@ -1,0 +1,59 @@
+diff --git a/src/main/java/org/jsoup/select/QueryParser.java b/src/main/java/org/jsoup/select/QueryParser.java
+index 9ff43bad..b8a1bc0e 100644
+--- a/src/main/java/org/jsoup/select/QueryParser.java
++++ b/src/main/java/org/jsoup/select/QueryParser.java
+@@ -56,13 +56,22 @@ class QueryParser {
+             boolean seenWhite = tq.consumeWhitespace();
+ 
+             if (tq.matchChomp(",")) {
++                // Create an Or evaluator and add the current evaluators (what we've parsed so far)
+                 CombiningEvaluator.Or or = new CombiningEvaluator.Or(evals);
+                 evals.clear();
+                 evals.add(or);
+-                while (!tq.isEmpty()) {
+-                    String subQuery = tq.chompTo(",");
+-                    or.add(parse(subQuery));
++
++                // Get the remaining query after the comma and split by top-level commas
++                String remainingQuery = tq.remainder();
++                List<String> subQueries = splitWithRespectToParentheses(remainingQuery, ',');
++
++                for (String subQuery : subQueries) {
++                    subQuery = subQuery.trim();
++                    if (!subQuery.isEmpty()) {
++                        or.add(parse(subQuery));
++                    }
+                 }
++
+             } else if (tq.matchesAny(combinators)) {
+                 combinator(tq.consume());
+             } else if (seenWhite) {
+@@ -270,4 +279,28 @@ class QueryParser {
+ 
+         evals.add(new StructuralEvaluator.Not(parse(subQuery)));
+     }
++
++    private List<String> splitWithRespectToParentheses(String query, char delimiter) {
++        List<String> result = new ArrayList<String>();
++        int parenCount = 0;
++        int start = 0;
++
++        for (int i = 0; i < query.length(); i++) {
++            char c = query.charAt(i);
++            if (c == '(') {
++                parenCount++;
++            } else if (c == ')') {
++                parenCount--;
++            } else if (c == delimiter && parenCount == 0) {
++                // Only split on delimiter if not inside parentheses
++                result.add(query.substring(start, i));
++                start = i + 1;
++            }
++        }
++
++        // Add the last part
++        result.add(query.substring(start));
++
++        return result;
++    }
+ }

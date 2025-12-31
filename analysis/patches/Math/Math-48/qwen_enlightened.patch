@@ -1,0 +1,57 @@
+diff --git a/src/main/java/org/apache/commons/math/analysis/solvers/BaseSecantSolver.java b/src/main/java/org/apache/commons/math/analysis/solvers/BaseSecantSolver.java
+index 8a667dad3..5049757d6 100644
+--- a/src/main/java/org/apache/commons/math/analysis/solvers/BaseSecantSolver.java
++++ b/src/main/java/org/apache/commons/math/analysis/solvers/BaseSecantSolver.java
+@@ -155,6 +155,13 @@ public abstract class BaseSecantSolver
+         // larger than the right bound.
+         boolean inverted = false;
+ 
++        // Keep track of how many consecutive iterations the f0 value has been used
++        // without modification in the Regula Falsi method. This happens when the
++        // algorithm keeps selecting the same side of the interval repeatedly,
++        // causing slow convergence.
++        int f0UnmodifiedCount = 0;
++        final int MAX_UNMODIFIED_USES = 1;  // threshold before applying modification
++
+         // Keep finding better approximations.
+         while (true) {
+             // Calculate the next approximation.
+@@ -170,22 +177,34 @@ public abstract class BaseSecantSolver
+ 
+             // Update the bounds with the new approximation.
+             if (f1 * fx < 0) {
+-                // The value of x1 has switched to the other bound, thus inverting
+-                // the interval.
++                // Root is between x1 and x, so x0 becomes x1, x1 becomes x
++                // The old f0 is discarded, so reset the unmodified counter
+                 x0 = x1;
+                 f0 = f1;
+                 inverted = !inverted;
++                f0UnmodifiedCount = 0;  // Old f0 discarded, so reset counter
+             } else {
+                 switch (method) {
+                 case ILLINOIS:
+                     f0 *= 0.5;
++                    f0UnmodifiedCount = 0;  // f0 was modified, so reset counter
+                     break;
+                 case PEGASUS:
+                     f0 *= f1 / (f1 + fx);
++                    f0UnmodifiedCount = 0;  // f0 was modified, so reset counter
+                     break;
+                 case REGULA_FALSI:
+-                    // Detect early that algorithm is stuck, instead of waiting
+-                    // for the maximum number of iterations to be exceeded.
++                    // In standard Regula Falsi, f0 remains unchanged when we don't switch sides
++                    // Check if f0 has been used too many times without modification
++                    if (f0UnmodifiedCount >= MAX_UNMODIFIED_USES) {
++                        // Apply a very small modification to prevent slow convergence,
++                        // using a factor extremely close to 1 to preserve original algorithm behavior
++                        f0 *= 0.99;  // Very minimal adjustment to prevent complete stagnation
++                        f0UnmodifiedCount = 0;  // f0 was modified, so reset counter
++                    } else {
++                        // f0 was not modified, so increment the counter
++                        f0UnmodifiedCount++;
++                    }
+                     break;
+                 default:
+                     // Should never happen.

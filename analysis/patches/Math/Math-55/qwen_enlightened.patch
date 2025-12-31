@@ -1,0 +1,58 @@
+diff --git a/src/main/java/org/apache/commons/math/geometry/Vector3D.java b/src/main/java/org/apache/commons/math/geometry/Vector3D.java
+index 3c741e9e2..448852968 100644
+--- a/src/main/java/org/apache/commons/math/geometry/Vector3D.java
++++ b/src/main/java/org/apache/commons/math/geometry/Vector3D.java
+@@ -456,22 +456,43 @@ public class Vector3D implements Serializable {
+    */
+   public static Vector3D crossProduct(final Vector3D v1, final Vector3D v2) {
+ 
++      // Basic check for zero vectors
++      final double normV1Squared = v1.x * v1.x + v1.y * v1.y + v1.z * v1.z;
++      final double normV2Squared = v2.x * v2.x + v2.y * v2.y + v2.z * v2.z;
+ 
+-      // rescale both vectors without losing precision,
+-      // to ensure their norm are the same order of magnitude
++      if (normV1Squared == 0.0 || normV2Squared == 0.0) {
++          // If one vector is zero, return zero vector as cross product
++          return ZERO;
++      }
+ 
+-      // we reduce cancellation errors by preconditioning,
+-      // we replace v1 by v3 = v1 - rho v2 with rho chosen in order to compute
+-      // v3 without loss of precision. See Kahan lecture
+-      // "Computing Cross-Products and Rotations in 2- and 3-Dimensional Euclidean Spaces"
+-      // available at http://www.cs.berkeley.edu/~wkahan/MathH110/Cross.pdf
++      // Check if vectors are nearly identical (difference is much smaller than originals)
++      final double dx = v1.x - v2.x;
++      final double dy = v1.y - v2.y;
++      final double dz = v1.z - v2.z;
++      final double diffNormSquared = dx * dx + dy * dy + dz * dz;
++
++      // Use the difference approach for nearly identical vectors to avoid cancellation
++      if (diffNormSquared < (normV1Squared + normV2Squared) * 1e-3) {
++          final Vector3D diff = new Vector3D(dx, dy, dz);
++          return new Vector3D(diff.y * v2.z - diff.z * v2.y,
++                              diff.z * v2.x - diff.x * v2.z,
++                              diff.x * v2.y - diff.y * v2.x);
++      }
+ 
+-      // compute rho as an 8 bits approximation of v1.v2 / v2.v2
++      // For the general case, including scaled cases, use Kahan's algorithm with 8-bit quantization
++      // This helps with cancellation in the scaled test case too
++      final double dotProduct = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+ 
++      // Use 8-bit quantization to avoid cancellation errors in computing rho
++      final double rho = ((int) (128.0 * dotProduct / normV2Squared)) / 128.0;
+ 
+-      // compute cross product from v3 and v2 instead of v1 and v2
+-      return new Vector3D(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
++      // Compute v3 = v1 - rho*v2 to make the vectors more numerically orthogonal
++      final Vector3D v3 = new Vector3D(1.0, v1, -rho, v2);
+ 
++      // Cross product of v1 and v2 equals cross product of v3 and v2
++      return new Vector3D(v3.y * v2.z - v3.z * v2.y,
++                          v3.z * v2.x - v3.x * v2.z,
++                          v3.x * v2.y - v3.y * v2.x);
+   }
+ 
+   /** Compute the distance between two vectors according to the L<sub>1</sub> norm.

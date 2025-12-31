@@ -1,0 +1,37 @@
+diff --git a/src/java/org/apache/commons/math/distribution/NormalDistributionImpl.java b/src/java/org/apache/commons/math/distribution/NormalDistributionImpl.java
+index 02810e142..aa63e8d79 100644
+--- a/src/java/org/apache/commons/math/distribution/NormalDistributionImpl.java
++++ b/src/java/org/apache/commons/math/distribution/NormalDistributionImpl.java
+@@ -100,14 +100,29 @@ public class NormalDistributionImpl extends AbstractContinuousDistribution
+     /**
+      * For this disbution, X, this method returns P(X &lt; <code>x</code>).
+      * @param x the value at which the CDF is evaluated.
+-     * @return CDF evaluted at <code>x</code>. 
++     * @return CDF evaluted at <code>x</code>.
+      * @throws MathException if the algorithm fails to converge; unless
+      * x is more than 20 standard deviations from the mean, in which case the
+      * convergence exception is caught and 0 or 1 is returned.
+      */
+     public double cumulativeProbability(double x) throws MathException {
+-            return 0.5 * (1.0 + Erf.erf((x - mean) /
+-                    (standardDeviation * Math.sqrt(2.0))));
++        double dev = (x - mean) / (standardDeviation * Math.sqrt(2.0));
++
++        if (dev > 20.0) {
++            return 1.0;
++        } else if (dev < -20.0) {
++            return 0.0;
++        } else {
++            try {
++                return 0.5 * (1.0 + Erf.erf(dev));
++            } catch (MathException ex) {
++                if (dev > 0) {
++                    return 1.0;
++                } else {
++                    return 0.0;
++                }
++            }
++        }
+     }
+     
+     /**

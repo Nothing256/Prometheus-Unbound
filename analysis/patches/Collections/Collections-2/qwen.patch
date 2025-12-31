@@ -1,0 +1,52 @@
+diff --git a/src/java/org/apache/commons/collections/ExtendedProperties.java b/src/java/org/apache/commons/collections/ExtendedProperties.java
+index bdfd0ade..002bf896 100644
+--- a/src/java/org/apache/commons/collections/ExtendedProperties.java
++++ b/src/java/org/apache/commons/collections/ExtendedProperties.java
+@@ -179,12 +179,24 @@ public class ExtendedProperties extends Hashtable {
+     /**
+      * This is the default name of the property that can point to other
+      * properties file for including other properties files.
+-     * 
++     *
+      * @deprecated Use getInclude() and setInclude() methods which operate
+      * on an instance variable from v3.3. Due to be removed in v4.0.
+      */
+     protected static String include = "include";
+ 
++    /**
++     * Instance variable for the property that can point to other
++     * properties file for including other properties files.
++     */
++    private String instanceInclude = null;
++
++    /**
++     * Flag to indicate if the instance include has been explicitly set,
++     * including setting it to an empty string (which becomes null).
++     */
++    private boolean instanceIncludeSet = false;
++
+     /**
+      * These are the keys in the order they listed
+      * in the configuration file. This is useful when
+@@ -510,7 +522,11 @@ public class ExtendedProperties extends Hashtable {
+      * @return the property name which includes another property
+      */
+     public String getInclude() {
++        if (instanceIncludeSet) {
++            return instanceInclude;  // return the instance value, even if it's null
++        } else {
+             return include;  // backwards compatability
++        }
+     }
+ 
+     /**
+@@ -525,7 +541,8 @@ public class ExtendedProperties extends Hashtable {
+      * @param inc  the property name which includes another property, empty converted to null
+      */
+     public void setInclude(String inc) {
+-        include = inc;
++        instanceInclude = (inc != null && inc.length() == 0) ? null : inc;
++        instanceIncludeSet = true;
+     }
+ 
+     /**

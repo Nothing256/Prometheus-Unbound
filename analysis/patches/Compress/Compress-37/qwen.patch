@@ -1,0 +1,26 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/tar/TarArchiveInputStream.java b/src/main/java/org/apache/commons/compress/archivers/tar/TarArchiveInputStream.java
+index 7a409d65..72586e8c 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/tar/TarArchiveInputStream.java
++++ b/src/main/java/org/apache/commons/compress/archivers/tar/TarArchiveInputStream.java
+@@ -457,6 +457,21 @@ public class TarArchiveInputStream extends ArchiveInputStream {
+             int ch;
+             int len = 0;
+             int read = 0;
++            // Read first character to determine if it's a valid digit for length
++            ch = i.read();
++            if (ch == -1) { // EOF
++                break;
++            }
++            read++;
++
++            // Skip blank lines or non-digit characters at the start of a line
++            if (ch < '0' || ch > '9') {
++                continue; // Skip this character and continue to next iteration
++            }
++
++            len = ch - '0';
++
++            // Continue reading remaining digits for length
+             while((ch = i.read()) != -1) {
+                 read++;
+                 if (ch == ' '){

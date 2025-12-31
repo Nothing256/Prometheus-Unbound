@@ -1,0 +1,53 @@
+diff --git a/src/java/org/apache/commons/collections/ExtendedProperties.java b/src/java/org/apache/commons/collections/ExtendedProperties.java
+index dba80b88..c94a0a00 100644
+--- a/src/java/org/apache/commons/collections/ExtendedProperties.java
++++ b/src/java/org/apache/commons/collections/ExtendedProperties.java
+@@ -1745,9 +1745,47 @@ public class ExtendedProperties extends Hashtable {
+         }
+     }
+ 
++    /**
++     * Maps the specified key to the specified value in this ExtendedProperties.
++     * This overrides the Hashtable put method to ensure that the keysAsListed
++     * ArrayList is maintained for proper iteration order.
++     *
++     * @param key  the key to add
++     * @param value  the value to add
++     * @return previous value of the key
++     */
++    public Object put(Object key, Object value) {
++        // if this is a new key that's not already in the keysAsListed array, add it to maintain order
++        if (!keysAsListed.contains(key)) {
++            keysAsListed.add(key);
++        }
++        return super.put(key, value);
++    }
++
++    /**
++     * Removes the key-value mapping from this ExtendedProperties.
++     * This overrides the Hashtable remove method to ensure that the keysAsListed
++     * ArrayList is maintained for proper iteration order.
++     *
++     * @param key  the key to remove
++     * @return previous value of the key
++     */
++    public Object remove(Object key) {
++        // if the key exists, remove it from keysAsListed as well
++        if (containsKey(key)) {
++            for (int i = 0; i < keysAsListed.size(); i++) {
++                if (keysAsListed.get(i).equals(key)) {
++                    keysAsListed.remove(i);
++                    break;
++                }
++            }
++        }
++        return super.remove(key);
++    }
++
+ 
+     /**
+-     * Remove the property specified by the key from the 
++     * Remove the property specified by the key from the
+      * ExtendedProperties.
+      *
+      * @param key specifying the property

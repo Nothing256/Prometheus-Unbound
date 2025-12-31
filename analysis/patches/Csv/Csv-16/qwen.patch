@@ -1,0 +1,112 @@
+diff --git a/src/main/java/org/apache/commons/csv/CSVParser.java b/src/main/java/org/apache/commons/csv/CSVParser.java
+index 1e3106e8..b67df395 100644
+--- a/src/main/java/org/apache/commons/csv/CSVParser.java
++++ b/src/main/java/org/apache/commons/csv/CSVParser.java
+@@ -286,7 +286,7 @@ public final class CSVParser implements Iterable<CSVRecord>, Closeable {
+ 
+     private final Lexer lexer;
+ 
+-    
++
+     /** A record buffer for getRecord(). Grows as necessary and is reused. */
+     private final List<String> recordList = new ArrayList<>();
+ 
+@@ -303,6 +303,13 @@ public final class CSVParser implements Iterable<CSVRecord>, Closeable {
+ 
+     private final Token reusableToken = new Token();
+ 
++    /**
++     * Cached next record that can be claimed by an iterator.
++     * This allows hasNext() to peek without losing records when
++     * temporary iterators are discarded.
++     */
++    private CSVRecord cachedNextRecord;
++
+     /**
+      * Customized CSV parser using the given {@link CSVFormat}
+      *
+@@ -521,8 +528,8 @@ public final class CSVParser implements Iterable<CSVRecord>, Closeable {
+     @Override
+     public Iterator<CSVRecord> iterator() {
+         return new Iterator<CSVRecord>() {
+-        private CSVRecord current;
+-  
++        private Boolean nextCalled = false; // Track if next() was called on this iterator
++
+         private CSVRecord getNextRecord() {
+             try {
+                 return CSVParser.this.nextRecord();
+@@ -531,38 +538,42 @@ public final class CSVParser implements Iterable<CSVRecord>, Closeable {
+                         e.getClass().getSimpleName() + " reading next record: " + e.toString(), e);
+             }
+         }
+-  
++
+         @Override
+         public boolean hasNext() {
+             if (CSVParser.this.isClosed()) {
+                 return false;
+             }
+-            if (this.current == null) {
+-                this.current = this.getNextRecord();
++            // Get the next record but don't assign it to a field that could be lost
++            // Instead, just check if there's a record available and ensure it's cached
++            if (CSVParser.this.cachedNextRecord == null) {
++                CSVParser.this.cachedNextRecord = this.getNextRecord();
+             }
+-  
+-            return this.current != null;
++            return CSVParser.this.cachedNextRecord != null;
+         }
+-  
++
+         @Override
+         public CSVRecord next() {
+             if (CSVParser.this.isClosed()) {
+                 throw new NoSuchElementException("CSVParser has been closed");
+             }
+-            CSVRecord next = this.current;
+-            this.current = null;
+-  
++            nextCalled = true;
++
++            // Try to claim the cached record first
++            if (CSVParser.this.cachedNextRecord != null) {
++                CSVRecord next = CSVParser.this.cachedNextRecord;
++                CSVParser.this.cachedNextRecord = null;
++                return next;
++            }
++
++            // If no cached record, fetch a new one directly
++            CSVRecord next = this.getNextRecord();
+             if (next == null) {
+-                // hasNext() wasn't called before
+-                next = this.getNextRecord();
+-                if (next == null) {
+-                    throw new NoSuchElementException("No more CSV records available");
+-                }
++                throw new NoSuchElementException("No more CSV records available");
+             }
+-  
+             return next;
+         }
+-  
++
+         @Override
+         public void remove() {
+             throw new UnsupportedOperationException();
+@@ -578,6 +589,14 @@ public final class CSVParser implements Iterable<CSVRecord>, Closeable {
+      *             on parse error or input read-failure
+      */
+     CSVRecord nextRecord() throws IOException {
++        // If we have a cached record, return it and clear the cache
++        if (this.cachedNextRecord != null) {
++            CSVRecord record = this.cachedNextRecord;
++            this.cachedNextRecord = null;
++            return record;
++        }
++
++        // This is where we parse a new record from the stream
+         CSVRecord result = null;
+         this.recordList.clear();
+         StringBuilder sb = null;

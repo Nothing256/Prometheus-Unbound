@@ -1,0 +1,21 @@
+diff --git a/src/main/java/org/jsoup/nodes/DocumentType.java b/src/main/java/org/jsoup/nodes/DocumentType.java
+index cd0c8df4..88049bc7 100644
+--- a/src/main/java/org/jsoup/nodes/DocumentType.java
++++ b/src/main/java/org/jsoup/nodes/DocumentType.java
+@@ -55,10 +55,13 @@ public class DocumentType extends Node {
+         }
+         if (has(NAME))
+             accum.append(" ").append(attr(NAME));
+-        if (has(PUBLIC_ID))
++        if (has(PUBLIC_ID)) {
+             accum.append(" PUBLIC \"").append(attr(PUBLIC_ID)).append('"');
+-        if (has(SYSTEM_ID))
+-            accum.append(" \"").append(attr(SYSTEM_ID)).append('"');
++            if (has(SYSTEM_ID))
++                accum.append(" \"").append(attr(SYSTEM_ID)).append('"');
++        } else if (has(SYSTEM_ID)) {
++            accum.append(" SYSTEM \"").append(attr(SYSTEM_ID)).append('"');
++        }
+         accum.append('>');
+     }
+ 

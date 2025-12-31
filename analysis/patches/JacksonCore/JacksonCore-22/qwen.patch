@@ -1,0 +1,12 @@
+--- a/src/main/java/com/fasterxml/jackson/core/filter/FilteringParserDelegate.java
++++ b/src/main/java/com/fasterxml/jackson/core/filter/FilteringParserDelegate.java
+@@ -239,7 +239,10 @@
+         if (!_allowMultipleMatches && (_currToken != null) && (_exposedContext == null)) {
+             // if scalar, and scalar not present in obj/array and !includePath and INCLUDE_ALL
+             // matched once, return null
+-            if (_currToken.isScalarValue() && !_headContext.isStartHandled() && !_includePath
++            if (_currToken.isScalarValue() && !_headContext.isStartHandled() 
++                    && (!_includePath || (_includePath && _headContext.getParent() != null))
+                     && (_itemFilter == TokenFilter.INCLUDE_ALL)) {
+                 return (_currToken = null);
+             }

@@ -1,0 +1,47 @@
+diff --git a/src/java/org/apache/commons/collections/list/SetUniqueList.java b/src/java/org/apache/commons/collections/list/SetUniqueList.java
+index e1491aec..352f419b 100644
+--- a/src/java/org/apache/commons/collections/list/SetUniqueList.java
++++ b/src/java/org/apache/commons/collections/list/SetUniqueList.java
+@@ -212,7 +212,7 @@ public class SetUniqueList extends AbstractSerializableListDecorator {
+      * Afterwards, any previous duplicate is removed
+      * If the object is not already in the list then a normal set occurs.
+      * If it is present, then the old version is removed.
+-     * 
++     *
+      * @param index  the index to insert at
+      * @param object  the object to set
+      * @return the previous object
+@@ -221,16 +221,25 @@ public class SetUniqueList extends AbstractSerializableListDecorator {
+         int pos = indexOf(object);
+         Object removed = super.set(index, object);
+ 
+-        if (pos == -1 || pos == index) {
+-            // the object is already in the uniq list
+-            // (and it hasn't been swapped with itself)
+-            return removed;
++        if (pos == -1) {
++            // Object was not in the list before, add it to the set
++            set.add(object);
++            // The element that was replaced (removed) is no longer in the list, remove it from set
++            set.remove(removed);
++        } else if (pos == index) {
++            // Object was already at this position, the set doesn't change
++        } else {
++            // Object existed elsewhere in the list
++            // Need to remove the original occurrence at pos to maintain uniqueness
++            // After super.set, if pos > index, removing at original pos is still correct
++            // If pos < index, original element at pos is still at pos
++            super.remove(pos);
++            // The element 'removed' (which was at index) is no longer in the list,
++            // so remove it from the set
++            set.remove(removed);
+         }
+ 
+-        super.remove(pos);
+-        set.remove(removed);  // remove the item deleted by the set
+-
+-        return removed;  // return the item deleted by the set
++        return removed;
+     }
+ 
+     public boolean remove(Object object) {

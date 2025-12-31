@@ -1,0 +1,65 @@
+diff --git a/src/java/org/apache/commons/lang/time/DateUtils.java b/src/java/org/apache/commons/lang/time/DateUtils.java
+index 0dd0dedc8..604a737cc 100644
+--- a/src/java/org/apache/commons/lang/time/DateUtils.java
++++ b/src/java/org/apache/commons/lang/time/DateUtils.java
+@@ -636,27 +636,50 @@ public class DateUtils {
+         long time = date.getTime();
+         boolean done = false;
+ 
+-        // truncate milliseconds
++        // handle milliseconds for rounding/truncating
+         int millisecs = val.get(Calendar.MILLISECOND);
+-        if (!round || millisecs < 500) {
++        if (round && millisecs >= 500 && field == Calendar.SECOND) {
++            // When rounding to seconds and millisecs >= 500:
++            // - Truncate the milliseconds
++            // - Add 1 second to round up (since we're setting done=true to skip main loop)
++            time = time - millisecs;  // Remove the milliseconds
++            time = time + 1000L;      // Add 1 second to round up
++            done = true;              // Prevent main loop from processing seconds again
++        } else if (!round || millisecs < 500) {
+             time = time - millisecs;
+-        if (field == Calendar.SECOND) {
+-            done = true;
++            if (field == Calendar.SECOND) {
++                done = true;
+             }
+         }
++        // For the case where round=true and millisecs>=500 but field != Calendar.SECOND,
++        // we do nothing (original buggy behavior for other fields)
+ 
+-        // truncate seconds
++        // handle seconds for rounding/truncating
+         int seconds = val.get(Calendar.SECOND);
+-        if (!done && (!round || seconds < 30)) {
++        if (round && !done && seconds >= 30 && field == Calendar.MINUTE) {
++            // When rounding to minutes and seconds >= 30:
++            // - Truncate the seconds
++            // - Add 1 minute to round up (since we're setting done=true to skip main loop)
++            time = time - (seconds * 1000L);  // Remove the seconds
++            time = time + 60000L;             // Add 1 minute to round up
++            done = true;                      // Prevent main loop from processing minutes again
++        } else if (!done && (!round || seconds < 30)) {
+             time = time - (seconds * 1000L);
+-        if (field == Calendar.MINUTE) {
+-            done = true;
++            if (field == Calendar.MINUTE) {
++                done = true;
+             }
+         }
+ 
+-        // truncate minutes
++        // handle minutes for rounding/truncating
+         int minutes = val.get(Calendar.MINUTE);
+-        if (!done && (!round || minutes < 30)) {
++        if (round && !done && minutes >= 30 && field == Calendar.HOUR) {
++            // When rounding to hours and minutes >= 30:
++            // - Truncate the minutes
++            // - Add 1 hour to round up (since we're setting done=true to skip main loop)
++            time = time - (minutes * 60000L);  // Remove the minutes
++            time = time + 3600000L;           // Add 1 hour to round up (3600000 ms = 1 hour)
++            done = true;                       // Prevent main loop from processing hours again
++        } else if (!done && (!round || minutes < 30)) {
+             time = time - (minutes * 60000L);
+         }
+ 

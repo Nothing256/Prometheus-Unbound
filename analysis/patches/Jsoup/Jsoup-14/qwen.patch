@@ -1,0 +1,58 @@
+diff --git a/src/main/java/org/jsoup/parser/Tokeniser.java b/src/main/java/org/jsoup/parser/Tokeniser.java
+index 5553079..9a7d0a0 100644
+--- a/src/main/java/org/jsoup/parser/Tokeniser.java
++++ b/src/main/java/org/jsoup/parser/Tokeniser.java
+@@ -80,6 +80,10 @@
+     }
+ 
+     TokeniserState getState() {
+         return state;
+     }
++    
++    // Added getter to check if we are currently in an RCData element context
++    String getLastStartTag() {
++        return lastStartTag != null ? lastStartTag.tagName : null;
++    }
++}
+\ No newline at end of file
+diff --git a/src/main/java/org/jsoup/parser/TokeniserState.java b/src/main/java/org/jsoup/parser/TokeniserState.java
+index 87d5e85..5e5a979 100644
+--- a/src/main/java/org/jsoup/parser/TokeniserState.java
++++ b/src/main/java/org/jsoup/parser/TokeniserState.java
+@@ -216,10 +216,34 @@
+     RcdataLessthanSign {
+         // from < in rcdata
+         void read(Tokeniser t, CharacterReader r) {
+             if (r.matches('/')) {
+                 t.createTempBuffer();
+                 t.advanceTransition(RCDATAEndTagOpen);
+                 // diverge from spec: got a start tag, but there's no appropriate end tag (</title>), so rather than
+                 // consuming to EOF; break out here
+             } else if (r.matchesLetter()) {
+                 // When in RCData and we encounter a start tag (e.g., <p> inside <textarea>),
+                 // we need to end the RCData element. This handles malformed HTML gracefully.
+                 // Emit the end tag for the last opened tag if it's an RCData element.
+                 String lastTagName = t.getLastStartTag();
+                 if (lastTagName != null) {
+                     // Check if the last start tag was an RCData element like 'textarea'
+                     if ("textarea".equalsIgnoreCase(lastTagName) || "title".equalsIgnoreCase(lastTagName)) {
+                         // Create and emit an end tag for the RCData element
+                         t.createTagPending(false);
+                         t.tagPending.appendTagName(lastTagName);
+                         t.emitTagPending();
+                         // Transition to Data state to handle the unconsumed character normally
+                         t.transition(TokeniserState.Data);
+                         // Now unconsume the < so that the new start tag can be processed normally
+                         r.unconsume();
+                         return;
+                     }
+                 }
+                 // If not in an RCData element context we recognize, fall back to original behavior
+                 t.emit("<");
+                 t.transition(Rcdata);
+             } else {
+                 t.emit("<");
+                 t.transition(Rcdata);
+             }
+         }
+     },

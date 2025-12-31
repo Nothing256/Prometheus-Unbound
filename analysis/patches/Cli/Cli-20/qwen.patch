@@ -1,0 +1,48 @@
+diff --git a/src/java/org/apache/commons/cli/PosixParser.java b/src/java/org/apache/commons/cli/PosixParser.java
+index 7998f07..f05b487 100644
+--- a/src/java/org/apache/commons/cli/PosixParser.java
++++ b/src/java/org/apache/commons/cli/PosixParser.java
+@@ -111,15 +111,39 @@ public class PosixParser extends Parser {
+             // handle long option --foo or --foo=bar
+             if (token.startsWith("--"))
+             {
+-                if (token.indexOf('=') != -1)
++                if (stopAtNonOption && token.indexOf('=') != -1)
+                 {
+-                    tokens.add(token.substring(0, token.indexOf('=')));
+-                    tokens.add(token.substring(token.indexOf('=') + 1, token.length()));
++                    String optName = token.substring(2, token.indexOf('='));
++                    if (!options.hasOption(optName))
++                    {
++                        eatTheRest = true;
++                    }
+                 }
+-                else
++                else if (stopAtNonOption && token.indexOf('=') == -1)
++                {
++                    String optName = token.substring(2);
++                    if (!options.hasOption(optName))
++                    {
++                        eatTheRest = true;
++                    }
++                }
++
++                if (eatTheRest)
+                 {
+                     tokens.add(token);
+                 }
++                else
++                {
++                    if (token.indexOf('=') != -1)
++                    {
++                        tokens.add(token.substring(0, token.indexOf('=')));
++                        tokens.add(token.substring(token.indexOf('=') + 1, token.length()));
++                    }
++                    else
++                    {
++                        tokens.add(token);
++                    }
++                }
+             }
+ 
+             // single hyphen

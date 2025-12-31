@@ -1,0 +1,50 @@
+diff --git a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java
+index 3300d03..43f863e 100644
+--- a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java
++++ b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java
+@@ -132,8 +132,18 @@ public class DOMNodePointer extends NodePointer {
+                 || testName.getName()
+                         .equals(DOMNodePointer.getLocalName(node))) {
+                 String nodeNS = DOMNodePointer.getNamespaceURI(node);
+-                return equalStrings(namespaceURI, nodeNS) || nodeNS == null
+-                        && equalStrings(testPrefix, getPrefix(node));
++                if (namespaceURI != null && nodeNS != null) {
++                    // Both have namespaces - compare namespace URIs only
++                    return equalStrings(namespaceURI, nodeNS);
++                }
++                else if (namespaceURI == null && nodeNS == null) {
++                    // Both have no namespace - compare prefixes
++                    return equalStrings(testPrefix, getPrefix(node));
++                }
++                else {
++                    // One has namespace, other doesn't - no match
++                    return false;
++                }
+             }
+             return false;
+         }
+diff --git a/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMNodePointer.java b/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMNodePointer.java
+index 7df3ace..c153df1 100644
+--- a/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMNodePointer.java
++++ b/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMNodePointer.java
+@@ -398,8 +398,18 @@ public class JDOMNodePointer extends NodePointer {
+                 || testName.getName()
+                         .equals(JDOMNodePointer.getLocalName(node))) {
+                 String nodeNS = JDOMNodePointer.getNamespaceURI(node);
+-                return equalStrings(namespaceURI, nodeNS) || nodeNS == null
+-                        && equalStrings(testPrefix, getPrefix(node));
++                if (namespaceURI != null && nodeNS != null) {
++                    // Both have namespaces - compare namespace URIs only
++                    return equalStrings(namespaceURI, nodeNS);
++                }
++                else if (namespaceURI == null && nodeNS == null) {
++                    // Both have no namespace - compare prefixes
++                    return equalStrings(testPrefix, getPrefix(node));
++                }
++                else {
++                    // One has namespace, other doesn't - no match
++                    return false;
++                }
+             }
+             return false;
+         }

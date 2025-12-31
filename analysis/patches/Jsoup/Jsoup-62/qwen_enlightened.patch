@@ -1,0 +1,212 @@
+diff --git a/src/main/java/org/jsoup/parser/HtmlTreeBuilderState.java b/src/main/java/org/jsoup/parser/HtmlTreeBuilderState.java
+index c515462c..2835a081 100644
+--- a/src/main/java/org/jsoup/parser/HtmlTreeBuilderState.java
++++ b/src/main/java/org/jsoup/parser/HtmlTreeBuilderState.java
+@@ -567,7 +567,7 @@ enum HtmlTreeBuilderState {
+                                 tb.error(this);
+                                 tb.removeFromActiveFormattingElements(formatEl);
+                                 return true;
+-                            } else if (!tb.inScope(formatEl.nodeName())) {
++                            } else if (!tb.inScope(tb.settings.normalizeTag(formatEl.nodeName()))) {
+                                 tb.error(this);
+                                 return false;
+                             } else if (tb.currentElement() != formatEl)
+@@ -591,7 +591,7 @@ enum HtmlTreeBuilderState {
+                                 }
+                             }
+                             if (furthestBlock == null) {
+-                                tb.popStackToClose(formatEl.nodeName());
++                                tb.popStackToClose(tb.settings.normalizeTag(formatEl.nodeName()));
+                                 tb.removeFromActiveFormattingElements(formatEl);
+                                 return true;
+                             }
+@@ -649,28 +649,34 @@ enum HtmlTreeBuilderState {
+                             tb.insertOnStackAfter(furthestBlock, adopter);
+                         }
+                     } else if (StringUtil.inSorted(name, Constants.InBodyEndClosers)) {
+-                        if (!tb.inScope(name)) {
++                        String elementName = t.asEndTag().name();
++                        String compareName = tb.settings.normalizeTag(elementName);
++                        if (!tb.inScope(compareName)) {
+                             // nothing to close
+                             tb.error(this);
+                             return false;
+                         } else {
+-                            tb.generateImpliedEndTags();
+-                            if (!tb.currentElement().nodeName().equals(name))
++                            tb.generateImpliedEndTags(compareName);
++                            String currentElementCompareName = tb.settings.normalizeTag(tb.currentElement().nodeName());
++                            if (!currentElementCompareName.equals(compareName))
+                                 tb.error(this);
+-                            tb.popStackToClose(name);
++                            tb.popStackToClose(compareName);
+                         }
+                     } else if (name.equals("span")) {
+                         // same as final fall through, but saves short circuit
+                         return anyOtherEndTag(t, tb);
+                     } else if (name.equals("li")) {
+-                        if (!tb.inListItemScope(name)) {
++                        String elementName = t.asEndTag().name();
++                        String compareName = tb.settings.normalizeTag(elementName);
++                        if (!tb.inListItemScope(compareName)) {
+                             tb.error(this);
+                             return false;
+                         } else {
+-                            tb.generateImpliedEndTags(name);
+-                            if (!tb.currentElement().nodeName().equals(name))
++                            tb.generateImpliedEndTags(compareName);
++                            String currentElementCompareName = tb.settings.normalizeTag(tb.currentElement().nodeName());
++                            if (!currentElementCompareName.equals(compareName))
+                                 tb.error(this);
+-                            tb.popStackToClose(name);
++                            tb.popStackToClose(compareName);
+                         }
+                     } else if (name.equals("body")) {
+                         if (!tb.inScope("body")) {
+@@ -691,56 +697,70 @@ enum HtmlTreeBuilderState {
+                             tb.error(this);
+                             return false;
+                         } else {
++                            String compareName = tb.settings.normalizeTag(t.asEndTag().name());
+                             tb.generateImpliedEndTags();
+-                            if (!tb.currentElement().nodeName().equals(name))
++                            String currentElementCompareName = tb.settings.normalizeTag(tb.currentElement().nodeName());
++                            if (!currentElementCompareName.equals(compareName))
+                                 tb.error(this);
+                             // remove currentForm from stack. will shift anything under up.
+                             tb.removeFromStack(currentForm);
+                         }
+                     } else if (name.equals("p")) {
+-                        if (!tb.inButtonScope(name)) {
++                        String elementName = t.asEndTag().name();
++                        String compareName = tb.settings.normalizeTag(elementName);
++                        if (!tb.inButtonScope(compareName)) {
+                             tb.error(this);
+-                            tb.processStartTag(name); // if no p to close, creates an empty <p></p>
++                            tb.processStartTag(compareName); // if no p to close, creates an empty <p></p>
+                             return tb.process(endTag);
+                         } else {
+-                            tb.generateImpliedEndTags(name);
+-                            if (!tb.currentElement().nodeName().equals(name))
++                            tb.generateImpliedEndTags(compareName);
++                            String currentElementCompareName = tb.settings.normalizeTag(tb.currentElement().nodeName());
++                            if (!currentElementCompareName.equals(compareName))
+                                 tb.error(this);
+-                            tb.popStackToClose(name);
++                            tb.popStackToClose(compareName);
+                         }
+                     } else if (StringUtil.inSorted(name, Constants.DdDt)) {
+-                        if (!tb.inScope(name)) {
++                        String elementName = t.asEndTag().name();
++                        String compareName = tb.settings.normalizeTag(elementName);
++                        if (!tb.inScope(compareName)) {
+                             tb.error(this);
+                             return false;
+                         } else {
+-                            tb.generateImpliedEndTags(name);
+-                            if (!tb.currentElement().nodeName().equals(name))
++                            tb.generateImpliedEndTags(compareName);
++                            String currentElementCompareName = tb.settings.normalizeTag(tb.currentElement().nodeName());
++                            if (!currentElementCompareName.equals(compareName))
+                                 tb.error(this);
+-                            tb.popStackToClose(name);
++                            tb.popStackToClose(compareName);
+                         }
+                     } else if (StringUtil.inSorted(name, Constants.Headings)) {
+-                        if (!tb.inScope(Constants.Headings)) {
++                        String elementName = t.asEndTag().name();
++                        String compareName = tb.settings.normalizeTag(elementName);
++                        if (!tb.inScope(Constants.Headings)) {  // Constants.Headings is always lowercase, so need to normalize based on settings
+                             tb.error(this);
+                             return false;
+                         } else {
+-                            tb.generateImpliedEndTags(name);
+-                            if (!tb.currentElement().nodeName().equals(name))
++                            tb.generateImpliedEndTags(compareName);
++                            String currentElementCompareName = tb.settings.normalizeTag(tb.currentElement().nodeName());
++                            if (!currentElementCompareName.equals(compareName))
+                                 tb.error(this);
+-                            tb.popStackToClose(Constants.Headings);
++                            tb.popStackToClose(compareName);  // Use the normalized name instead of the constants array
+                         }
+                     } else if (name.equals("sarcasm")) {
+                         // *sigh*
+                         return anyOtherEndTag(t, tb);
+                     } else if (StringUtil.inSorted(name, Constants.InBodyStartApplets)) {
++                        String elementName = t.asEndTag().name();
++                        String compareName = tb.settings.normalizeTag(elementName);
+                         if (!tb.inScope("name")) {
+-                            if (!tb.inScope(name)) {
++                            if (!tb.inScope(compareName)) {
+                                 tb.error(this);
+                                 return false;
+                             }
+                             tb.generateImpliedEndTags();
+-                            if (!tb.currentElement().nodeName().equals(name))
++                            String currentElementCompareName = tb.settings.normalizeTag(tb.currentElement().nodeName());
++                            if (!currentElementCompareName.equals(compareName))
+                                 tb.error(this);
+-                            tb.popStackToClose(name);
++                            tb.popStackToClose(compareName);
+                             tb.clearFormattingElementsToLastMarker();
+                         }
+                     } else if (name.equals("br")) {
+@@ -761,15 +781,20 @@ enum HtmlTreeBuilderState {
+         }
+ 
+         boolean anyOtherEndTag(Token t, HtmlTreeBuilder tb) {
+-            String name = t.asEndTag().normalName();
++            String normalName = t.asEndTag().normalName();
++            String endTagName = t.asEndTag().name();
+             ArrayList<Element> stack = tb.getStack();
+             for (int pos = stack.size() -1; pos >= 0; pos--) {
+                 Element node = stack.get(pos);
+-                if (node.nodeName().equals(name)) {
+-                    tb.generateImpliedEndTags(name);
+-                    if (!name.equals(tb.currentElement().nodeName()))
++                // If preserveTagCase is enabled, use original case; otherwise normalize to lowercase
++                String nodeCompareName = tb.settings.normalizeTag(node.nodeName());
++                String endTagCompareName = tb.settings.normalizeTag(endTagName);
++                if (nodeCompareName.equals(endTagCompareName)) {
++                    tb.generateImpliedEndTags(normalName);
++                    String currentElementCompareName = tb.settings.normalizeTag(tb.currentElement().nodeName());
++                    if (!nodeCompareName.equals(currentElementCompareName))
+                         tb.error(this);
+-                    tb.popStackToClose(name);
++                    tb.popStackToClose(normalName);
+                     break;
+                 } else {
+                     if (tb.isSpecial(node)) {
+@@ -1155,22 +1180,27 @@ enum HtmlTreeBuilderState {
+                 String name = endTag.normalName();
+ 
+                 if (StringUtil.in(name, "td", "th")) {
+-                    if (!tb.inTableScope(name)) {
++                    String elementName = t.asEndTag().name();
++                    String compareName = tb.settings.normalizeTag(elementName);
++                    if (!tb.inTableScope(compareName)) {
+                         tb.error(this);
+                         tb.transition(InRow); // might not be in scope if empty: <td /> and processing fake end tag
+                         return false;
+                     }
+-                    tb.generateImpliedEndTags();
+-                    if (!tb.currentElement().nodeName().equals(name))
++                    tb.generateImpliedEndTags(compareName);
++                    String currentElementCompareName = tb.settings.normalizeTag(tb.currentElement().nodeName());
++                    if (!currentElementCompareName.equals(compareName))
+                         tb.error(this);
+-                    tb.popStackToClose(name);
++                    tb.popStackToClose(compareName);
+                     tb.clearFormattingElementsToLastMarker();
+                     tb.transition(InRow);
+                 } else if (StringUtil.in(name, "body", "caption", "col", "colgroup", "html")) {
+                     tb.error(this);
+                     return false;
+                 } else if (StringUtil.in(name, "table", "tbody", "tfoot", "thead", "tr")) {
+-                    if (!tb.inTableScope(name)) {
++                    String elementName = t.asEndTag().name();
++                    String compareName = tb.settings.normalizeTag(elementName);
++                    if (!tb.inTableScope(compareName)) {
+                         tb.error(this);
+                         return false;
+                     }

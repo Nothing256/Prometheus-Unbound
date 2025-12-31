@@ -1,0 +1,51 @@
+diff --git a/src/main/java/org/jsoup/parser/Token.java b/src/main/java/org/jsoup/parser/Token.java
+index 7dcfa2ba..a1c50ebd 100644
+--- a/src/main/java/org/jsoup/parser/Token.java
++++ b/src/main/java/org/jsoup/parser/Token.java
+@@ -104,15 +104,20 @@ abstract class Token {
+             if (pendingAttributeName != null) {
+                 // the tokeniser has skipped whitespace control chars, but trimming could collapse to empty for other control codes, so verify here
+                 pendingAttributeName = pendingAttributeName.trim();
++                // Sanitize attribute name by removing control characters
++                String sanitizedAttributeName = removeControlChars(pendingAttributeName);
++                // Ignore attribute names that are empty after removing control characters
++                if (!sanitizedAttributeName.isEmpty()) {
+                     Attribute attribute;
+                     if (hasPendingAttributeValue)
+-                        attribute = new Attribute(pendingAttributeName,
++                        attribute = new Attribute(sanitizedAttributeName,
+                             pendingAttributeValue.length() > 0 ? pendingAttributeValue.toString() : pendingAttributeValueS);
+                     else if (hasEmptyAttributeValue)
+-                        attribute = new Attribute(pendingAttributeName, "");
++                        attribute = new Attribute(sanitizedAttributeName, "");
+                     else
+-                        attribute = new BooleanAttribute(pendingAttributeName);
++                        attribute = new BooleanAttribute(sanitizedAttributeName);
+                     attributes.put(attribute);
++                }
+             }
+             pendingAttributeName = null;
+             hasEmptyAttributeValue = false;
+@@ -209,6 +214,22 @@ abstract class Token {
+                 pendingAttributeValueS = null;
+             }
+         }
++
++        private String removeControlChars(String str) {
++            StringBuilder sb = new StringBuilder();
++            for (int i = 0; i < str.length(); i++) {
++                char c = str.charAt(i);
++                // Check for ISO control characters (C0 and C1 control codes)
++                // C0: U+0000 to U+001F (0-31), DEL: U+007F (127), C1: U+0080 to U+009F (128-159)
++                boolean isControl = (c >= 0x00 && c <= 0x1F) || c == 0x7F || (c >= 0x80 && c <= 0x9F);
++                if (isControl) {
++                    // This is a control character, skip it
++                } else {
++                    sb.append(c);
++                }
++            }
++            return sb.toString();
++        }
+     }
+ 
+     final static class StartTag extends Tag {

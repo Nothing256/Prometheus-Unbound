@@ -1,0 +1,60 @@
+diff --git a/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java b/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java
+index 93fe6aed..50d9b7b0 100644
+--- a/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java
++++ b/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java
+@@ -48,6 +48,7 @@ public class HtmlTreeBuilder extends TreeBuilder {
+     private Element headElement; // the current head element
+     private FormElement formElement; // the current form element
+     private Element contextElement; // fragment parse context -- could be null even if fragment parsing
++    private boolean shouldSkipFirstNewlineInPre; // to handle the first newline in pre tags being skipped
+     private ArrayList<Element> formattingElements; // active (open) formatting elements
+     private List<String> pendingTableCharacters; // chars in table to be shifted out
+     private Token.EndTag emptyEnd; // reused empty end tag
+@@ -79,6 +80,7 @@ public class HtmlTreeBuilder extends TreeBuilder {
+         framesetOk = true;
+         fosterInserts = false;
+         fragmentParsing = false;
++        shouldSkipFirstNewlineInPre = false;
+     }
+ 
+     List<Node> parseFragment(String inputFragment, Element context, String baseUri, ParseErrorList errors, ParseSettings settings) {
+@@ -219,6 +221,10 @@ public class HtmlTreeBuilder extends TreeBuilder {
+     }
+ 
+     void insert(Element el) {
++        // Set the flag to skip the first newline if inserting a PRE tag
++        if (el.tagName().equals("pre")) {
++            shouldSkipFirstNewlineInPre = true;
++        }
+         insertNode(el);
+         stack.add(el);
+     }
+@@ -257,7 +263,27 @@ public class HtmlTreeBuilder extends TreeBuilder {
+         Node node;
+         // characters in script and style go in as datanodes, not text nodes
+         final String tagName = currentElement().tagName();
+-        final String data = characterToken.getData();
++        String data = characterToken.getData();
++
++        // Handle the special case for PRE tags: skip the first newline character if present
++        if (shouldSkipFirstNewlineInPre && tagName.equals("pre") && data != null && !data.isEmpty()) {
++            // Check if the data starts with a newline character (\n, \r, or \r\n)
++            if (data.charAt(0) == '\n') {
++                data = data.substring(1); // Skip the first character which is \n
++            } else if (data.charAt(0) == '\r') {
++                if (data.length() > 1 && data.charAt(1) == '\n') {
++                    data = data.substring(2); // Skip \r\n sequence
++                } else {
++                    data = data.substring(1); // Skip just the \r
++                }
++            }
++            // If we've consumed the entire string after skipping the newline, don't insert anything
++            if (data.isEmpty()) {
++                shouldSkipFirstNewlineInPre = false; // Reset the flag
++                return;
++            }
++            shouldSkipFirstNewlineInPre = false; // Reset the flag after handling
++        }
+ 
+         if (characterToken.isCData())
+             node = new CDataNode(data);

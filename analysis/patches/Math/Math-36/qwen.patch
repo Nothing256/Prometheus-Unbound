@@ -1,0 +1,72 @@
+diff --git a/src/main/java/org/apache/commons/math/fraction/BigFraction.java b/src/main/java/org/apache/commons/math/fraction/BigFraction.java
+index 6181ec329..577a340c4 100644
+--- a/src/main/java/org/apache/commons/math/fraction/BigFraction.java
++++ b/src/main/java/org/apache/commons/math/fraction/BigFraction.java
+@@ -682,10 +682,29 @@ public class BigFraction
+      */
+     @Override
+     public double doubleValue() {
+-        double result = numerator.doubleValue() / denominator.doubleValue();
+-            // Numerator and/or denominator must be out of range:
+-            // Calculate how far to shift them to put them in range.
+-        return result;
++        if (numerator.equals(BigInteger.ZERO)) {
++            return 0.0;
++        }
++
++        // Determine if values are too large for direct conversion
++        int numBits = numerator.bitLength();
++        int denBits = denominator.bitLength();
++
++        if (numBits > 1000 || denBits > 1000) {
++            // For very large numbers, calculate the appropriate shift to keep
++            // both numbers within the range of double values while preserving ratio
++            int maxBits = Math.max(numBits, denBits);
++            int shift = maxBits - 900; // Leave a safe margin (max for double is ~1024)
++
++            if (shift > 0) {
++                return numerator.shiftRight(shift).doubleValue() /
++                       denominator.shiftRight(shift).doubleValue();
++            } else {
++                return numerator.doubleValue() / denominator.doubleValue();
++            }
++        }
++
++        return numerator.doubleValue() / denominator.doubleValue();
+     }
+ 
+     /**
+@@ -729,10 +748,29 @@ public class BigFraction
+      */
+     @Override
+     public float floatValue() {
+-        float result = numerator.floatValue() / denominator.floatValue();
+-            // Numerator and/or denominator must be out of range:
+-            // Calculate how far to shift them to put them in range.
+-        return result;
++        if (numerator.equals(BigInteger.ZERO)) {
++            return 0.0f;
++        }
++
++        // Determine if values are too large for direct conversion
++        int numBits = numerator.bitLength();
++        int denBits = denominator.bitLength();
++
++        if (numBits > 128 || denBits > 128) {
++            // For very large numbers, calculate the appropriate shift to keep
++            // both numbers within the range of float values while preserving ratio
++            int maxBits = Math.max(numBits, denBits);
++            int shift = maxBits - 100; // Leave a safe margin (max for float is ~128)
++
++            if (shift > 0) {
++                return numerator.shiftRight(shift).floatValue() /
++                       denominator.shiftRight(shift).floatValue();
++            } else {
++                return numerator.floatValue() / denominator.floatValue();
++            }
++        }
++
++        return numerator.floatValue() / denominator.floatValue();
+     }
+ 
+     /**

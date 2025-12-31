@@ -1,0 +1,69 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/std/CollectionDeserializer.java b/src/main/java/com/fasterxml/jackson/databind/deser/std/CollectionDeserializer.java
+index 7f58b7ad8..8cff1d31f 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/std/CollectionDeserializer.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/std/CollectionDeserializer.java
+@@ -265,9 +265,22 @@ public class CollectionDeserializer
+ 
+         JsonDeserializer<Object> valueDes = _valueDeserializer;
+         final TypeDeserializer typeDeser = _valueTypeDeserializer;
+-        CollectionReferringAccumulator referringAccumulator =
+-            (valueDes.getObjectIdReader() == null) ? null :
++        // Check if the collection is immutable by trying to add a value
++        boolean resultIsImmutable = false;
++        Collection<Object> accumulatorCollection = result;
++        CollectionReferringAccumulator referringAccumulator;
++
++        try {
++            result.add(null);
++            result.remove(result.size() - 1);
++            referringAccumulator = (valueDes.getObjectIdReader() == null) ? null :
+                 new CollectionReferringAccumulator(_collectionType.getContentType().getRawClass(), result);
++        } catch (UnsupportedOperationException e) {
++            resultIsImmutable = true;
++            accumulatorCollection = new ArrayList<Object>();
++            referringAccumulator = (valueDes.getObjectIdReader() == null) ? null :
++                new CollectionReferringAccumulator(_collectionType.getContentType().getRawClass(), accumulatorCollection);
++        }
+ 
+         JsonToken t;
+         while ((t = p.nextToken()) != JsonToken.END_ARRAY) {
+@@ -282,6 +295,8 @@ public class CollectionDeserializer
+                 }
+                 if (referringAccumulator != null) {
+                     referringAccumulator.add(value);
++                } else if (resultIsImmutable) {
++                    accumulatorCollection.add(value);
+                 } else {
+                     result.add(value);
+                 }
+@@ -300,6 +315,12 @@ public class CollectionDeserializer
+                 throw JsonMappingException.wrapWithPath(e, result, result.size());
+             }
+         }
++        if (resultIsImmutable) {
++            // If the original was immutable, we collected elements in accumulatorCollection,
++            // but the original collection cannot be modified. This is a semantic issue -
++            // we must return the accumulatorCollection since we can't modify the immutable one
++            return (Collection<Object>) accumulatorCollection;
++        }
+         return result;
+     }
+ 
+@@ -346,8 +367,15 @@ public class CollectionDeserializer
+             // note: pass Object.class, not Object[].class, as we need element type for error info
+             throw JsonMappingException.wrapWithPath(e, Object.class, result.size());
+         }
+-        result.add(value);
+-        return result;
++        try {
++            result.add(value);
++            return result;
++        } catch (UnsupportedOperationException e) {
++            // Handle immutable result collection by creating a new mutable one
++            Collection<Object> newResult = new ArrayList<Object>();
++            newResult.add(value);
++            return newResult;
++        }
+     }
+ 
+     public final static class CollectionReferringAccumulator {

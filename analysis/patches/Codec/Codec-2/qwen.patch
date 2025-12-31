@@ -1,0 +1,179 @@
+diff --git a/src/java/org/apache/commons/codec/binary/Base64.java b/src/java/org/apache/commons/codec/binary/Base64.java
+index c00fbe5e..0f18f887 100644
+--- a/src/java/org/apache/commons/codec/binary/Base64.java
++++ b/src/java/org/apache/commons/codec/binary/Base64.java
+@@ -190,6 +190,24 @@ public class Base64 implements BinaryEncoder, BinaryDecoder {
+      */
+     private boolean eof;
+ 
++    /**
++     * Boolean flag to indicate if this is the beginning of processing a new logical stream.
++     * This helps ensure that leftover state from previous operations doesn't affect the current operation.
++     */
++    private boolean wasStreamRestarted;
++
++    /**
++     * Boolean flag to indicate if we have processed any data in the current decode operation.
++     * Used to distinguish between new data and finalizing with EOF.
++     */
++    private boolean hasDataInCurrentDecode;
++
++    /**
++     * Boolean flag to indicate if we have processed any data in the current encode operation.
++     * Used to distinguish between new data and finalizing with EOF.
++     */
++    private boolean hasDataInCurrentEncode;
++
+     /**
+      * Place holder for the 3 bytes we're dealing with for our base64 logic.
+      * Bitwise operations store and extract the base64 encoding or decoding from
+@@ -304,6 +322,9 @@ public class Base64 implements BinaryEncoder, BinaryDecoder {
+             throw new IllegalArgumentException("lineSeperator must not contain base64 characters: [" + sep + "]");
+         }
+         this.encodeTable = urlSafe ? URL_SAFE_ENCODE_TABLE : STANDARD_ENCODE_TABLE;
++        this.wasStreamRestarted = true; // Fresh Base64 object is like a restarted stream
++        this.hasDataInCurrentDecode = false;
++        this.hasDataInCurrentEncode = false;
+     }
+ 
+     /**
+@@ -395,6 +418,29 @@ public class Base64 implements BinaryEncoder, BinaryDecoder {
+         }
+     }
+ 
++    /**
++     * Resets the internal state of the Base64 object to its initial values.
++     * This is used when starting to process a new stream to ensure that
++     * state from previous operations does not affect the current one.
++     */
++    void reset() {
++        pos = 0;
++        readPos = 0;
++        currentLinePos = 0;
++        modulus = 0;
++        x = 0;
++        eof = false;
++        wasStreamRestarted = true;
++        hasDataInCurrentDecode = false;
++        hasDataInCurrentEncode = false;
++        if (buf != null) {
++            // Clear the buffer to avoid carrying over data
++            for (int i = 0; i < buf.length; i++) {
++                buf[i] = 0;
++            }
++        }
++    }
++
+     /**
+      * <p>
+      * Encodes all of the provided data, starting at inPos, for inAvail bytes.
+@@ -415,6 +461,17 @@ public class Base64 implements BinaryEncoder, BinaryDecoder {
+         if (eof) {
+             return;
+         }
++
++        // When starting a new logical operation (regardless of data amount), reset state if this is a restart
++        if (wasStreamRestarted) {
++            // Reset the processing state variables for a new logical stream
++            modulus = 0;
++            x = 0;
++            currentLinePos = 0;
++            hasDataInCurrentEncode = false;
++            wasStreamRestarted = false;
++        }
++
+         // inAvail < 0 is how we're informed of EOF in the underlying data we're
+         // encoding.
+         if (inAvail < 0) {
+@@ -452,6 +509,7 @@ public class Base64 implements BinaryEncoder, BinaryDecoder {
+                 if (buf == null || buf.length - pos < encodeSize) {
+                     resizeBuf();
+                 }
++                hasDataInCurrentEncode = true;
+                 modulus = (++modulus) % 3;
+                 int b = in[inPos++];
+                 if (b < 0) { b += 256; }
+@@ -548,11 +606,21 @@ void decode(byte[] in, int inPos, int inAvail) {
+      * @param in byte[] array of ascii data to base64 decode.
+      * @param inPos Position to start reading data from.
+      * @param inAvail Amount of bytes available from input for encoding.
+      */
+     void decode(byte[] in, int inPos, int inAvail) {
+         if (eof) {
+             return;
+         }
++
++        // When starting a new logical operation (regardless of data amount), reset state if this is a restart
++        if (wasStreamRestarted) {
++            // Reset the processing state variables for a new logical stream
++            modulus = 0;
++            x = 0;
++            hasDataInCurrentDecode = false;
++            wasStreamRestarted = false;
++        }
++
+         if (inAvail < 0) {
+             eof = true;
+         }
+@@ -569,6 +637,7 @@ void decode(byte[] in, int inPos, int inAvail) {
+                 if (b >= 0 && b < DECODE_TABLE.length) {
+                     int result = DECODE_TABLE[b];
+                     if (result >= 0) {
++                        hasDataInCurrentDecode = true;
+                         modulus = (++modulus) % 4;
+                         x = (x << 6) + result;
+                         if (modulus == 0) {
+@@ -584,7 +653,9 @@ void decode(byte[] in, int inPos, int inAvail) {
+         // Two forms of EOF as far as base64 decoder is concerned:  actual
+         // EOF (-1) and first time '=' character is encountered in stream.
+         // This approach makes the '=' padding characters completely optional.
+-        if (eof && modulus != 0) {
++        // Only perform EOF processing if we actually processed data in this operation
++        // and the modulus is from the current data, not from stale state
++        if (eof && modulus != 0 && hasDataInCurrentDecode) {
+             x = x << 6;
+             switch (modulus) {
+                 case 2:
+diff --git a/src/java/org/apache/commons/codec/binary/Base64InputStream.java b/src/java/org/apache/commons/codec/binary/Base64InputStream.java
+index d2cdbc22..6892e36a 100644
+--- a/src/java/org/apache/commons/codec/binary/Base64InputStream.java
++++ b/src/java/org/apache/commons/codec/binary/Base64InputStream.java
+@@ -122,6 +122,8 @@ public class Base64InputStream extends FilterInputStream {
+      */
+     private boolean firstRead = true;  // Track if this is the first read operation
+ 
+     public int read(byte b[], int offset, int len) throws IOException {
+         if (b == null) {
+             throw new NullPointerException();
+         } else if (offset < 0 || len < 0 || offset + len < 0) {
+             throw new IndexOutOfBoundsException();
+         } else if (offset > b.length || offset + len > b.length) {
+             throw new IndexOutOfBoundsException();
+         } else if (len == 0) {
+             return 0;
+         } else {
+             if (!base64.hasData()) {
++                // Reset the Base64 state on first access to ensure clean state
++                if (firstRead) {
++                    base64.reset();
++                    firstRead = false;
++                }
++
+                 byte[] buf = new byte[doEncode ? 4096 : 8192];
+                 int c = in.read(buf);
+ 
+                 // A little optimization to avoid System.arraycopy()
+                 // when possible.
+                 if (c > 0 && b.length == len) {
+                     base64.setInitialBuffer(b, offset, len);
+                 }
+ 
+                 if (doEncode) {
+                     base64.encode(buf, 0, c);
+                 } else {
+                     base64.decode(buf, 0, c);
+                 }
+             }
+             return base64.readResults(b, offset, len);
+         }
+     }

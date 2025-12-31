@@ -1,0 +1,21 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/ObjectReader.java b/src/main/java/com/fasterxml/jackson/databind/ObjectReader.java
+index e684b10a2..7f4517401 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/ObjectReader.java
++++ b/src/main/java/com/fasterxml/jackson/databind/ObjectReader.java
+@@ -1153,7 +1153,15 @@ public class ObjectReader
+         if (_dataFormatReaders != null) {
+             _reportUndetectableSource(src);
+         }
+-        return (T) _bindAndClose(treeAsTokens(src), _valueToUpdate);
++        // Fix for databind#744: Use _bind with proper cleanup to ensure
++        // that TreeTraversingParser maintains proper deserialization context
++        // for nested objects during update operations
++        JsonParser p = treeAsTokens(src);
++        try {
++            return (T) _bind(p, _valueToUpdate);
++        } finally {
++            p.close();
++        }
+     }
+     
+     /**

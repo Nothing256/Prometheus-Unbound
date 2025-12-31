@@ -1,0 +1,56 @@
+diff --git a/src/main/java/org/jsoup/safety/Whitelist.java b/src/main/java/org/jsoup/safety/Whitelist.java
+index 51349dab..f274e43f 100644
+--- a/src/main/java/org/jsoup/safety/Whitelist.java
++++ b/src/main/java/org/jsoup/safety/Whitelist.java
+@@ -338,16 +338,47 @@ public class Whitelist {
+     private boolean testValidProtocol(Element el, Attribute attr, Set<Protocol> protocols) {
+         // try to resolve relative urls to abs, and optionally update the attribute so output html has abs.
+         // rels without a baseuri get removed
+-        String value = el.absUrl(attr.getKey());
+-        if (!preserveRelativeLinks)
+-            attr.setValue(value);
+-        
++        String value = attr.getValue();
++        String absValue = el.absUrl(attr.getKey());
++
++        // Check if the original value has one of the allowed protocols
++        boolean originalHasAllowedProtocol = false;
+         for (Protocol protocol : protocols) {
+             String prot = protocol.toString() + ":";
+             if (value.toLowerCase().startsWith(prot)) {
++                originalHasAllowedProtocol = true;
++                break;
++            }
++        }
++
++        // Decide which value to validate and use
++        String valueToUse = value;
++        boolean shouldSetValue = false;
++
++        if (originalHasAllowedProtocol && absValue.isEmpty()) {
++            // The original had an allowed protocol but absUrl() couldn't handle it (e.g., custom protocols)
++            // so use the original value to preserve it
++            valueToUse = value;
++            shouldSetValue = true;
++        } else {
++            // Use the absolute URL value (normal case)
++            valueToUse = absValue;
++            shouldSetValue = true;
++        }
++
++        // Update attribute value if needed (do this before validation so value is properly set)
++        if (shouldSetValue && !preserveRelativeLinks) {
++            attr.setValue(valueToUse);
++        }
++
++        // Validate the chosen value
++        for (Protocol protocol : protocols) {
++            String prot = protocol.toString() + ":";
++            if (valueToUse.toLowerCase().startsWith(prot)) {
+                 return true;
+             }
+         }
++
+         return false;
+     }
+ 

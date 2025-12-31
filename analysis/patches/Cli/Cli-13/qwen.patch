@@ -1,0 +1,13 @@
+diff --git a/src/java/org/apache/commons/cli2/commandline/WriteableCommandLineImpl.java b/src/java/org/apache/commons/cli2/commandline/WriteableCommandLineImpl.java
+index b4e3a39..57f7470 100644
+--- a/src/java/org/apache/commons/cli2/commandline/WriteableCommandLineImpl.java
++++ b/src/java/org/apache/commons/cli2/commandline/WriteableCommandLineImpl.java
+@@ -169,7 +169,7 @@ public class WriteableCommandLineImpl
+         for (final Iterator i = prefixes.iterator(); i.hasNext();) {
+             final String prefix = (String) i.next();
+ 
+-            if (trigger.startsWith(prefix)) {
++            if (prefix.length() > 0 && trigger.startsWith(prefix)) {
+                 return true;
+             }
+         }

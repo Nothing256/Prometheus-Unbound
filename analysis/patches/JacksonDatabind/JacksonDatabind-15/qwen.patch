@@ -1,0 +1,74 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/ser/std/StdDelegatingSerializer.java b/src/main/java/com/fasterxml/jackson/databind/ser/std/StdDelegatingSerializer.java
+index 3aeb4f306..ca13971ff 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/ser/std/StdDelegatingSerializer.java
++++ b/src/main/java/com/fasterxml/jackson/databind/ser/std/StdDelegatingSerializer.java
+@@ -35,7 +35,14 @@ public class StdDelegatingSerializer
+      * Fully resolved delegate type, with generic information if any available.
+      */
+     protected final JavaType _delegateType;
+-    
++
++    /**
++     * Flag to indicate whether dynamic lookup is needed for serialization.
++     * This is true when the delegate type is Object (or effectively Object),
++     * indicating that the actual runtime type should be used for serialization.
++     */
++    protected final boolean _dynamicLookup;
++
+     /**
+      * Underlying serializer for type <code>T<.code>.
+      */
+@@ -53,6 +60,7 @@ public class StdDelegatingSerializer
+         super(Object.class);
+         _converter = (Converter<Object,?>)converter;
+         _delegateType = null;
++        _dynamicLookup = true; // When first constructed, we'll need dynamic lookup
+         _delegateSerializer = null;
+     }
+ 
+@@ -62,6 +70,7 @@ public class StdDelegatingSerializer
+         super(cls, false);
+         _converter = (Converter<Object,?>)converter;
+         _delegateType = null;
++        _dynamicLookup = false; // We have a specific type, no dynamic lookup needed
+         _delegateSerializer = null;
+     }
+     
+@@ -72,6 +81,7 @@ public class StdDelegatingSerializer
+         super(delegateType);
+         _converter = converter;
+         _delegateType = delegateType;
++        _dynamicLookup = (delegateType != null && delegateType.getRawClass() == Object.class);
+         _delegateSerializer = (JsonSerializer<Object>) delegateSerializer;
+     }
+ 
+@@ -158,7 +168,13 @@ public class StdDelegatingSerializer
+             return;
+         }
+         // 02-Apr-2015, tatu: As per [databind#731] may need to do dynamic lookup
+-        _delegateSerializer.serialize(delegateValue, gen, provider);
++        if (_dynamicLookup) {
++            // If the delegate type was Object or untyped, do a dynamic lookup for the actual runtime type
++            JsonSerializer<Object> serializer = (JsonSerializer<Object>) provider.findValueSerializer(delegateValue.getClass());
++            serializer.serialize(delegateValue, gen, provider);
++        } else {
++            _delegateSerializer.serialize(delegateValue, gen, provider);
++        }
+     }
+ 
+     @Override
+@@ -169,7 +185,13 @@ public class StdDelegatingSerializer
+          *    let's give it a chance?
+          */
+         Object delegateValue = convertValue(value);
+-        _delegateSerializer.serializeWithType(delegateValue, gen, provider, typeSer);
++        if (_dynamicLookup) {
++            // If the delegate type was Object or untyped, do a dynamic lookup for the actual runtime type
++            JsonSerializer<Object> serializer = (JsonSerializer<Object>) provider.findValueSerializer(delegateValue.getClass());
++            serializer.serializeWithType(delegateValue, gen, provider, typeSer);
++        } else {
++            _delegateSerializer.serializeWithType(delegateValue, gen, provider, typeSer);
++        }
+     }
+ 
+     @Override

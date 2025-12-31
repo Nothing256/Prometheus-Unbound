@@ -1,0 +1,50 @@
+diff --git a/src/main/java/org/jsoup/parser/TokenQueue.java b/src/main/java/org/jsoup/parser/TokenQueue.java
+index 269a7554..b210c012 100644
+--- a/src/main/java/org/jsoup/parser/TokenQueue.java
++++ b/src/main/java/org/jsoup/parser/TokenQueue.java
+@@ -262,22 +262,37 @@ public class TokenQueue {
+         int end = -1;
+         int depth = 0;
+         char last = 0;
++        boolean inSingleQuote = false;
++        boolean inDoubleQuote = false;
+ 
+         do {
+             if (isEmpty()) break;
+             Character c = consume();
+-            if (last == 0 || last != ESC) {
+-                if (c.equals(open)) {
+-                    depth++;
+-                    if (start == -1)
+-                        start = pos;
++
++            // Toggle quote state if not escaped
++            if (last != ESC) {
++                if (c == '\'' && !inDoubleQuote) {
++                    inSingleQuote = !inSingleQuote;
++                } else if (c == '"' && !inSingleQuote) {
++                    inDoubleQuote = !inDoubleQuote;
++                }
++            }
++
++            // Only adjust depth if not inside quotes
++            if (!inSingleQuote && !inDoubleQuote) {
++                if (last == 0 || last != ESC) {
++                    if (c == open) {
++                        depth++;
++                        if (start == -1)
++                            start = pos; // pos is already incremented after consume()
++                    }
++                    else if (c == close)
++                        depth--;
+                 }
+-                else if (c.equals(close))
+-                    depth--;
+             }
+ 
+             if (depth > 0 && last != 0)
+-                end = pos; // don't include the outer match pair in the return
++                end = pos; // pos is already incremented after consume()
+             last = c;
+         } while (depth > 0);
+         return (end >= 0) ? queue.substring(start, end) : "";

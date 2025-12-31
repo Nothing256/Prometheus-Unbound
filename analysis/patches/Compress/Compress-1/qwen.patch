@@ -1,0 +1,13 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveOutputStream.java b/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveOutputStream.java
+index aada02e8..c0c67e8e 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveOutputStream.java
++++ b/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveOutputStream.java
+@@ -152,7 +152,7 @@ public class CpioArchiveOutputStream extends ArchiveOutputStream implements
+             closeArchiveEntry(); // close previous entry
+         }
+         if (e.getTime() == -1) {
+-            e.setTime(System.currentTimeMillis());
++            e.setTime(System.currentTimeMillis() / 1000);
+         }
+ 
+         // TODO what happens if an entry has an other format than the

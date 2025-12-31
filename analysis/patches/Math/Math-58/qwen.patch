@@ -1,0 +1,83 @@
+diff --git a/src/main/java/org/apache/commons/math/optimization/fitting/GaussianFitter.java b/src/main/java/org/apache/commons/math/optimization/fitting/GaussianFitter.java
+index ae7ac3994..f5d2a3777 100644
+--- a/src/main/java/org/apache/commons/math/optimization/fitting/GaussianFitter.java
++++ b/src/main/java/org/apache/commons/math/optimization/fitting/GaussianFitter.java
+@@ -69,44 +69,51 @@ public class GaussianFitter extends CurveFitter {
+     }
+ 
+     /**
+-     * Fits a Gaussian function to the observed points.
++     * Creates a parametric function that handles exceptions by returning
++     * appropriate values instead of throwing exceptions.
+      *
+-     * @param initialGuess First guess values in the following order:
+-     * <ul>
+-     *  <li>Norm</li>
+-     *  <li>Mean</li>
+-     *  <li>Sigma</li>
+-     * </ul>
+-     * @return the parameters of the Gaussian function that best fits the
+-     * observed points (in the same order as above).
++     * @return a ParametricUnivariateRealFunction that handles invalid parameters gracefully.
+      */
+-    public double[] fit(double[] initialGuess) {
+-        final ParametricUnivariateRealFunction f = new ParametricUnivariateRealFunction() {
++    private ParametricUnivariateRealFunction createExceptionHandlingFunction() {
++        return new ParametricUnivariateRealFunction() {
+                 private final ParametricUnivariateRealFunction g = new Gaussian.Parametric();
+ 
+                 public double value(double x, double[] p) {
+-                    double v = Double.POSITIVE_INFINITY;
++                    double v = 0.0;
+                     try {
+                         v = g.value(x, p);
+                     } catch (NotStrictlyPositiveException e) {
+-                        // Do nothing.
++                        // Return 0.0 for invalid sigma values
+                     }
+                     return v;
+                 }
+ 
+                 public double[] gradient(double x, double[] p) {
+-                    double[] v = { Double.POSITIVE_INFINITY,
+-                                   Double.POSITIVE_INFINITY,
+-                                   Double.POSITIVE_INFINITY };
++                    double[] v = { 0.0, 0.0, 0.0 };
+                     try {
+                         v = g.gradient(x, p);
+                     } catch (NotStrictlyPositiveException e) {
+-                        // Do nothing.
++                        // Return zeros for invalid sigma values
+                     }
+                     return v;
+                 }
+             };
++    }
+ 
++    /**
++     * Fits a Gaussian function to the observed points.
++     *
++     * @param initialGuess First guess values in the following order:
++     * <ul>
++     *  <li>Norm</li>
++     *  <li>Mean</li>
++     *  <li>Sigma</li>
++     * </ul>
++     * @return the parameters of the Gaussian function that best fits the
++     * observed points (in the same order as above).
++     */
++    public double[] fit(double[] initialGuess) {
++        final ParametricUnivariateRealFunction f = createExceptionHandlingFunction();
+         return fit(f, initialGuess);
+     }
+ 
+@@ -118,7 +125,8 @@ public class GaussianFitter extends CurveFitter {
+      */
+     public double[] fit() {
+         final double[] guess = (new ParameterGuesser(getObservations())).guess();
+-        return fit(new Gaussian.Parametric(), guess);
++        final ParametricUnivariateRealFunction f = createExceptionHandlingFunction();
++        return fit(f, guess);
+     }
+ 
+     /**

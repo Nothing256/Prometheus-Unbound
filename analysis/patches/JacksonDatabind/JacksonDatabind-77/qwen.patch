@@ -1,0 +1,39 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializerFactory.java b/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializerFactory.java
+index a8f42c81f..460f49460 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializerFactory.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializerFactory.java
+@@ -128,6 +128,12 @@ public class BeanDeserializerFactory
+             }
+         }
+ 
++        // Security check for known dangerous types: block before proceeding
++        if (isIgnorableForSecurity(type.getRawClass())) {
++            throw JsonMappingException.from(ctxt, "Illegal type to deserialize: " + type.getRawClass().getName()
++                    + " prevented for security reasons");
++        }
++
+         // Otherwise, may want to check handlers for standard types, from superclass:
+         @SuppressWarnings("unchecked")
+         JsonDeserializer<Object> deser = (JsonDeserializer<Object>) findStdDeserializer(ctxt, type, beanDesc);
+@@ -842,4 +848,21 @@ public class BeanDeserializerFactory
+         // There are certain nasty classes that could cause problems, mostly
+         // via default typing -- catch them here.
+ 
++    /**
++     * Helper method to check if the given class is dangerous and should be blocked for
++     * security reasons.
++     */
++    protected boolean isIgnorableForSecurity(Class<?> rawClass) {
++        String className = rawClass.getName();
++        // Block specific known dangerous classes
++        if (className.startsWith("com.sun.org.apache.xalan.internal.xsltc.trax.")) {
++            return className.equals("com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl");
++        } else if (className.startsWith("org.springframework.")) {
++            // Additional spring-related dangerous classes can be added here
++        } else if (className.equals("org.apache.xalan.xsltc.trax.TemplatesImpl")) {
++            return true;
++        }
++        // Add more dangerous patterns if needed
++        return false;
++    }
+ }

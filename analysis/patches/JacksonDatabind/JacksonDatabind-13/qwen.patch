@@ -1,0 +1,31 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/DefaultDeserializationContext.java b/src/main/java/com/fasterxml/jackson/databind/deser/DefaultDeserializationContext.java
+index 373ac896b..1e9b66468 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/DefaultDeserializationContext.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/DefaultDeserializationContext.java
+@@ -85,6 +85,26 @@ public abstract class DefaultDeserializationContext
+          *   missing id already works.
+          */
+ 
++        // Handle null id by returning a temporary ReadableObjectId that won't be cached
++        if (id == null) {
++            // For null IDs, create a ReadableObjectId but don't cache it in the global map
++            // This makes null IDs behave like missing IDs (no identity management)
++            // Some generators may throw exceptions when passed null, so handle this case
++            try {
++                ObjectIdGenerator.IdKey key = gen.key(id);
++                ObjectIdResolver resolver = resolverType.newForDeserialization(this);
++                ReadableObjectId entry = new ReadableObjectId(key);
++                entry.setResolver(resolver);
++                return entry;  // Return immediately - don't cache this entry
++            } catch (Exception e) {
++                // If the generator can't handle null, use the deprecated constructor as fallback
++                ObjectIdResolver resolver = resolverType.newForDeserialization(this);
++                ReadableObjectId entry = new ReadableObjectId((Object) null);
++                entry.setResolver(resolver);
++                return entry;
++            }
++        }
++
+         final ObjectIdGenerator.IdKey key = gen.key(id);
+ 
+         if (_objectIds == null) {

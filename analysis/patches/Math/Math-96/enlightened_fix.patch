@@ -1,0 +1,54 @@
+diff --git a/src/java/org/apache/commons/math/complex/Complex.java b/src/java/org/apache/commons/math/complex/Complex.java
+index 3571567f8..7b57d63af 100644
+--- a/src/java/org/apache/commons/math/complex/Complex.java
++++ b/src/java/org/apache/commons/math/complex/Complex.java
+@@ -339,14 +339,13 @@ public class Complex implements Serializable  {
+      * </p>
+      * Returns {@link #INF} if neither this nor <code>rhs</code> has one or more
+      * NaN parts and if either this or <code>rhs</code> has one or more
+-     * infinite parts (same result is returned regardless of the sign of the
+-     * components).
++     * infinite parts and the other is non-zero.
+      * </p>
+      * <p>
+      * Returns finite values in components of the result per the
+      * definitional formula in all remaining cases.
+      *  </p>
+-     * 
++     *
+      * @param rhs the other complex number
+      * @return the complex number product
+      * @throws NullPointerException if <code>rhs</code> is null
+@@ -355,11 +354,29 @@ public class Complex implements Serializable  {
+         if (isNaN() || rhs.isNaN()) {
+             return NaN;
+         }
+-        if (Double.isInfinite(real) || Double.isInfinite(imaginary) ||
+-            Double.isInfinite(rhs.real)|| Double.isInfinite(rhs.imaginary)) {
+-            // we don't use Complex.isInfinite() to avoid testing for NaN again
++
++        boolean thisHasInf = Double.isInfinite(real) || Double.isInfinite(imaginary);
++        boolean rhsHasInf = Double.isInfinite(rhs.real) || Double.isInfinite(rhs.imaginary);
++
++        if (thisHasInf || rhsHasInf) {
++            // If both have infinities, result is NaN
++            if (thisHasInf && rhsHasInf) {
++                return NaN;
++            }
++
++            // If only one has infinities, but the other is zero, result is zero
++            // Zero means both real and imaginary parts are 0.0
++            if (thisHasInf && rhs.real == 0.0 && rhs.imaginary == 0.0) {
++                return ZERO;
++            }
++            if (rhsHasInf && real == 0.0 && imaginary == 0.0) {
++                return ZERO;
++            }
++
++            // Otherwise, the result contains infinities
+             return INF;
+         }
++
+         return createComplex(real * rhs.real - imaginary * rhs.imaginary,
+                 real * rhs.imaginary + imaginary * rhs.real);
+     }

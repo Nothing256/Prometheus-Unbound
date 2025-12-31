@@ -1,0 +1,31 @@
+--- /tmp/XmlTreeBuilder.java.original	2025-12-24 00:37:39
++++ /Users/nothing/workspace/prometheus_workdir_qwen/jsoup_80_blind_auto/src/main/java/org/jsoup/parser/XmlTreeBuilder.java	2025-12-24 00:37:08
+@@ -87,10 +87,24 @@
+             // so we do a bit of a hack and parse the data as an element to pull the attributes out
+             String data = comment.getData();
+             if (data.length() > 1 && (data.startsWith("!") || data.startsWith("?"))) {
+-                Document doc = Jsoup.parse("<" + data.substring(1, data.length() -1) + ">", baseUri, Parser.xmlParser());
+-                    Element el = doc.child(0);
+-                    insert = new XmlDeclaration(settings.normalizeTag(el.tagName()), data.startsWith("!"));
+-                    insert.attributes().addAll(el.attributes());
++                // Handle XML processing instructions that may be malformed
++                String elementData;
++                if (data.startsWith("?")) {
++                    // For processing instructions like "?xml version='1.0'" or "?xml version='1.0'?"
++                    String content = data.substring(1); // remove leading "?"
++                    // If it ends with "?", remove that too
++                    if (content.endsWith("?")) {
++                        content = content.substring(0, content.length() - 1);
++                    }
++                    elementData = content;
++                } else {
++                    // For doctype declarations starting with "!"
++                    elementData = data.substring(1); // remove leading "!"
++                }
++                Document doc = Jsoup.parse("<" + elementData + ">", baseUri, Parser.xmlParser());
++                Element el = doc.child(0);
++                insert = new XmlDeclaration(settings.normalizeTag(el.tagName()), data.startsWith("!"));
++                insert.attributes().addAll(el.attributes());
+             }
+         }
+         insertNode(insert);

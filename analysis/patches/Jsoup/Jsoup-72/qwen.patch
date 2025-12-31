@@ -1,0 +1,28 @@
+--- a/src/main/java/org/jsoup/parser/CharacterReader.java
++++ b/src/main/java/org/jsoup/parser/CharacterReader.java
+@@ -57,13 +57,17 @@
+ 
+     private void bufferUp() {
+         if (bufPos < bufSplitPoint)
+             return;
+ 
+         try {
+             readerPos += bufPos;
+             reader.skip(bufPos);
+             reader.mark(maxBufferLen);
+-            bufLength = reader.read(charBuf);
++            int readResult = reader.read(charBuf);
++            if (readResult == -1) {
++                // EOF reached, don't update bufLength since there's no more data
++                bufSplitPoint = bufLength; // Prevent further attempts to read
++                return;
++            }
++            bufLength = readResult;
+             reader.reset();
+             bufPos = 0;
+             bufMark = 0;
+             bufSplitPoint = bufLength > readAheadLimit ? readAheadLimit : bufLength;
+         } catch (IOException e) {
+             throw new UncheckedIOException(e);
+         }
+     }

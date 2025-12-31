@@ -1,0 +1,94 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/ser/AnyGetterWriter.java b/src/main/java/com/fasterxml/jackson/databind/ser/AnyGetterWriter.java
+index 2cd7bb7b6..ed8ef9056 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/ser/AnyGetterWriter.java
++++ b/src/main/java/com/fasterxml/jackson/databind/ser/AnyGetterWriter.java
+@@ -4,7 +4,9 @@ import java.util.Map;
+ 
+ import com.fasterxml.jackson.core.*;
+ import com.fasterxml.jackson.databind.*;
++import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+ import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
++import com.fasterxml.jackson.databind.ser.std.MapProperty;
+ import com.fasterxml.jackson.databind.ser.std.MapSerializer;
+ 
+ /**
+@@ -44,11 +46,44 @@ public class AnyGetterWriter
+             throw new JsonMappingException("Value returned by 'any-getter' ("
+                     +_accessor.getName()+"()) not java.util.Map but "+value.getClass().getName());
+         }
++        // Check if the accessor has a custom serializer specified with @JsonSerialize
++        // If it does, we should use that instead of treating as individual map entries
++        if (_accessor.hasAnnotation(com.fasterxml.jackson.databind.annotation.JsonSerialize.class)) {
++            // For methods with both @JsonAnyGetter and @JsonSerialize,
++            // the @JsonSerialize should take precedence and handle the serialization
++            JsonSerializer<Object> customSer = (JsonSerializer<Object>) provider.findValueSerializer(_property.getType(), _property);
++            customSer.serialize(value, gen, provider);
++            return;
++        }
++
+         // 23-Feb-2015, tatu: Nasty, but has to do (for now)
+         if (_mapSerializer != null) {
+             _mapSerializer.serializeFields((Map<?,?>) value, gen, provider);
+             return;
+         }
++        // If no map serializer, serialize the map entries directly
++        for (Map.Entry<?,?> entry : ((Map<?,?>) value).entrySet()) {
++            Object key = entry.getKey();
++            Object valueElem = entry.getValue();
++            if (key == null) {
++                provider.findNullKeySerializer(provider.constructType(String.class), _property).serialize(null, gen, provider);
++            } else {
++                // Write the key as a field name
++                if (key instanceof String) {
++                    gen.writeFieldName((String) key);
++                } else {
++                    gen.writeFieldName(String.valueOf(key));
++                }
++            }
++
++            // Serialize the value
++            if (valueElem == null) {
++                provider.defaultSerializeNull(gen);
++            } else {
++                JsonSerializer<Object> valueSer = provider.findValueSerializer(valueElem.getClass(), _property);
++                valueSer.serialize(valueElem, gen, provider);
++            }
++        }
+     }
+ 
+     /**
+@@ -67,11 +102,33 @@ public class AnyGetterWriter
+                     +_accessor.getName()+"()) not java.util.Map but "+value.getClass().getName());
+         }
+         // 19-Oct-2014, tatu: Should we try to support @JsonInclude options here?
++        // Check if the accessor has a custom serializer specified with @JsonSerialize
++        // If it does, we should use that instead of treating as individual map entries
++        if (_accessor.hasAnnotation(JsonSerialize.class)) {
++            // For methods with both @JsonAnyGetter and @JsonSerialize,
++            // the @JsonSerialize should take precedence and handle the serialization
++            JsonSerializer<Object> customSer = (JsonSerializer<Object>) provider.findValueSerializer(_property.getType(), _property);
++            customSer.serialize(value, gen, provider);
++            return;
++        }
++
+         if (_mapSerializer != null) {
+             _mapSerializer.serializeFilteredFields((Map<?,?>) value, gen, provider, filter, null);
+             return;
+         }
+-        // ... not sure how custom handler would do it
++
++        // If no map serializer, serialize the map entries directly with filtering
++        for (Map.Entry<?,?> entry : ((Map<?,?>) value).entrySet()) {
++            Object key = entry.getKey();
++            String keyStr = (key instanceof String) ? (String) key : String.valueOf(key);
++            // For the default filtering, just call the filter with a temporary MapProperty
++            MapProperty prop = new MapProperty(null, _property);
++            // Use the provider to get default serializers
++            prop.reset(key,
++                provider.findKeySerializer(provider.constructType(key.getClass()), _property),
++                provider.findValueSerializer(entry.getValue().getClass(), _property));
++            filter.serializeAsField(entry.getValue(), gen, provider, prop);
++        }
+     }
+     
+     // Note: NOT part of ResolvableSerializer...

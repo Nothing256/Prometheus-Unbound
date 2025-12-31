@@ -1,0 +1,45 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/tar/TarArchiveInputStream.java b/src/main/java/org/apache/commons/compress/archivers/tar/TarArchiveInputStream.java
+index c5570071..b69efa7d 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/tar/TarArchiveInputStream.java
++++ b/src/main/java/org/apache/commons/compress/archivers/tar/TarArchiveInputStream.java
+@@ -308,11 +308,23 @@ public class TarArchiveInputStream extends ArchiveInputStream {
+         }
+ 
+         if (currEntry.isPaxHeader()){ // Process Pax headers
+-            paxHeaders();
++            try {
++                paxHeaders();
++            } catch (IllegalArgumentException e) {
++                IOException ioe = new IOException("Error detected parsing the Pax header");
++                ioe.initCause(e);
++                throw ioe;
++            }
+         }
+ 
+         if (currEntry.isGNUSparse()){ // Process sparse files
+-            readGNUSparse();
++            try {
++                readGNUSparse();
++            } catch (IllegalArgumentException e) {
++                IOException ioe = new IOException("Error detected parsing the sparse header");
++                ioe.initCause(e);
++                throw ioe;
++            }
+         }
+ 
+         // If the size of the next element in the archive has changed
+@@ -350,7 +362,13 @@ public class TarArchiveInputStream extends ArchiveInputStream {
+         while ((length = read(SMALL_BUF)) >= 0) {
+             longName.write(SMALL_BUF, 0, length);
+         }
+-        getNextEntry();
++        try {
++            getNextEntry();
++        } catch (IllegalArgumentException e) {
++            IOException ioe = new IOException("Error detected parsing long name data entry");
++            ioe.initCause(e);
++            throw ioe;
++        }
+         if (currEntry == null) {
+             // Bugzilla: 40334
+             // Malformed tar file - long entry name not followed by entry

@@ -1,0 +1,51 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveInputStream.java b/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveInputStream.java
+index 934eb0aa..e69b1e79 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveInputStream.java
++++ b/src/main/java/org/apache/commons/compress/archivers/cpio/CpioArchiveInputStream.java
+@@ -278,7 +278,7 @@ public class CpioArchiveInputStream extends ArchiveInputStream implements
+         int tmpread = readFully(b, off, tmplength);
+         if (this.entry.getFormat() == FORMAT_NEW_CRC) {
+             for (int pos = 0; pos < tmpread; pos++) {
+-                this.crc += b[pos] & 0xFF;
++                this.crc += b[pos + off] & 0xFF;
+             }
+         }
+         this.entryBytesRead += tmpread;
+diff --git a/src/main/java/org/apache/commons/compress/archivers/cpio/CpioUtil.java b/src/main/java/org/apache/commons/compress/archivers/cpio/CpioUtil.java
+index 26b51fc4..6568e2b2 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/cpio/CpioUtil.java
++++ b/src/main/java/org/apache/commons/compress/archivers/cpio/CpioUtil.java
+@@ -53,12 +53,12 @@ class CpioUtil {
+         byte tmp_number[] = new byte[number.length];
+         System.arraycopy(number, 0, tmp_number, 0, number.length);
+ 
+-        if (!swapHalfWord) {
++        if (swapHalfWord) {
+             byte tmp = 0;
+-            for (pos = 0; pos < tmp_number.length; pos++) {
++            for (pos = 0; pos < tmp_number.length; pos += 2) {
+                 tmp = tmp_number[pos];
+-                tmp_number[pos++] = tmp_number[pos];
+-                tmp_number[pos] = tmp;
++                tmp_number[pos] = tmp_number[pos + 1];
++                tmp_number[pos + 1] = tmp;
+             }
+         }
+ 
+@@ -100,12 +100,12 @@ class CpioUtil {
+             tmp_number >>= 8;
+         }
+ 
+-        if (!swapHalfWord) {
++        if (swapHalfWord) {
+             byte tmp = 0;
+-            for (pos = 0; pos < length; pos++) {
++            for (pos = 0; pos < length; pos += 2) {
+                 tmp = ret[pos];
+-                ret[pos++] = ret[pos];
+-                ret[pos] = tmp;
++                ret[pos] = ret[pos + 1];
++                ret[pos + 1] = tmp;
+             }
+         }
+ 

@@ -1,0 +1,26 @@
+diff --git a/src/main/java/org/apache/commons/math3/optim/nonlinear/scalar/gradient/NonLinearConjugateGradientOptimizer.java b/src/main/java/org/apache/commons/math3/optim/nonlinear/scalar/gradient/NonLinearConjugateGradientOptimizer.java
+index e010781af..a54aa0d58 100644
+--- a/src/main/java/org/apache/commons/math3/optim/nonlinear/scalar/gradient/NonLinearConjugateGradientOptimizer.java
++++ b/src/main/java/org/apache/commons/math3/optim/nonlinear/scalar/gradient/NonLinearConjugateGradientOptimizer.java
+@@ -23,6 +23,7 @@ import org.apache.commons.math3.analysis.solvers.UnivariateSolver;
+ import org.apache.commons.math3.exception.MathInternalError;
+ import org.apache.commons.math3.exception.MathIllegalStateException;
+ import org.apache.commons.math3.exception.TooManyEvaluationsException;
++import org.apache.commons.math3.exception.TooManyIterationsException;
+ import org.apache.commons.math3.exception.MathUnsupportedOperationException;
+ import org.apache.commons.math3.exception.util.LocalizedFormats;
+ import org.apache.commons.math3.optim.OptimizationData;
+@@ -215,6 +216,13 @@ public class NonLinearConjugateGradientOptimizer
+         int maxEval = getMaxEvaluations();
+         while (true) {
+             ++iter;
++            try {
++                incrementIterationCount();
++            } catch (TooManyIterationsException e) {
++                // Re-throw as a runtime exception since doOptimize is an abstract method
++                // that doesn't declare checked exceptions
++                throw new MathInternalError(e);
++            }
+ 
+             final double objective = computeObjectiveValue(point);
+             PointValuePair previous = current;

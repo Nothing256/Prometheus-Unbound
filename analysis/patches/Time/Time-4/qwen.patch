@@ -1,0 +1,37 @@
+diff --git a/src/main/java/org/joda/time/Partial.java b/src/main/java/org/joda/time/Partial.java
+index 0d4edf47..5875e3a3 100644
+--- a/src/main/java/org/joda/time/Partial.java
++++ b/src/main/java/org/joda/time/Partial.java
+@@ -429,12 +429,30 @@ public final class Partial
+         }
+         int index = indexOf(fieldType);
+         if (index == -1) {
++            // Check for conflicting fields that represent the same temporal concept
++            DurationField unitField = fieldType.getDurationType().getField(iChronology);
++            for (int j = 0; j < iTypes.length; j++) {
++                DurationField loopUnitField = iTypes[j].getDurationType().getField(iChronology);
++                if (unitField.equals(loopUnitField)) {
++                    // Same duration type - check if these represent conflicting fields
++                    DurationField rangeField = fieldType.getRangeDurationType() == null ? null : fieldType.getRangeDurationType().getField(iChronology);
++                    DurationField loopRangeField = iTypes[j].getRangeDurationType() == null ? null : iTypes[j].getRangeDurationType().getField(iChronology);
++
++                    // If both have the same duration and range, they are conflicting fields
++                    if ((rangeField == null && loopRangeField == null) ||
++                        (rangeField != null && loopRangeField != null && rangeField.equals(loopRangeField))) {
++                        // Check if these field types are incompatible (e.g., hourOfDay vs clockhourOfDay)
++                        // Both fields have same duration and range, so they conflict
++                        throw new IllegalArgumentException("Value is illegal for this partial: " + fieldType);
++                    }
++                }
++            }
++
+             DateTimeFieldType[] newTypes = new DateTimeFieldType[iTypes.length + 1];
+             int[] newValues = new int[newTypes.length];
+-            
++
+             // find correct insertion point to keep largest-smallest order
+             int i = 0;
+-            DurationField unitField = fieldType.getDurationType().getField(iChronology);
+             if (unitField.isSupported()) {
+                 for (; i < iTypes.length; i++) {
+                     DateTimeFieldType loopType = iTypes[i];

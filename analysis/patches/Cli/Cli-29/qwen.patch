@@ -1,0 +1,24 @@
+diff --git a/src/java/org/apache/commons/cli/Util.java b/src/java/org/apache/commons/cli/Util.java
+index 40f66f1..8b0eca4 100644
+--- a/src/java/org/apache/commons/cli/Util.java
++++ b/src/java/org/apache/commons/cli/Util.java
+@@ -62,16 +62,11 @@ class Util
+      */
+     static String stripLeadingAndTrailingQuotes(String str)
+     {
+-        if (str.startsWith("\""))
++        if (str != null && str.length() >= 2 && str.startsWith("\"") && str.endsWith("\""))
+         {
+-            str = str.substring(1, str.length());
++            return str.substring(1, str.length() - 1);
+         }
+-        int length = str.length();
+-        if (str.endsWith("\""))
+-        {
+-            str = str.substring(0, length - 1);
+-        }
+-        
++
+         return str;
+     }
+ }

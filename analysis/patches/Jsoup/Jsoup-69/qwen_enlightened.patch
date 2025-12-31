@@ -1,0 +1,13 @@
+diff --git a/src/main/java/org/jsoup/nodes/FormElement.java b/src/main/java/org/jsoup/nodes/FormElement.java
+index e498975d..062f42f1 100644
+--- a/src/main/java/org/jsoup/nodes/FormElement.java
++++ b/src/main/java/org/jsoup/nodes/FormElement.java
+@@ -75,6 +75,8 @@ public class FormElement extends Element {
+ 
+         // iterate the form control elements and accumulate their values
+         for (Element el: elements) {
++            // Skip elements that have been removed from the DOM (no parent)
++            if (el.parent() == null) continue;
+             if (!el.tag().isFormSubmittable()) continue; // contents are form listable, superset of submitable
+             if (el.hasAttr("disabled")) continue; // skip disabled form inputs
+             String name = el.attr("name");

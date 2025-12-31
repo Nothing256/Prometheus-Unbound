@@ -1,0 +1,20 @@
+--- /tmp/ElitisticListPopulation_original.java	2025-12-27 02:18:42
++++ /Users/nothing/workspace/prometheus_workdir_qwen/math_35_blind_auto/src/main/java/org/apache/commons/math3/genetics/ElitisticListPopulation.java	2025-12-27 02:18:12
+@@ -48,7 +48,7 @@
+                                    final int populationLimit,
+                                    final double elitismRate) {
+         super(chromosomes, populationLimit);
+-        this.elitismRate = elitismRate;
++        setElitismRate(elitismRate);
+     }
+ 
+     /**
+@@ -62,7 +62,7 @@
+      */
+     public ElitisticListPopulation(final int populationLimit, final double elitismRate) {
+         super(populationLimit);
+-        this.elitismRate = elitismRate;
++        setElitismRate(elitismRate);
+     }
+ 
+     /**

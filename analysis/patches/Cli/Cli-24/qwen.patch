@@ -1,0 +1,31 @@
+diff --git a/src/java/org/apache/commons/cli/HelpFormatter.java b/src/java/org/apache/commons/cli/HelpFormatter.java
+index 9993a07..e8a604f 100644
+--- a/src/java/org/apache/commons/cli/HelpFormatter.java
++++ b/src/java/org/apache/commons/cli/HelpFormatter.java
+@@ -821,9 +821,9 @@ public class HelpFormatter
+ 
+         if (nextLineTabStop >= width)
+         {
+-            // stops infinite loop happening
+-            throw new IllegalStateException("Total width is less than the width of the argument and indent " + 
+-                                            "- no room for the description");
++            // Instead of throwing an exception, reduce the indentation to fit within width
++            // This handles narrow width scenarios more gracefully
++            nextLineTabStop = Math.max(1, width - 1);
+         }
+ 
+         // all following lines must be padded with nextLineTabStop space 
+@@ -842,9 +842,11 @@ public class HelpFormatter
+                 return sb;
+             }
+             
+-            if ( (text.length() > width) && (pos == nextLineTabStop - 1) ) 
++            if ( (text.length() > width) && (pos == nextLineTabStop - 1) )
+             {
+-                pos = width;
++                // Instead of pos = width which can cause issues with narrow widths,
++                // advance by at least one character to make progress
++                pos = Math.min(text.length(), nextLineTabStop + 1);
+             }
+ 
+             sb.append(rtrim(text.substring(0, pos))).append(defaultNewLine);

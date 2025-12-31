@@ -1,0 +1,41 @@
+diff --git a/src/main/java/org/apache/commons/cli/Options.java b/src/main/java/org/apache/commons/cli/Options.java
+index e9a0aa9..621b9be 100644
+--- a/src/main/java/org/apache/commons/cli/Options.java
++++ b/src/main/java/org/apache/commons/cli/Options.java
+@@ -225,7 +225,7 @@ public class Options implements Serializable
+ 
+     /**
+      * Returns the options with a long name starting with the name specified.
+-     * 
++     *
+      * @param opt the partial name of the option
+      * @return the options matching the partial name specified, or an empty list if none matches
+      * @since 1.3
+@@ -233,11 +233,16 @@ public class Options implements Serializable
+     public List<String> getMatchingOptions(String opt)
+     {
+         opt = Util.stripLeadingHyphens(opt);
+-        
++
+         List<String> matchingOpts = new ArrayList<String>();
+ 
+-        // for a perfect match return the single option only
++        // Check for exact match first
++        if (longOpts.containsKey(opt)) {
++            matchingOpts.add(opt);
++            return matchingOpts;
++        }
+ 
++        // If no exact match, then add all prefix matches
+         for (String longOpt : longOpts.keySet())
+         {
+             if (longOpt.startsWith(opt))
+@@ -245,7 +250,7 @@ public class Options implements Serializable
+                 matchingOpts.add(longOpt);
+             }
+         }
+-        
++
+         return matchingOpts;
+     }
+ 

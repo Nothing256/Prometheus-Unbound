@@ -1,0 +1,14 @@
+--- a/src/java/org/apache/commons/lang3/time/FastDateFormat.java
++++ b/src/java/org/apache/commons/lang3/time/FastDateFormat.java
+@@ -864,10 +864,9 @@
+      */
+     public StringBuffer format(Calendar calendar, StringBuffer buf) {
+         if (mTimeZoneForced) {
+-            calendar = (Calendar) calendar.clone();
+-            calendar.setTimeZone(mTimeZone);
++            Calendar newCalendar = new GregorianCalendar(mTimeZone);
++            newCalendar.setTime(calendar.getTime());
++            calendar = newCalendar;
+         }
+         return applyRules(calendar, buf);
+     }

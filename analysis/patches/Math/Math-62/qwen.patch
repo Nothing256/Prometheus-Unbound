@@ -1,0 +1,49 @@
+diff --git a/src/main/java/org/apache/commons/math/optimization/univariate/MultiStartUnivariateRealOptimizer.java b/src/main/java/org/apache/commons/math/optimization/univariate/MultiStartUnivariateRealOptimizer.java
+index 1200544d7..a41b1f5a7 100644
+--- a/src/main/java/org/apache/commons/math/optimization/univariate/MultiStartUnivariateRealOptimizer.java
++++ b/src/main/java/org/apache/commons/math/optimization/univariate/MultiStartUnivariateRealOptimizer.java
+@@ -152,10 +152,18 @@ public class MultiStartUnivariateRealOptimizer<FUNC extends UnivariateRealFuncti
+                                                  final double startValue)
+         throws FunctionEvaluationException {
+         optima = new UnivariateRealPointValuePair[starts];
+-        totalEvaluations = 0;
++
++        // Store the number of evaluations before we start our runs
++        final int initialEvaluations = optimizer.getEvaluations();
++        totalEvaluations = initialEvaluations;  // Initialize with the count before our runs
+ 
+         // Multi-start loop.
+         for (int i = 0; i < starts; ++i) {
++            // Check if we've exceeded the maximum total evaluations allowed
++            if (totalEvaluations >= maxEvaluations) {
++                break;
++            }
++
+             try {
+                 final double bound1 = (i == 0) ? min : min + generator.nextDouble() * (max - min);
+                 final double bound2 = (i == 0) ? max : min + generator.nextDouble() * (max - min);
+@@ -166,9 +174,21 @@ public class MultiStartUnivariateRealOptimizer<FUNC extends UnivariateRealFuncti
+                 optima[i] = null;
+             }
+ 
+-            final int usedEvaluations = optimizer.getEvaluations();
+-            optimizer.setMaxEvaluations(optimizer.getMaxEvaluations() - usedEvaluations);
+-            totalEvaluations += usedEvaluations;
++            // Get the total evaluations after this run
++            final int currentTotalEvals = optimizer.getEvaluations();
++
++            // The original bug was: optimizer.setMaxEvaluations(optimizer.getMaxEvaluations() - currentTotalEvals);
++            // The original incorrect accumulation was: totalEvaluations += currentTotalEvals;
++
++            // We want totalEvaluations to be the TOTAL number of evaluations done in THIS optimize call
++            // So it should be: initial evaluations + evaluations done in this call
++            // Which is simply the current total evaluations from the optimizer
++            totalEvaluations = currentTotalEvals;
++
++            // Check if we've exceeded the maximum allowed and break if so
++            if (totalEvaluations > maxEvaluations) {
++                break;
++            }
+         }
+ 
+         sortPairs(goal);

@@ -1,0 +1,23 @@
+diff --git a/src/main/java/org/jsoup/nodes/Entities.java b/src/main/java/org/jsoup/nodes/Entities.java
+index 4daf7208..03f6db91 100644
+--- a/src/main/java/org/jsoup/nodes/Entities.java
++++ b/src/main/java/org/jsoup/nodes/Entities.java
+@@ -65,9 +65,15 @@ public class Entities {
+                     charval = full.get(name);
+             }
+ 
+-            if (charval != -1 || charval > 0xFFFF) { // out of range
+-                String c = Character.toString((char) charval);
+-                m.appendReplacement(accum, c);
++            if (charval != -1) {
++                String c;
++                if (charval <= 0xFFFF) {
++                    c = Character.toString((char) charval);
++                } else {
++                    // Handle characters beyond the Basic Multilingual Plane using surrogate pairs
++                    c = new String(Character.toChars(charval));
++                }
++                m.appendReplacement(accum, Matcher.quoteReplacement(c));
+             } else {
+                 m.appendReplacement(accum, m.group(0));
+             }

@@ -1,0 +1,69 @@
+diff --git a/src/main/java/org/jsoup/nodes/Comment.java b/src/main/java/org/jsoup/nodes/Comment.java
+index d0669fef..a03fe85a 100644
+--- a/src/main/java/org/jsoup/nodes/Comment.java
++++ b/src/main/java/org/jsoup/nodes/Comment.java
+@@ -73,13 +73,57 @@ public class Comment extends LeafNode {
+      */
+     public XmlDeclaration asXmlDeclaration() {
+         String data = getData();
+-        Document doc = Jsoup.parse("<" + data.substring(1, data.length() -1) + ">", baseUri(), Parser.xmlParser());
+-        XmlDeclaration decl = null;
+-        if (doc.childNodeSize() > 0) {
+-            Element el = doc.child(0);
+-            decl = new XmlDeclaration(NodeUtils.parser(doc).settings().normalizeTag(el.tagName()), data.startsWith("!"));
+-            decl.attributes().addAll(el.attributes());
++        // Need at least 2 characters for a valid XML declaration (e.g. "?x?" or "!x>")
++        if (data.length() < 2) {
++            return null;
++        }
++
++        // Check if the first character is ? or ! (as per isXmlDeclaration method)
++        char firstChar = data.charAt(0);
++        if (firstChar != '?' && firstChar != '!') {
++            return null;
++        }
++
++        String content;
++        // For properly formatted XML/DTP declarations, extract the content between markers
++        try {
++            if (firstChar == '?' && data.charAt(data.length() - 1) == '?') {
++                // XML declaration like <?xml?>
++                if (data.length() == 2) {
++                    // Just "??", no content
++                    return null;
++                }
++                content = data.substring(1, data.length() - 1);
++            } else if (firstChar == '!' && data.charAt(data.length() - 1) == '>') {
++                // DTD declaration like <!DOCTYPE>
++                if (data.length() == 2) {
++                    // Just "!>", no content
++                    return null;
++                }
++                content = data.substring(1, data.length() - 1);
++            } else {
++                // Malformed - just get content after first character
++                // But make sure we can safely take substring from index 1
++                content = data.substring(1);
++            }
++        } catch (IndexOutOfBoundsException e) {
++            // This should not happen with our checks, but just in case
++            return null;
++        }
++
++        try {
++            // Parse the content as an XML element
++            Document doc = Jsoup.parse("<" + content + ">", baseUri(), Parser.xmlParser());
++            XmlDeclaration decl = null;
++            if (doc.childNodeSize() > 0) {
++                Element el = doc.child(0);
++                decl = new XmlDeclaration(NodeUtils.parser(doc).settings().normalizeTag(el.tagName()), firstChar == '!');
++                decl.attributes().addAll(el.attributes());
++            }
++            return decl;
++        } catch (Exception e) {
++            // If parsing fails for any reason, return null instead of throwing
++            return null;
+         }
+-        return decl;
+     }
+ }

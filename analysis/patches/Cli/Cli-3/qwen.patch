@@ -1,0 +1,56 @@
+diff --git a/src/java/org/apache/commons/cli/TypeHandler.java b/src/java/org/apache/commons/cli/TypeHandler.java
+index addf90b..1b446d9 100644
+--- a/src/java/org/apache/commons/cli/TypeHandler.java
++++ b/src/java/org/apache/commons/cli/TypeHandler.java
+@@ -20,7 +20,10 @@ import java.io.File;
+ import java.net.MalformedURLException;
+ import java.net.URL;
+ 
++import java.text.ParseException;
++import java.text.SimpleDateFormat;
+ import java.util.Date;
++import java.util.TimeZone;
+ 
+ /**
+   * This is a temporary implementation. TypeHandler will handle the 
+@@ -197,14 +200,35 @@ public class TypeHandler {
+      */
+     public static Date createDate(String str)
+     {
+-        Date date = null;
++        // Try multiple formats to parse the date string
++        String[] formats = {
++            "yyyy-MM-dd HH:mm:ss z",
++            "yyyy-MM-dd HH:mm:ss",
++            "yyyy-MM-dd",
++            "MM/dd/yyyy",
++            "dd/MM/yyyy",
++            "EEE MMM dd HH:mm:ss zzz yyyy"
++        };
+ 
+-        if (date == null)
+-        {
+-            System.err.println("Unable to parse: " + str);
++        // Use consistent timezone handling for all formats
++        for (String format : formats) {
++            try {
++                SimpleDateFormat sdf = new SimpleDateFormat(format);
++                sdf.setTimeZone(TimeZone.getTimeZone("GMT"));  // Use GMT to prevent timezone issues
++                return sdf.parse(str);
++            } catch (ParseException e) {
++                continue;
++            }
+         }
+ 
+-        return date;
++        // If all standard formats fail, try parsing as a timestamp
++        try {
++            long timestamp = Long.parseLong(str);
++            return new Date(timestamp);
++        } catch (NumberFormatException e) {
++            System.err.println("Unable to parse: " + str);
++            return null;
++        }
+     }
+ 
+     /**

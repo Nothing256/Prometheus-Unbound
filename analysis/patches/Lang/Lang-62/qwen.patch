@@ -1,0 +1,37 @@
+diff --git a/src/java/org/apache/commons/lang/Entities.java b/src/java/org/apache/commons/lang/Entities.java
+index 21df7ef68..84a1a518e 100644
+--- a/src/java/org/apache/commons/lang/Entities.java
++++ b/src/java/org/apache/commons/lang/Entities.java
+@@ -847,6 +847,10 @@ class Entities {
+                             } else {
+                                 entityValue = Integer.parseInt(entityName.substring(1));
+                             }
++                            // Check if the numeric value is within the valid Unicode range
++                            if (entityValue < 0 || entityValue > 0x10FFFF) {
++                                entityValue = -1;
++                            }
+                         } catch (NumberFormatException ex) {
+                             entityValue = -1;
+                         }
+@@ -910,7 +914,7 @@ class Entities {
+                 int entityContentLen = entityContent.length();
+                 if (entityContentLen > 0) {
+                     if (entityContent.charAt(0) == '#') { //escaped value content is an integer (decimal or hexidecimal)
+-                        if (entityContentLen > 1) {  
++                        if (entityContentLen > 1) {
+                             char isHexChar = entityContent.charAt(1);
+                             try {
+                                 switch (isHexChar) {
+@@ -922,7 +926,12 @@ class Entities {
+                                         entityValue = Integer.parseInt(entityContent.substring(1), 10);
+                                     }
+                                 }
++                                // Check if the numeric value is within the valid Unicode range
++                                if (entityValue < 0 || entityValue > 0x10FFFF) {
++                                    entityValue = -1;
++                                }
+                             } catch (NumberFormatException e) {
++                                entityValue = -1;
+                             }
+                         }
+                     } else { //escaped value content is an entity name

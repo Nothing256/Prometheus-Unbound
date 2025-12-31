@@ -1,0 +1,11 @@
+diff --git a/src/main/java/org/jsoup/parser/Parser.java b/src/main/java/org/jsoup/parser/Parser.java
+index 1234567..89abcde 100644
+--- a/src/main/java/org/jsoup/parser/Parser.java
++++ b/src/main/java/org/jsoup/parser/Parser.java
+@@ -146,6 +146,7 @@ public class Parser {
+             String data = tq.chompTo("</" + tagName);
+             tq.chompTo(">");
++            tq.matchChomp(">"); // try to match and consume the '>' character that should remain after chompTo(">")
+ 
+             Node dataNode;
+             if (tag.equals(titleTag) || tag.equals(textareaTag)) // want to show as text, but not contain inside tags (so not a data tag?)

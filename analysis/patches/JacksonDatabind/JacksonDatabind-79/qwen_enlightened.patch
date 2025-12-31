@@ -1,0 +1,24 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/introspect/JacksonAnnotationIntrospector.java b/src/main/java/com/fasterxml/jackson/databind/introspect/JacksonAnnotationIntrospector.java
+index d74a2e99f..656f46f2b 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/introspect/JacksonAnnotationIntrospector.java
++++ b/src/main/java/com/fasterxml/jackson/databind/introspect/JacksonAnnotationIntrospector.java
+@@ -579,6 +579,19 @@ public class JacksonAnnotationIntrospector
+         if (ref != null) {
+             objectIdInfo = objectIdInfo.withAlwaysAsId(ref.alwaysAsId());
+         }
++
++        // Also check if the type of the annotated member has @JsonIdentityReference
++        // This handles the case where the annotation is on the class definition itself
++        if (objectIdInfo != null && !objectIdInfo.getAlwaysAsId()) {
++            // Get the type of the annotated member (field type, method return type, etc.)
++            Class<?> type = ann.getRawType();
++            if (type != null) {
++                JsonIdentityReference typeRef = type.getAnnotation(JsonIdentityReference.class);
++                if (typeRef != null) {
++                    objectIdInfo = objectIdInfo.withAlwaysAsId(typeRef.alwaysAsId());
++                }
++            }
++        }
+         return objectIdInfo;
+     }
+ 

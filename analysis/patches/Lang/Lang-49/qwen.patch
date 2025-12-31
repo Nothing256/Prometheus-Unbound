@@ -1,0 +1,28 @@
+diff --git a/src/java/org/apache/commons/lang/math/Fraction.java b/src/java/org/apache/commons/lang/math/Fraction.java
+index 5f8e5655b..588eea728 100644
+--- a/src/java/org/apache/commons/lang/math/Fraction.java
++++ b/src/java/org/apache/commons/lang/math/Fraction.java
+@@ -456,7 +456,7 @@ public final class Fraction extends Number implements Comparable {
+     /**
+      * <p>Reduce the fraction to the smallest values for the numerator and
+      * denominator, returning the result.</p>
+-     * 
++     *
+      * <p>For example, if this fraction represents 2/4, then the result
+      * will be 1/2.</p>
+      *
+@@ -567,7 +567,13 @@ public final class Fraction extends Number implements Comparable {
+      * @return the greatest common divisor, never zero
+      */
+     private static int greatestCommonDivisor(int u, int v) {
+-        //if either op. is abs 0 or 1, return 1:
++        if (u == 0) {
++            return Math.abs(v);
++        }
++        if (v == 0) {
++            return Math.abs(u);
++        }
++        //if either op. is abs 1, return 1:
+         if (Math.abs(u) <= 1 || Math.abs(v) <= 1) {
+             return 1;
+         }

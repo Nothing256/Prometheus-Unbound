@@ -1,0 +1,11 @@
+--- /tmp/original_Fraction.java	2025-12-16 13:58:54
++++ /Users/nothing/workspace/prometheus_workdir_qwen/math_27_blind_auto/src/main/java/org/apache/commons/math3/fraction/Fraction.java	2025-12-16 13:58:13
+@@ -594,7 +594,7 @@
+      * @return the fraction percentage as a <tt>double</tt>.
+      */
+     public double percentageValue() {
+-        return multiply(100).doubleValue();
++        return (double) numerator * 100.0 / (double) denominator;
+     }
+ 
+     /**

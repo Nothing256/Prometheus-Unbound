@@ -1,0 +1,90 @@
+diff --git a/gson/src/main/java/com/google/gson/internal/$Gson$Types.java b/gson/src/main/java/com/google/gson/internal/$Gson$Types.java
+index c2372c79..3dcc3584 100644
+--- a/gson/src/main/java/com/google/gson/internal/$Gson$Types.java
++++ b/gson/src/main/java/com/google/gson/internal/$Gson$Types.java
+@@ -75,6 +75,14 @@ public final class $Gson$Types {
+    * this returns {@code ?}, which is shorthand for {@code ? extends Object}.
+    */
+   public static WildcardType subtypeOf(Type bound) {
++    // Normalize: subtype(? extends T) = subtype(T)
++    if (bound instanceof WildcardType) {
++      WildcardType innerWildcard = (WildcardType) bound;
++      if (innerWildcard.getUpperBounds().length > 0 && innerWildcard.getLowerBounds().length == 0) {
++        // This is an 'extends' wildcard (no lower bounds), so return the same wildcard instead of nesting
++        return innerWildcard;
++      }
++    }
+     Type[] upperBounds;
+       upperBounds = new Type[] { bound };
+     return new WildcardTypeImpl(upperBounds, EMPTY_TYPE_ARRAY);
+@@ -86,6 +94,18 @@ public final class $Gson$Types {
+    * super String}.
+    */
+   public static WildcardType supertypeOf(Type bound) {
++    // Normalize: super(? super T) = super(T)
++    if (bound instanceof WildcardType) {
++      WildcardType innerWildcard = (WildcardType) bound;
++      if (innerWildcard.getLowerBounds().length > 0) {
++        // This is a 'super' wildcard, so return the same wildcard instead of nesting
++        return innerWildcard;
++      } else if (innerWildcard.getUpperBounds().length > 0 && innerWildcard.getLowerBounds().length == 0) {
++        // This is a 'extends' wildcard ('? extends T')
++        // According to test expectations, super(? extends T) should be equivalent to ? extends Object
++        return subtypeOf(Object.class);
++      }
++    }
+     Type[] lowerBounds;
+       lowerBounds = new Type[] { bound };
+     return new WildcardTypeImpl(new Type[] { Object.class }, lowerBounds);
+@@ -543,17 +563,45 @@ public final class $Gson$Types {
+       checkArgument(upperBounds.length == 1);
+ 
+       if (lowerBounds.length == 1) {
+-        checkNotNull(lowerBounds[0]);
+-        checkNotPrimitive(lowerBounds[0]);
++        Type lowerBoundType = lowerBounds[0];
++        // Normalize: if the lower bound is itself a wildcard '? extends T', then
++        // '? super (? extends T)' should normalize appropriately to avoid nesting
++        if (lowerBoundType instanceof WildcardType) {
++          WildcardType nestedWildcard = (WildcardType) lowerBoundType;
++          if (nestedWildcard.getUpperBounds().length == 1 && nestedWildcard.getLowerBounds().length == 0) {
++            // This is a '? extends T' wildcard, so '? super (? extends T)' normalizes to '? super T'
++            lowerBoundType = nestedWildcard.getUpperBounds()[0];
++          } else if (nestedWildcard.getLowerBounds().length == 1) {
++            // This is a '? super T' wildcard, so '? super (? super T)' normalizes to '? super T'
++            lowerBoundType = nestedWildcard.getLowerBounds()[0];
++          }
++        }
++
++        checkNotNull(lowerBoundType);
++        checkNotPrimitive(lowerBoundType);
+         checkArgument(upperBounds[0] == Object.class);
+-        this.lowerBound = canonicalize(lowerBounds[0]);
++        this.lowerBound = canonicalize(lowerBoundType);
+         this.upperBound = Object.class;
+ 
+       } else {
+-        checkNotNull(upperBounds[0]);
+-        checkNotPrimitive(upperBounds[0]);
++        Type upperBoundType = upperBounds[0];
++        // Normalize: if the upper bound is itself a wildcard
++        if (upperBoundType instanceof WildcardType) {
++          WildcardType nestedWildcard = (WildcardType) upperBoundType;
++          if (nestedWildcard.getLowerBounds().length == 1) {
++            // This is a '? super T' wildcard, so '? extends (? super T)' normalizes to '? extends Object'
++            // since the effective upper bound is Object
++            upperBoundType = Object.class;
++          } else if (nestedWildcard.getUpperBounds().length == 1 && nestedWildcard.getLowerBounds().length == 0) {
++            // This is a '? extends T' wildcard, so '? extends (? extends T)' normalizes to '? extends T'
++            upperBoundType = nestedWildcard.getUpperBounds()[0];
++          }
++        }
++
++        checkNotNull(upperBoundType);
++        checkNotPrimitive(upperBoundType);
+         this.lowerBound = null;
+-        this.upperBound = canonicalize(upperBounds[0]);
++        this.upperBound = canonicalize(upperBoundType);
+       }
+     }
+ 

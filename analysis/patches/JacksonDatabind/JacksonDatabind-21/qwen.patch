@@ -1,0 +1,30 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/introspect/JacksonAnnotationIntrospector.java b/src/main/java/com/fasterxml/jackson/databind/introspect/JacksonAnnotationIntrospector.java
+index 624c08d5c..0207c3aee 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/introspect/JacksonAnnotationIntrospector.java
++++ b/src/main/java/com/fasterxml/jackson/databind/introspect/JacksonAnnotationIntrospector.java
+@@ -988,4 +988,25 @@ public class JacksonAnnotationIntrospector
+     protected StdTypeResolverBuilder _constructNoTypeResolverBuilder() {
+         return StdTypeResolverBuilder.noTypeInfoBuilder();
+     }
++
++    @Override
++    public String findEnumValue(Enum<?> value) {
++        // First, get the enum constant's field to check for annotations
++        try {
++            Class<?> enumClass = value.getDeclaringClass();
++            java.lang.reflect.Field enumField = enumClass.getDeclaredField(value.name());
++            JsonProperty jsonProperty = enumField.getAnnotation(JsonProperty.class);
++            if (jsonProperty != null) {
++                String name = jsonProperty.value();
++                // If the name is non-empty, return it; otherwise, fall back to default behavior
++                if (name != null && !name.isEmpty()) {
++                    return name;
++                }
++            }
++        } catch (NoSuchFieldException e) {
++            // If field is not found, fall through to default behavior
++        }
++        // Default behavior: return the enum name
++        return value.name();
++    }
+ }

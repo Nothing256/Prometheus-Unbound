@@ -1,0 +1,44 @@
+diff --git a/src/main/java/org/joda/time/base/BaseSingleFieldPeriod.java b/src/main/java/org/joda/time/base/BaseSingleFieldPeriod.java
+index 91b2c5c2..c0a36523 100644
+--- a/src/main/java/org/joda/time/base/BaseSingleFieldPeriod.java
++++ b/src/main/java/org/joda/time/base/BaseSingleFieldPeriod.java
+@@ -24,6 +24,7 @@ import org.joda.time.DurationFieldType;
+ import org.joda.time.MutablePeriod;
+ import org.joda.time.Period;
+ import org.joda.time.PeriodType;
++import org.joda.time.MonthDay;
+ import org.joda.time.ReadableInstant;
+ import org.joda.time.ReadablePartial;
+ import org.joda.time.ReadablePeriod;
+@@ -101,10 +102,31 @@ public abstract class BaseSingleFieldPeriod
+             throw new IllegalArgumentException("ReadablePartial objects must be contiguous");
+         }
+         Chronology chrono = DateTimeUtils.getChronology(start.getChronology()).withUTC();
++
++        // Special handling for MonthDay to ensure leap year handling
++        if (start instanceof MonthDay && end instanceof MonthDay) {
++            // Use a leap year (like 2000) to properly handle Feb 29th
++            chrono = chrono.withUTC();
++            long startMillis = setMonthDayWithYear(2000, start, chrono);
++            long endMillis = setMonthDayWithYear(2000, end, chrono);
++            int[] values = chrono.get(zeroInstance, startMillis, endMillis);
++            return values[0];
++        }
++
+         int[] values = chrono.get(zeroInstance, chrono.set(start, 0L), chrono.set(end, 0L));
+         return values[0];
+     }
+ 
++    /**
++     * Sets a MonthDay partial with a specific year to get the correct millis.
++     */
++    private static long setMonthDayWithYear(int year, ReadablePartial monthDay, Chronology chrono) {
++        // Create a date with the specified year + month + day
++        int month = monthDay.getValue(0);  // monthOfYear
++        int day = monthDay.getValue(1);    // dayOfMonth
++        return chrono.getDateTimeMillis(year, month, day, 0, 0, 0, 0);
++    }
++
+     /**
+      * Creates a new instance representing the number of complete standard length units
+      * in the specified period.

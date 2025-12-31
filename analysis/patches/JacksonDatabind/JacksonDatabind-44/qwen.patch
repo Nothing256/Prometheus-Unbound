@@ -1,0 +1,87 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/type/SimpleType.java b/src/main/java/com/fasterxml/jackson/databind/type/SimpleType.java
+index 09fae7708..36131df95 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/type/SimpleType.java
++++ b/src/main/java/com/fasterxml/jackson/databind/type/SimpleType.java
+@@ -53,20 +53,42 @@ public class SimpleType // note: until 2.6 was final
+             Object valueHandler, Object typeHandler, boolean asStatic)
+     {
+         super(cls, bindings, superClass, superInts,
+-                0, valueHandler, typeHandler, asStatic);
++                _computeAdditionalHash(valueHandler, typeHandler, asStatic), valueHandler, typeHandler, asStatic);
+     }
+ 
+     /**
+      * Pass-through constructor used by {@link ReferenceType}.
+-     * 
++     *
+      * @since 2.6
+      */
+     protected SimpleType(Class<?> cls, TypeBindings bindings,
+             JavaType superClass, JavaType[] superInts, int extraHash,
+             Object valueHandler, Object typeHandler, boolean asStatic)
+     {
+-        super(cls, bindings, superClass, superInts, 
+-                extraHash, valueHandler, typeHandler, asStatic);
++        super(cls, bindings, superClass, superInts,
++                _combineHash(extraHash, _computeAdditionalHash(valueHandler, typeHandler, asStatic)), valueHandler, typeHandler, asStatic);
++    }
++
++    /**
++     * Helper method to compute additional hash code contribution from handler values.
++     */
++    private static int _computeAdditionalHash(Object valueHandler, Object typeHandler, boolean asStatic) {
++        int hash = 0;
++        if (valueHandler != null) {
++            hash += valueHandler.hashCode();
++        }
++        if (typeHandler != null) {
++            hash += typeHandler.hashCode() * 31;
++        }
++        hash += (asStatic ? 31 * 31 : 0);
++        return hash;
++    }
++
++    /**
++     * Helper method to combine multiple hash codes.
++     */
++    private static int _combineHash(int hash1, int hash2) {
++        return hash1 + hash2;
+     }
+     
+     /**
+@@ -286,12 +308,33 @@ public class SimpleType // note: until 2.6 was final
+ 
+         SimpleType other = (SimpleType) o;
+ 
+-        // Classes must be identical... 
++        // Classes must be identical...
+         if (other._class != this._class) return false;
+ 
+         // And finally, generic bindings, if any
+         TypeBindings b1 = _bindings;
+         TypeBindings b2 = other._bindings;
+-        return b1.equals(b2);
++        if (!b1.equals(b2)) return false;
++
++        // Also: value handler, type handler and static typing must match
++        if (_valueHandler != other._valueHandler) {
++            if (_valueHandler == null) {
++                if (other._valueHandler != null) {
++                    return false;
++                }
++            } else if (!_valueHandler.equals(other._valueHandler)) {
++                return false;
++            }
++        }
++        if (_typeHandler != other._typeHandler) {
++            if (_typeHandler == null) {
++                if (other._typeHandler != null) {
++                    return false;
++                }
++            } else if (!_typeHandler.equals(other._typeHandler)) {
++                return false;
++            }
++        }
++        return _asStatic == other._asStatic;
+     }
+ }

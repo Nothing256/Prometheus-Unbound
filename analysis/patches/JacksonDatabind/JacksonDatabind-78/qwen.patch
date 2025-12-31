@@ -1,0 +1,91 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializerFactory.java b/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializerFactory.java
+index 4a9d8631e..e805f8f1c 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializerFactory.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializerFactory.java
+@@ -45,8 +45,14 @@ public class BeanDeserializerFactory
+      *
+      * @since 2.8.9
+      */
+-        // Courtesy of [https://github.com/kantega/notsoserial]:
+-        // (and wrt [databind#1599]
++    protected final static Set<String> NO_DESER_CLASS_NAMES = Collections.unmodifiableSet(new HashSet<String>(
++        Arrays.asList(
++            // Focus on the specific classes that cause the security issue [databind#1599]
++            "com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl",
++            "com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet",
++            "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl"
++        )
++    ));
+ 
+     /**
+      * Set of class names of types that are never to be deserialized.
+@@ -113,9 +119,21 @@ public class BeanDeserializerFactory
+         throws JsonMappingException
+     {
+         final DeserializationConfig config = ctxt.getConfig();
++        // Check for nasty classes to prevent security issues before processing
++        String className = type.getRawClass().getName();
++        if (NO_DESER_CLASS_NAMES.contains(className)) {
++            throw JsonMappingException.from(ctxt,
++                "Illegal type to deserialize: " + className + " (prevented for security reasons)");
++        }
+         // We may also have custom overrides:
+         JsonDeserializer<Object> custom = _findCustomBeanDeserializer(type, config, beanDesc);
+         if (custom != null) {
++            // Also check the custom deserializer class itself
++            String customClassName = custom.getClass().getName();
++            if (NO_DESER_CLASS_NAMES.contains(customClassName)) {
++                throw JsonMappingException.from(ctxt,
++                    "Illegal custom deserializer to use: " + customClassName + " (prevented for security reasons)");
++            }
+             return custom;
+         }
+         /* One more thing to check: do we have an exception type
+@@ -138,6 +156,12 @@ public class BeanDeserializerFactory
+                  * interface doesn't have constructors, for one)
+                  */
+                 beanDesc = config.introspect(concreteType);
++                // Check if the concrete type is a dangerous class
++                String materializedClassName = concreteType.getRawClass().getName();
++                if (NO_DESER_CLASS_NAMES.contains(materializedClassName)) {
++                    throw JsonMappingException.from(ctxt,
++                        "Illegal type to deserialize: " + materializedClassName + " (prevented for security reasons)");
++                }
+                 return buildBeanDeserializer(ctxt, concreteType, beanDesc);
+             }
+         }
+@@ -145,6 +169,12 @@ public class BeanDeserializerFactory
+         @SuppressWarnings("unchecked")
+         JsonDeserializer<Object> deser = (JsonDeserializer<Object>) findStdDeserializer(ctxt, type, beanDesc);
+         if (deser != null) {
++            // Check if the standard deserializer is for a dangerous class
++            String stdClassName = deser.getClass().getName();
++            if (NO_DESER_CLASS_NAMES.contains(stdClassName)) {
++                throw JsonMappingException.from(ctxt,
++                    "Illegal standard deserializer to use: " + stdClassName + " (prevented for security reasons)");
++            }
+             return deser;
+         }
+ 
+@@ -152,7 +182,12 @@ public class BeanDeserializerFactory
+         if (!isPotentialBeanType(type.getRawClass())) {
+             return null;
+         }
+-        // For checks like [databind#1599]
++        // For checks like [databind#1599] - check for nasty classes to prevent security issues
++        String beanClassName = type.getRawClass().getName();
++        if (NO_DESER_CLASS_NAMES.contains(beanClassName)) {
++            throw JsonMappingException.from(ctxt,
++                "Illegal type to deserialize: " + beanClassName + " (prevented for security reasons)");
++        }
+         // Use generic bean introspection to build deserializer
+         return buildBeanDeserializer(ctxt, type, beanDesc);
+     }
+@@ -875,7 +910,5 @@ beanDesc.getBeanClass().getName(), name, ((AnnotatedParameter) m).getIndex());
+     /**
+      * @since 2.8.9
+      */
+-        // There are certain nasty classes that could cause problems, mostly
+-        // via default typing -- catch them here.
+ 
+ }

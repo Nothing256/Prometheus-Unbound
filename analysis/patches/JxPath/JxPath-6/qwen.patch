@@ -1,0 +1,43 @@
+--- a/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationCompare.java
++++ b/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationCompare.java
+@@ -16,6 +16,9 @@
+ package org.apache.commons.jxpath.ri.compiler;
+ 
+ import java.util.Collection;
++import java.lang.reflect.Array;
+ import java.util.HashSet;
+ import java.util.Iterator;
+ 
+@@ -22,6 +25,7 @@
+ import org.apache.commons.jxpath.ri.InfoSetUtil;
+ import org.apache.commons.jxpath.ri.axes.InitialContext;
+ import org.apache.commons.jxpath.ri.axes.SelfContext;
++import org.apache.commons.jxpath.util.ValueUtils;
+ 
+ /**
+  * Common superclass for the implementations of Expression for the operations
+@@ -66,8 +70,14 @@
+ 
+         if (l instanceof Collection) {
+             l = ((Collection) l).iterator();
++        }
++        else if (l != null && l.getClass().isArray()) {
++            l = ValueUtils.iterate(l);
+         }
+ 
+         if (r instanceof Collection) {
+             r = ((Collection) r).iterator();
++        }
++        else if (r != null && r.getClass().isArray()) {
++            r = ValueUtils.iterate(r);
+         }
+ 
+         if ((l instanceof Iterator) && !(r instanceof Iterator)) {
+--- a/src/java/org/apache/commons/jxpath/ri/InfoSetUtil.java
++++ b/src/java/org/apache/commons/jxpath/ri/InfoSetUtil.java
+@@ -99,7 +99,7 @@
+         }
+         if (object instanceof Boolean) {
+-            return ((Boolean) object).booleanValue() ? 0.0 : 1.0;
++            return ((Boolean) object).booleanValue() ? 1.0 : 0.0;
+         }

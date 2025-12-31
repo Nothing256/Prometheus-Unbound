@@ -1,0 +1,47 @@
+diff --git a/src/org/mockito/internal/verification/VerificationOverTimeImpl.java b/src/org/mockito/internal/verification/VerificationOverTimeImpl.java
+index c5a66c501..844090e01 100644
+--- a/src/org/mockito/internal/verification/VerificationOverTimeImpl.java
++++ b/src/org/mockito/internal/verification/VerificationOverTimeImpl.java
+@@ -88,8 +88,17 @@ public class VerificationOverTimeImpl implements VerificationMode {
+             } catch (MockitoAssertionError e) {
+                 error = handleVerifyException(e);
+             }
+-            catch (org.mockito.exceptions.verification.junit.ArgumentsAreDifferent e) {
+-                error = handleVerifyException(e);
++            // To avoid NoClassDefFoundError when this class loads without JUnit present,
++            // we catch Exception and use reflection to check for ArgumentsAreDifferent
++            catch (Exception e) {
++                if (isArgumentsAreDifferentException(e) && e instanceof AssertionError) {
++                    error = handleVerifyException((AssertionError) e);
++                } else if (e instanceof AssertionError) {
++                    error = handleVerifyException((AssertionError) e);
++                } else {
++                    // If it's not an AssertionError (including ArgumentsAreDifferent), re-throw
++                    throw e;
++                }
+             }
+         }
+ 
+@@ -111,6 +120,22 @@ public class VerificationOverTimeImpl implements VerificationMode {
+         return !(verificationMode instanceof AtMost || verificationMode instanceof NoMoreInteractions);
+     }
+ 
++    /**
++     * Checks if the exception is an ArgumentsAreDifferent exception using reflection
++     * to avoid hard dependency on JUnit classes which might not be present.
++     */
++    private boolean isArgumentsAreDifferentException(Throwable e) {
++        try {
++            // Use reflection to check if the exception is of the JUnit specific type
++            Class<?> argumentsAreDifferentClass = Class.forName("org.mockito.exceptions.verification.junit.ArgumentsAreDifferent");
++            return argumentsAreDifferentClass.isInstance(e);
++        } catch (ClassNotFoundException classNotFound) {
++            // If the class is not found, it means JUnit is not on the classpath
++            // In this case, the exception can't be of that type
++            return false;
++        }
++    }
++
+     private void sleep(long sleep) {
+         try {
+             Thread.sleep(sleep);

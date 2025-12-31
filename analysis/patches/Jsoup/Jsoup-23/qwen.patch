@@ -1,0 +1,25 @@
+diff --git a/src/main/java/org/jsoup/parser/CharacterReader.java b/src/main/java/org/jsoup/parser/CharacterReader.java
+index e07f7de7..8aade392 100644
+--- a/src/main/java/org/jsoup/parser/CharacterReader.java
++++ b/src/main/java/org/jsoup/parser/CharacterReader.java
+@@ -104,12 +104,18 @@ class CharacterReader {
+ 
+     String consumeLetterSequence() {
+         int start = pos;
++        boolean foundLetter = false;
+         while (!isEmpty()) {
+             char c = input.charAt(pos);
+-            if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
++            if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
+                 pos++;
+-            else
++                foundLetter = true;
++            } else if (foundLetter && (c >= '0' && c <= '9')) {
++                // After finding at least one letter, also consume digits (for entities like sup1, frac12)
++                pos++;
++            } else {
+                 break;
++            }
+         }
+ 
+         return input.substring(start, pos);

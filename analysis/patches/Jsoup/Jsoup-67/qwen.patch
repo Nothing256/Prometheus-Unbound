@@ -1,0 +1,152 @@
+diff --git a/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java b/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java
+index b07e47f9..398276bb 100644
+--- a/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java
++++ b/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java
+@@ -317,42 +317,97 @@ public class HtmlTreeBuilder extends TreeBuilder {
+     }
+ 
+     boolean removeFromStack(Element el) {
+-        for (int pos = stack.size() -1; pos >= 0; pos--) {
+-            Element next = stack.get(pos);
+-            if (next == el) {
+-                stack.remove(pos);
+-                return true;
++        int targetPos = -1;
++        // Find the element to remove
++        for (int pos = stack.size() - 1; pos >= 0; pos--) {
++            if (stack.get(pos) == el) {
++                targetPos = pos;
++                break;
++            }
++        }
++
++        if (targetPos != -1) {
++            // Remove all elements above the target element (from targetPos+1 to end)
++            int elementsAbove = stack.size() - (targetPos + 1);
++            ArrayList<Element> elementsAboveTarget = new ArrayList<>(elementsAbove);
++
++            // Remove elements from the top and store them temporarily
++            for (int i = 0; i < elementsAbove; i++) {
++                elementsAboveTarget.add(stack.remove(stack.size() - 1)); // Remove from end
++            }
++
++            // Now the target element is at the end of the stack
++            stack.remove(stack.size() - 1); // Remove target element (which is now at the end)
++
++            // Put back the elements that were above the target (in reverse order to maintain original sequence)
++            for (int i = elementsAboveTarget.size() - 1; i >= 0; i--) {
++                stack.add(elementsAboveTarget.get(i));
+             }
++
++            return true;
+         }
++
+         return false;
+     }
+ 
+     void popStackToClose(String elName) {
+-        for (int pos = stack.size() -1; pos >= 0; pos--) {
+-            Element next = stack.get(pos);
+-            stack.remove(pos);
+-            if (next.nodeName().equals(elName))
++        // Find the rightmost (topmost) element with the given name and pop everything above it and the element itself
++        // Use a single pass from the top, but pop efficiently from the end
++        int targetIndex = -1;
++        // First pass: find the topmost occurrence of the element to close
++        for (int pos = stack.size() - 1; pos >= 0; pos--) {
++            if (stack.get(pos).nodeName().equals(elName)) {
++                targetIndex = pos;
+                 break;
++            }
++        }
++
++        if (targetIndex != -1) {
++            // Now remove all elements from top of stack down to and including targetIndex
++            int elementsToRemove = stack.size() - targetIndex;
++            for (int i = 0; i < elementsToRemove; i++) {
++                stack.remove(stack.size() - 1); // Remove from end, which is O(1)
++            }
+         }
+     }
+ 
+     // elnames is sorted, comes from Constants
+     void popStackToClose(String... elNames) {
+-        for (int pos = stack.size() -1; pos >= 0; pos--) {
+-            Element next = stack.get(pos);
+-            stack.remove(pos);
+-            if (inSorted(next.nodeName(), elNames))
++        // Find the rightmost (topmost) element with one of the given names and pop everything above it and the element itself
++        int targetIndex = -1;
++        // First pass: find the topmost occurrence of an element to close
++        for (int pos = stack.size() - 1; pos >= 0; pos--) {
++            if (inSorted(stack.get(pos).nodeName(), elNames)) {
++                targetIndex = pos;
+                 break;
++            }
++        }
++
++        if (targetIndex != -1) {
++            // Now remove all elements from top of stack down to and including targetIndex
++            int elementsToRemove = stack.size() - targetIndex;
++            for (int i = 0; i < elementsToRemove; i++) {
++                stack.remove(stack.size() - 1); // Remove from end, which is O(1)
++            }
+         }
+     }
+ 
+     void popStackToBefore(String elName) {
+-        for (int pos = stack.size() -1; pos >= 0; pos--) {
+-            Element next = stack.get(pos);
+-            if (next.nodeName().equals(elName)) {
++        // Find the rightmost (topmost) element with the given name and pop everything above it (but NOT the element itself)
++        int targetIndex = -1;
++        // First pass: find the topmost occurrence of the element to stop before
++        for (int pos = stack.size() - 1; pos >= 0; pos--) {
++            if (stack.get(pos).nodeName().equals(elName)) {
++                targetIndex = pos;
+                 break;
+-            } else {
+-                stack.remove(pos);
++            }
++        }
++
++        if (targetIndex != -1) {
++            // Now remove all elements from top of stack down to (but not including) targetIndex
++            int elementsToRemove = stack.size() - (targetIndex + 1);
++            for (int i = 0; i < elementsToRemove; i++) {
++                stack.remove(stack.size() - 1); // Remove from end, which is O(1)
+             }
+         }
+     }
+@@ -370,12 +425,26 @@ public class HtmlTreeBuilder extends TreeBuilder {
+     }
+ 
+     private void clearStackToContext(String... nodeNames) {
+-        for (int pos = stack.size() -1; pos >= 0; pos--) {
+-            Element next = stack.get(pos);
+-            if (StringUtil.in(next.nodeName(), nodeNames) || next.nodeName().equals("html"))
++        // Find the stopping element and remove everything above it
++        int stopIndex = -1;
++        // First pass: find the topmost element that should stop the clearing
++        for (int pos = stack.size() - 1; pos >= 0; pos--) {
++            Element element = stack.get(pos);
++            if (StringUtil.in(element.nodeName(), nodeNames) || element.nodeName().equals("html")) {
++                stopIndex = pos;
+                 break;
+-            else
+-                stack.remove(pos);
++            }
++        }
++
++        if (stopIndex != -1) {
++            // Now remove all elements from top of stack down to (but not including) stopIndex
++            int elementsToRemove = stack.size() - (stopIndex + 1);
++            for (int i = 0; i < elementsToRemove; i++) {
++                stack.remove(stack.size() - 1); // Remove from end, which is O(1)
++            }
++        } else {
++            // If no stopping element found, clear everything (remove all elements)
++            stack.clear();
+         }
+     }
+ 

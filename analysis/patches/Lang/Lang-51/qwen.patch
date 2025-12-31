@@ -1,0 +1,45 @@
+diff --git a/src/java/org/apache/commons/lang/BooleanUtils.java b/src/java/org/apache/commons/lang/BooleanUtils.java
+index 3fda4ecc1..406d1c8b7 100644
+--- a/src/java/org/apache/commons/lang/BooleanUtils.java
++++ b/src/java/org/apache/commons/lang/BooleanUtils.java
+@@ -663,33 +663,35 @@ public class BooleanUtils {
+             case 2: {
+                 char ch0 = str.charAt(0);
+                 char ch1 = str.charAt(1);
+-                return 
++                return
+                     (ch0 == 'o' || ch0 == 'O') &&
+                     (ch1 == 'n' || ch1 == 'N');
+             }
+             case 3: {
+                 char ch = str.charAt(0);
+                 if (ch == 'y') {
+-                    return 
++                    return
+                         (str.charAt(1) == 'e' || str.charAt(1) == 'E') &&
+                         (str.charAt(2) == 's' || str.charAt(2) == 'S');
+                 }
+                 if (ch == 'Y') {
+-                    return 
++                    return
+                         (str.charAt(1) == 'E' || str.charAt(1) == 'e') &&
+                         (str.charAt(2) == 'S' || str.charAt(2) == 's');
+                 }
++                // If not 'y' or 'Y', continue to return false
++                break;
+             }
+             case 4: {
+                 char ch = str.charAt(0);
+                 if (ch == 't') {
+-                    return 
++                    return
+                         (str.charAt(1) == 'r' || str.charAt(1) == 'R') &&
+                         (str.charAt(2) == 'u' || str.charAt(2) == 'U') &&
+                         (str.charAt(3) == 'e' || str.charAt(3) == 'E');
+                 }
+                 if (ch == 'T') {
+-                    return 
++                    return
+                         (str.charAt(1) == 'R' || str.charAt(1) == 'r') &&
+                         (str.charAt(2) == 'U' || str.charAt(2) == 'u') &&
+                         (str.charAt(3) == 'E' || str.charAt(3) == 'e');

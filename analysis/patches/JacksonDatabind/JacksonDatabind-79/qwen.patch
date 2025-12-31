@@ -1,0 +1,33 @@
+--- a/src/main/java/com/fasterxml/jackson/databind/introspect/JacksonAnnotationIntrospector.java
++++ b/src/main/java/com/fasterxml/jackson/databind/introspect/JacksonAnnotationIntrospector.java
+@@ -577,9 +577,31 @@
+     @Override
+     public ObjectIdInfo findObjectReferenceInfo(Annotated ann, ObjectIdInfo objectIdInfo) {
+         JsonIdentityReference ref = _findAnnotation(ann, JsonIdentityReference.class);
+-        if (ref != null) {
+-            objectIdInfo = objectIdInfo.withAlwaysAsId(ref.alwaysAsId());
++        if (ref != null) {
++            if (objectIdInfo != null) {
++                // Standard case: update the existing ObjectIdInfo with the alwaysAsId setting
++                objectIdInfo = objectIdInfo.withAlwaysAsId(ref.alwaysAsId());
++            } else {
++                // If no existing ObjectIdInfo, and this is a property member (field/method),
++                // check if the type it refers to has @JsonIdentityInfo
++                if (ann instanceof AnnotatedMember) {
++                    AnnotatedMember member = (AnnotatedMember) ann;
++                    // Get the raw class from the member's type
++                    Class<?> rawType = member.getRawType();
++                    // Check if this type has JsonIdentityInfo annotation directly
++                    JsonIdentityInfo info = rawType.getAnnotation(JsonIdentityInfo.class);
++                    if (info != null && info.generator() != ObjectIdGenerators.None.class) {
++                        // Create ObjectIdInfo from the type's annotation
++                        PropertyName name = PropertyName.construct(info.property());
++                        ObjectIdInfo typeObjectIdInfo = new ObjectIdInfo(name, info.scope(), info.generator(), info.resolver());
++                        // Use the type's ObjectIdInfo but with the property's alwaysAsId setting
++                        objectIdInfo = typeObjectIdInfo.withAlwaysAsId(ref.alwaysAsId());
++                    }
++                }
++            }
+         }
+         return objectIdInfo;
+     }

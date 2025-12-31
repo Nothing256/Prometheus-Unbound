@@ -1,0 +1,18 @@
+diff --git a/src/main/java/com/fasterxml/jackson/core/io/NumberInput.java b/src/main/java/com/fasterxml/jackson/core/io/NumberInput.java
+index 01c18d94..6c0576f3 100644
+--- a/src/main/java/com/fasterxml/jackson/core/io/NumberInput.java
++++ b/src/main/java/com/fasterxml/jackson/core/io/NumberInput.java
+@@ -292,7 +292,12 @@ public final class NumberInput
+ 
+     public static BigDecimal parseBigDecimal(String numStr) throws NumberFormatException
+     {
+-            return new BigDecimal(numStr);
++        // Check for special non-numeric values that BigDecimal cannot handle
++        if ("NaN".equals(numStr) || "Infinity".equals(numStr) || "-Infinity".equals(numStr) ||
++            "+Infinity".equals(numStr)) {
++            throw new NumberFormatException("Value '" + numStr + "' can not be represented as BigDecimal");
++        }
++        return new BigDecimal(numStr);
+     }
+ 
+     public static BigDecimal parseBigDecimal(char[] buffer) throws NumberFormatException {

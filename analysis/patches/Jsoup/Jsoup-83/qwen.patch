@@ -1,0 +1,20 @@
+diff --git a/src/main/java/org/jsoup/parser/CharacterReader.java b/src/main/java/org/jsoup/parser/CharacterReader.java
+index 80dffcd9..feb754f3 100644
+--- a/src/main/java/org/jsoup/parser/CharacterReader.java
++++ b/src/main/java/org/jsoup/parser/CharacterReader.java
+@@ -48,13 +48,13 @@ public final class CharacterReader {
+             return;
+ 
+         try {
+-            reader.skip(bufPos);
++            long skipped = reader.skip(bufPos);
+             reader.mark(maxBufferLen);
+             final int read = reader.read(charBuf);
+             reader.reset();
+             if (read != -1) {
+                 bufLength = read;
+-                readerPos += bufPos;
++                readerPos += skipped;
+                 bufPos = 0;
+                 bufMark = 0;
+                 bufSplitPoint = bufLength > readAheadLimit ? readAheadLimit : bufLength;

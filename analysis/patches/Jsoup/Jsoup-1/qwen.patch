@@ -1,0 +1,33 @@
+diff --git a/src/main/java/org/jsoup/nodes/Document.java b/src/main/java/org/jsoup/nodes/Document.java
+index bc0f650d..6410a192 100644
+--- a/src/main/java/org/jsoup/nodes/Document.java
++++ b/src/main/java/org/jsoup/nodes/Document.java
+@@ -5,6 +5,7 @@ import org.jsoup.parser.Tag;
+ 
+ import java.util.List;
+ import java.util.ArrayList;
++import java.util.Collections;
+ 
+ /**
+  A HTML Document.
+@@ -120,10 +121,17 @@ public class Document extends Element {
+             }
+         }
+ 
+-        for (Node node: toMove) {
++        // Process in reverse order to maintain document order when prepending
++        for (int i = toMove.size() - 1; i >= 0; i--) {
++            Node node = toMove.get(i);
+             element.removeChild(node);
+-            body().appendChild(new TextNode(" ", ""));
+-            body().appendChild(node);
++            // Add space BEFORE the node if body already had content
++            if (body().childNodes().size() > 0) {
++                // Insert space as the last child of body, so text node gets prepended before it
++                body().appendChild(new TextNode(" ", ""));
++            }
++            // Add the node to the beginning of the body to maintain document order
++            body().prependChild(node);
+         }
+     }
+ 

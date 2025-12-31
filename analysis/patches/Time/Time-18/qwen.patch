@@ -1,0 +1,86 @@
+--- original_GJChronology.java	2025-12-18 12:50:32
++++ src/main/java/org/joda/time/chrono/GJChronology.java	2025-12-18 12:49:33
+@@ -332,19 +332,29 @@
+             return base.getDateTimeMillis(year, monthOfYear, dayOfMonth, millisOfDay);
+         }
+ 
+-        // Assume date is Gregorian.
+-        long instant = iGregorianChronology.getDateTimeMillis
+-            (year, monthOfYear, dayOfMonth, millisOfDay);
+-        if (instant < iCutoverMillis) {
+-            // Maybe it's Julian.
+-            instant = iJulianChronology.getDateTimeMillis
+-                (year, monthOfYear, dayOfMonth, millisOfDay);
+-            if (instant >= iCutoverMillis) {
+-                // Okay, it's in the illegal cutover gap.
+-                throw new IllegalArgumentException("Specified date does not exist");
++        // Create a test instant using Gregorian calendar to see where it falls
++        // If the year is well before the cutover year, it should use Julian calendar directly
++        int gregorianCutoverYear = iGregorianChronology.year().get(iCutoverMillis);
++
++        if (year < gregorianCutoverYear) {
++            // Date is definitely in Julian period, so use Julian calendar directly
++            // This avoids the Gregorian validation failure for dates like Feb 29 in non-Gregorian leap years
++            return iJulianChronology.getDateTimeMillis(year, monthOfYear, dayOfMonth, millisOfDay);
++        } else {
++            // Same logic as original algorithm: try Gregorian first, fall back to Julian if before cutover
++            long instant = iGregorianChronology.getDateTimeMillis
++                (year, monthOfYear, dayOfMonth, millisOfDay);
++            if (instant < iCutoverMillis) {
++                // Maybe it's Julian.
++                instant = iJulianChronology.getDateTimeMillis
++                    (year, monthOfYear, dayOfMonth, millisOfDay);
++                if (instant >= iCutoverMillis) {
++                    // Okay, it's in the illegal cutover gap.
++                    throw new IllegalArgumentException("Specified date does not exist");
++                }
+             }
++            return instant;
+         }
+-        return instant;
+     }
+ 
+     public long getDateTimeMillis(int year, int monthOfYear, int dayOfMonth,
+@@ -359,22 +369,32 @@
+                  hourOfDay, minuteOfHour, secondOfMinute, millisOfSecond);
+         }
+ 
+-        // Assume date is Gregorian.
+-        long instant;
+-            instant = iGregorianChronology.getDateTimeMillis
++        // If the year is well before the cutover year, it should use Julian calendar directly
++        // This avoids the Gregorian validation failure for dates like Feb 29 in non-Gregorian leap years
++        int gregorianCutoverYear = iGregorianChronology.year().get(iCutoverMillis);
++
++        if (year < gregorianCutoverYear) {
++            // Date is definitely in Julian period, so use Julian calendar directly
++            return iJulianChronology.getDateTimeMillis
+                 (year, monthOfYear, dayOfMonth,
+                  hourOfDay, minuteOfHour, secondOfMinute, millisOfSecond);
+-        if (instant < iCutoverMillis) {
+-            // Maybe it's Julian.
+-            instant = iJulianChronology.getDateTimeMillis
++        } else {
++            // Same logic as original algorithm: try Gregorian first, fall back to Julian if before cutover
++            long instant = iGregorianChronology.getDateTimeMillis
+                 (year, monthOfYear, dayOfMonth,
+                  hourOfDay, minuteOfHour, secondOfMinute, millisOfSecond);
+-            if (instant >= iCutoverMillis) {
+-                // Okay, it's in the illegal cutover gap.
+-                throw new IllegalArgumentException("Specified date does not exist");
++            if (instant < iCutoverMillis) {
++                // Maybe it's Julian.
++                instant = iJulianChronology.getDateTimeMillis
++                    (year, monthOfYear, dayOfMonth,
++                     hourOfDay, minuteOfHour, secondOfMinute, millisOfSecond);
++                if (instant >= iCutoverMillis) {
++                    // Okay, it's in the illegal cutover gap.
++                    throw new IllegalArgumentException("Specified date does not exist");
++                }
+             }
++            return instant;
+         }
+-        return instant;
+     }
+ 
+     /**

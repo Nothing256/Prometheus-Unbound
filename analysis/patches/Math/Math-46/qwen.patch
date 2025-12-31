@@ -1,0 +1,24 @@
+diff --git a/src/main/java/org/apache/commons/math/complex/Complex.java b/src/main/java/org/apache/commons/math/complex/Complex.java
+index d55c25ab6..cfce44700 100644
+--- a/src/main/java/org/apache/commons/math/complex/Complex.java
++++ b/src/main/java/org/apache/commons/math/complex/Complex.java
+@@ -575,6 +575,7 @@ public class Complex implements FieldElement<Complex>, Serializable  {
+      * </pre>
+      * Returns {@link Complex#NaN} if either real or imaginary part of the
+      * input argument is {@code NaN} or infinite.
++     * Special case: Returns {@link Complex#NaN} if z = i or z = -i.
+      *
+      * @return the inverse tangent of this complex number
+      * @since 1.2
+@@ -584,6 +585,11 @@ public class Complex implements FieldElement<Complex>, Serializable  {
+             return NaN;
+         }
+ 
++        // Special case: atan(i) and atan(-i) are undefined (poles of the function)
++        if (this.equals(I) || this.equals(I.negate())) {
++            return NaN;
++        }
++
+         return this.add(I).divide(I.subtract(this)).log()
+             .multiply(I.divide(createComplex(2.0, 0.0)));
+     }

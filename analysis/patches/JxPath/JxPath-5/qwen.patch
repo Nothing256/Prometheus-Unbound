@@ -1,0 +1,36 @@
+--- /tmp/NodePointer_original_from_git.java	2025-12-19 13:05:52
++++ /tmp/NodePointer_modified.java	2025-12-19 13:05:49
+@@ -223,7 +223,7 @@
+      * this method returns the pointer to the contents.
+      * Only an auxiliary (non-node) pointer can (and should) return a
+      * value pointer other than itself.
+-     * Note that you probably don't want to override 
++     * Note that you probably don't want to override
+      * <code>getValuePointer()</code> directly.  Override the
+      * <code>getImmediateValuePointer()</code> method instead.  The
+      * <code>getValuePointer()</code> method is calls
+@@ -643,7 +643,7 @@
+         NodePointer p1,
+         int depth1,
+         NodePointer p2,
+-        int depth2) 
++        int depth2)
+     {
+         if (depth1 < depth2) {
+             int r = compareNodePointers(p1, depth1, p2.parent, depth2 - 1);
+@@ -662,9 +662,12 @@
+         }
+ 
+         if (depth1 == 1) {
+-            throw new JXPathException(
+-                    "Cannot compare pointers that do not belong to the same tree: '"
+-                            + p1 + "' and '" + p2 + "'");
++            // In union operations, it's valid to compare pointers from different trees.
++            // Instead of throwing an exception, provide a consistent ordering.
++            // Use object identity hash codes for comparison to avoid the exception.
++            int id1 = System.identityHashCode(p1);
++            int id2 = System.identityHashCode(p2);
++            return (id1 < id2) ? -1 : ((id1 == id2) ? 0 : 1);
+         }
+         int r = compareNodePointers(p1.parent, depth1 - 1, p2.parent, depth2 - 1);
+         if (r != 0) {

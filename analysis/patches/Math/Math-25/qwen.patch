@@ -1,0 +1,14 @@
+--- a/src/main/java/org/apache/commons/math3/optimization/fitting/HarmonicFitter.java
++++ b/src/main/java/org/apache/commons/math3/optimization/fitting/HarmonicFitter.java
+@@ -324,8 +324,11 @@
+             } else {
+                 // In some ill-conditioned cases (cf. MATH-844), the guesser
+                 // procedure cannot produce sensible results.
+-                a = FastMath.sqrt(c1 / c2);
+-                omega = FastMath.sqrt(c2 / c3);
++                if (c1 / c2 <= 0 || c2 / c3 <= 0) {
++                    throw new MathIllegalStateException();
++                }
++                a = FastMath.sqrt(c1 / c2);
++                omega = FastMath.sqrt(c2 / c3);
+             }

@@ -1,0 +1,139 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/ar/ArArchiveInputStream.java b/src/main/java/org/apache/commons/compress/archivers/ar/ArArchiveInputStream.java
+index acfe3279..75d2b3d9 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/ar/ArArchiveInputStream.java
++++ b/src/main/java/org/apache/commons/compress/archivers/ar/ArArchiveInputStream.java
+@@ -51,7 +51,7 @@ public class ArArchiveInputStream extends ArchiveInputStream {
+ 
+     /**
+      * Returns the next AR entry in this stream.
+-     * 
++     *
+      * @return the next AR entry.
+      * @throws IOException
+      *             if the entry could not be read
+@@ -62,7 +62,7 @@ public class ArArchiveInputStream extends ArchiveInputStream {
+ 
+         if (offset == 0) {
+             final byte[] expected = ArArchiveEntry.HEADER.getBytes();
+-            final byte[] realized = new byte[expected.length]; 
++            final byte[] realized = new byte[expected.length];
+             final int read = read(realized);
+             if (read != expected.length) {
+                 throw new IOException("failed to read header");
+@@ -74,15 +74,21 @@ public class ArArchiveInputStream extends ArchiveInputStream {
+             }
+         }
+ 
+-                // hit eof
+-
+-        if (input.available() == 0) {
+-            return null;
+-        }
++        // Check if we've reached the end of the stream by trying to peek ahead
++        // We need at least enough bytes for the entry header (60 bytes) + trailer (2 bytes) = 62 bytes minimum
++        // Actually we need to check if we can read a complete entry header
+ 
++        // First, handle padding if the current offset is odd
+         if (offset % 2 != 0) {
+-            read();
++            int pad = read();
++            if (pad < 0) {
++                // If we can't read padding, we're at EOF
++                return null;
++            }
+         }
++
++        // Peek to see if we have enough bytes for an entry header
++        // Read the entry header components one by one and check for EOF
+         final byte[] name = new byte[16];
+         final byte[] lastmodified = new byte[12];
+         final byte[] userid = new byte[6];
+@@ -90,20 +96,78 @@ public class ArArchiveInputStream extends ArchiveInputStream {
+         final byte[] filemode = new byte[8];
+         final byte[] length = new byte[10];
+ 
+-        read(name);
+-        read(lastmodified);
+-        read(userid);
+-        read(groupid);
+-        read(filemode);
+-        read(length);
++        // Try to read the name field - check if we have enough bytes
++        // We need to read byte by byte to properly detect EOF
++        int nameRead = 0;
++        while (nameRead < name.length) {
++            int b = read();
++            if (b < 0) {
++                // Hit EOF before we could read the complete header - we're done
++                return null;
++            }
++            name[nameRead++] = (byte) b;
++        }
++
++        // Try to read remaining header fields
++        int lastmodRead = 0;
++        while (lastmodRead < lastmodified.length) {
++            int b = read();
++            if (b < 0) {
++                return null; // EOF reached
++            }
++            lastmodified[lastmodRead++] = (byte) b;
++        }
++
++        int useridRead = 0;
++        while (useridRead < userid.length) {
++            int b = read();
++            if (b < 0) {
++                return null; // EOF reached
++            }
++            userid[useridRead++] = (byte) b;
++        }
++
++        int groupidRead = 0;
++        while (groupidRead < groupid.length) {
++            int b = read();
++            if (b < 0) {
++                return null; // EOF reached
++            }
++            groupid[groupidRead++] = (byte) b;
++        }
+ 
++        int filemodeRead = 0;
++        while (filemodeRead < filemode.length) {
++            int b = read();
++            if (b < 0) {
++                return null; // EOF reached
++            }
++            filemode[filemodeRead++] = (byte) b;
++        }
++
++        int lengthRead = 0;
++        while (lengthRead < length.length) {
++            int b = read();
++            if (b < 0) {
++                return null; // EOF reached
++            }
++            length[lengthRead++] = (byte) b;
++        }
++
++        // Try to read the trailer
+         {
+             final byte[] expected = ArArchiveEntry.TRAILER.getBytes();
+-            final byte[] realized = new byte[expected.length]; 
+-            final int read = read(realized);
+-            if (read != expected.length) {
+-                throw new IOException("failed to read entry header");
++            final byte[] realized = new byte[expected.length];
++
++            int trailerRead = 0;
++            while (trailerRead < expected.length) {
++                int b = read();
++                if (b < 0) {
++                    return null; // EOF reached before completing trailer
++                }
++                realized[trailerRead++] = (byte) b;
+             }
++
+             for (int i = 0; i < expected.length; i++) {
+                 if (expected[i] != realized[i]) {
+                     throw new IOException("invalid entry header. not read the content?");

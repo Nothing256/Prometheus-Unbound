@@ -1,0 +1,15 @@
+diff --git a/src/main/java/com/fasterxml/jackson/core/JsonPointer.java b/src/main/java/com/fasterxml/jackson/core/JsonPointer.java
+index ab37c3b5..c606a1b9 100644
+--- a/src/main/java/com/fasterxml/jackson/core/JsonPointer.java
++++ b/src/main/java/com/fasterxml/jackson/core/JsonPointer.java
+@@ -196,6 +196,10 @@ public class JsonPointer
+                 return -1;
+             }
+         }
++        // Check for leading zeros: if length > 1 and first character is '0', it's invalid
++        if (len > 1 && str.charAt(0) == '0') {
++            return -1;
++        }
+         if (len == 10) {
+             long l = NumberInput.parseLong(str);
+             if (l > Integer.MAX_VALUE) {

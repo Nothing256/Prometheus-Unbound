@@ -1,0 +1,36 @@
+diff --git a/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationRelationalExpression.java b/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationRelationalExpression.java
+index b968cd5..6761036 100644
+--- a/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationRelationalExpression.java
++++ b/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationRelationalExpression.java
+@@ -63,6 +63,23 @@ public abstract class CoreOperationRelationalExpression extends CoreOperation {
+         if (right instanceof InitialContext) {
+             ((InitialContext) right).reset();
+         }
++
++        // Check for empty EvalContext objects that may remain after reduction
++        // This handles the case where an empty node set is represented as an EvalContext
++        // that wasn't converted to an iterator by the reduce method
++        if (left instanceof EvalContext) {
++            ((EvalContext) left).reset();
++            if (!((EvalContext) left).hasNext()) {
++                return false;
++            }
++        }
++        if (right instanceof EvalContext) {
++            ((EvalContext) right).reset();
++            if (!((EvalContext) right).hasNext()) {
++                return false;
++            }
++        }
++
+         if (left instanceof Iterator && right instanceof Iterator) {
+             return findMatch((Iterator) left, (Iterator) right);
+         }
+@@ -72,6 +89,7 @@ public abstract class CoreOperationRelationalExpression extends CoreOperation {
+         if (right instanceof Iterator) {
+             return containsMatch((Iterator) right, left);
+         }
++
+         double ld = InfoSetUtil.doubleValue(left);
+         if (Double.isNaN(ld)) {
+             return false;

@@ -1,0 +1,65 @@
+diff --git a/gson/src/main/java/com/google/gson/TypeInfoFactory.java b/gson/src/main/java/com/google/gson/TypeInfoFactory.java
+index eaf3a101..cbf573ab 100644
+--- a/gson/src/main/java/com/google/gson/TypeInfoFactory.java
++++ b/gson/src/main/java/com/google/gson/TypeInfoFactory.java
+@@ -90,8 +90,13 @@ final class TypeInfoFactory {
+         int indexOfActualTypeArgument = getIndex(classTypeVariables, fieldTypeVariable);
+         Type[] actualTypeArguments = objParameterizedType.getActualTypeArguments();
+         return actualTypeArguments[indexOfActualTypeArgument];
+-
+-
++      } else if (parentType instanceof Class<?>) {
++        // Handle case where we have a concrete subclass extending a parameterized generic class
++        // For example: class Foo<S, T> { S fieldS; T fieldT; }
++        //              class Bar extends Foo<String, Integer> { }
++        // When resolving fieldS and fieldT from Bar, we need to traverse the class hierarchy
++        Class<?> childClass = (Class<?>) parentType;
++        return resolveTypeVariableFromHierarchy(typeToEvaluate, childClass);
+       }
+ 
+       throw new UnsupportedOperationException("Expecting parameterized type, got " + parentType
+@@ -132,4 +137,44 @@ final class TypeInfoFactory {
+     throw new IllegalStateException(
+         "How can the type variable not be present in the class declaration!");
+   }
++
++  /**
++   * Resolves a type variable by looking at the generic superclass of a concrete class.
++   *
++   * @param typeVariable the type variable to resolve
++   * @param clazz the concrete class (which may extend a parameterized generic class)
++   * @return the resolved actual type
++   */
++  private static Type resolveTypeVariableFromHierarchy(Type typeVariable, Class<?> clazz) {
++    // Get the generic superclass which should be a ParameterizedType for cases like:
++    // class Bar extends Foo<String, Integer>
++    Type genericSuperclass = clazz.getGenericSuperclass();
++
++    if (genericSuperclass instanceof ParameterizedType) {
++      ParameterizedType paramType = (ParameterizedType) genericSuperclass;
++      Class<?> superClass = (Class<?>) paramType.getRawType();
++
++      // Find the index of the type variable in the superclass's type parameters
++      TypeVariable<?>[] superClassTypeVars = superClass.getTypeParameters();
++      for (int i = 0; i < superClassTypeVars.length; i++) {
++        if (typeVariable.equals(superClassTypeVars[i])) {
++          // Get the actual type argument at the same position
++          Type[] actualTypeArgs = paramType.getActualTypeArguments();
++          if (i < actualTypeArgs.length) {
++            return actualTypeArgs[i];
++          }
++        }
++      }
++    }
++
++    // If not found in immediate superclass, recursively check higher up the hierarchy
++    Class<?> superClass = clazz.getSuperclass();
++    if (superClass != null && superClass != Object.class) {
++      return resolveTypeVariableFromHierarchy(typeVariable, superClass);
++    }
++
++    // If we get here, we couldn't resolve the type variable
++    throw new UnsupportedOperationException("Could not resolve type variable " + typeVariable
++        + " from hierarchy starting at " + clazz.getName());
++  }
+ }

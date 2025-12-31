@@ -1,0 +1,46 @@
+diff --git a/src/main/java/org/apache/commons/lang3/text/translate/CharSequenceTranslator.java b/src/main/java/org/apache/commons/lang3/text/translate/CharSequenceTranslator.java
+index 4cb581d4d..25b0842b1 100644
+--- a/src/main/java/org/apache/commons/lang3/text/translate/CharSequenceTranslator.java
++++ b/src/main/java/org/apache/commons/lang3/text/translate/CharSequenceTranslator.java
+@@ -65,8 +65,8 @@ public abstract class CharSequenceTranslator {
+     }
+ 
+     /**
+-     * Translate an input onto a Writer. This is intentionally final as its algorithm is 
+-     * tightly coupled with the abstract method of this class. 
++     * Translate an input onto a Writer. This is intentionally final as its algorithm is
++     * tightly coupled with the abstract method of this class.
+      *
+      * @param input CharSequence that is being translated
+      * @param out Writer to translate the text to
+@@ -84,22 +84,18 @@ public abstract class CharSequenceTranslator {
+         while (pos < len) {
+             int consumed = translate(input, pos, out);
+             if (consumed == 0) {
+-                char[] c = Character.toChars(Character.codePointAt(input, pos));
++                // No translation occurred, write the current code point as-is
++                int charIndex = Character.offsetByCodePoints(input, 0, pos);
++                int codePoint = Character.codePointAt(input, charIndex);
++                char[] c = Character.toChars(codePoint);
+                 out.write(c);
++                // Advance position by 1 code point
++                pos++;
+             }
+             else {
+-//          // contract with translators is that they have to understand codepoints 
+-//          // and they just took care of a surrogate pair
+-            for (int pt = 0; pt < consumed; pt++) {
+-                    if (pos < len - 2) {
+-                pos += Character.charCount(Character.codePointAt(input, pos));
+-                    } else {
+-                        pos++;
+-                    }
+-                }
+-                pos--;
++                // Translation occurred, advance position by the number of code points consumed
++                pos += consumed;
+             }
+-            pos++;
+         }
+     }
+ 

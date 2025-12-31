@@ -1,0 +1,37 @@
+diff --git a/src/main/java/org/apache/commons/math/stat/clustering/KMeansPlusPlusClusterer.java b/src/main/java/org/apache/commons/math/stat/clustering/KMeansPlusPlusClusterer.java
+index b73ac9d3e..fe0aa81e1 100644
+--- a/src/main/java/org/apache/commons/math/stat/clustering/KMeansPlusPlusClusterer.java
++++ b/src/main/java/org/apache/commons/math/stat/clustering/KMeansPlusPlusClusterer.java
+@@ -172,13 +172,30 @@ public class KMeansPlusPlusClusterer<T extends Clusterable<T>> {
+         while (resultSet.size() < k) {
+             // For each data point x, compute D(x), the distance between x and
+             // the nearest center that has already been chosen.
+-            int sum = 0;
++            double sum = 0.0;
+             for (int i = 0; i < pointSet.size(); i++) {
+                 final T p = pointSet.get(i);
+                 final Cluster<T> nearest = getNearestCluster(resultSet, p);
+                 final double d = p.distanceFrom(nearest.getCenter());
+-                sum += d * d;
++                final double dSquared = d * d;
++                sum += dSquared;
+                 dx2[i] = sum;
++
++                // Handle potential floating point precision issues for very small distances
++                if (i > 0 && dx2[i] == dx2[i - 1]) {
++                    // If the cumulative sum hasn't increased due to precision loss,
++                    // assign the minimum possible positive increment
++                    dx2[i] = dx2[i - 1] + Math.max(sum * 1e-15, Double.MIN_VALUE);
++                }
++            }
++
++            // If the sum is extremely small (close to zero), meaning all distances are ~0,
++            // pick randomly among remaining points to ensure we still make progress
++            if (sum <= 0.0) {
++                final int idx = random.nextInt(pointSet.size());
++                final T p = pointSet.remove(idx);
++                resultSet.add(new Cluster<T>(p));
++                continue;
+             }
+ 
+             // Add one new data point as a center. Each point x is chosen with

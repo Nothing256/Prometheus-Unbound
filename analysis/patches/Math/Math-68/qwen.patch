@@ -1,0 +1,31 @@
+diff --git a/src/main/java/org/apache/commons/math/optimization/general/LevenbergMarquardtOptimizer.java b/src/main/java/org/apache/commons/math/optimization/general/LevenbergMarquardtOptimizer.java
+index d1b36ea3a..946b8597f 100644
+--- a/src/main/java/org/apache/commons/math/optimization/general/LevenbergMarquardtOptimizer.java
++++ b/src/main/java/org/apache/commons/math/optimization/general/LevenbergMarquardtOptimizer.java
+@@ -522,7 +522,7 @@ public class LevenbergMarquardtOptimizer extends AbstractLeastSquaresOptimizer {
+                 work1[pj] = s;
+                 sum2 += s * s;
+             }
+-            parl = fp / (delta * sum2);
++            parl = (sum2 > 0) ? fp / (delta * sum2) : 0;
+         }
+ 
+         // calculate an upper bound, paru, for the zero of the function
+@@ -588,7 +588,7 @@ public class LevenbergMarquardtOptimizer extends AbstractLeastSquaresOptimizer {
+             }
+             for (int j = 0; j < solvedCols; ++j) {
+                 int pj = permutation[j];
+-                work1[pj] /= work2[j];
++                work1[pj] /= (work2[j] == 0) ? 1.0 : work2[j];
+                 double tmp = work1[pj];
+                 for (int i = j + 1; i < solvedCols; ++i) {
+                     work1[permutation[i]] -= jacobian[i][pj] * tmp;
+@@ -599,7 +599,7 @@ public class LevenbergMarquardtOptimizer extends AbstractLeastSquaresOptimizer {
+                 double s = work1[permutation[j]];
+                 sum2 += s * s;
+             }
+-            double correction = fp / (delta * sum2);
++            double correction = (sum2 > 0) ? fp / (delta * sum2) : 0;
+ 
+             // depending on the sign of the function, update parl or paru.
+             if (fp > 0) {

@@ -1,0 +1,30 @@
+diff --git a/src/main/java/org/apache/commons/csv/CSVFormat.java b/src/main/java/org/apache/commons/csv/CSVFormat.java
+index 35ee86ac..45b40055 100644
+--- a/src/main/java/org/apache/commons/csv/CSVFormat.java
++++ b/src/main/java/org/apache/commons/csv/CSVFormat.java
+@@ -959,6 +959,13 @@ public final class CSVFormat implements Serializable {
+      */
+     private void printAndEscape(final CharSequence value, final int offset, final int len, final Appendable out)
+             throws IOException {
++        // Check if escape character is available before trying to use it
++        if (escapeCharacter == null) {
++            // If no escape character is set, just append the value directly
++            out.append(value, offset, offset + len);
++            return;
++        }
++
+         int start = offset;
+         int pos = offset;
+         final int end = offset + len;
+@@ -1037,7 +1044,10 @@ public final class CSVFormat implements Serializable {
+ 
+                 // RFC4180 (https://tools.ietf.org/html/rfc4180) TEXTDATA =  %x20-21 / %x23-2B / %x2D-7E
+                 if (newRecord && (c < '0' || c > '9' && c < 'A' || c > 'Z' && c < 'a' || c > 'z')) {
+-                    quote = true;
++                    // When escape is disabled, treat backslash as a regular character that doesn't need quoting just for being non-alphanumeric
++                    if (isEscapeCharacterSet() || c != BACKSLASH) {
++                        quote = true;
++                    }
+                 } else if (c <= COMMENT) {
+                     // Some other chars at the start of a value caused the parser to fail, so for now
+                     // encapsulate if we start in anything less than '#'. We are being conservative

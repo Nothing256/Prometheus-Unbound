@@ -1,0 +1,25 @@
+diff --git a/src/main/java/org/joda/time/format/DateTimeFormatterBuilder.java b/src/main/java/org/joda/time/format/DateTimeFormatterBuilder.java
+index 558a5864..01ab94c0 100644
+--- a/src/main/java/org/joda/time/format/DateTimeFormatterBuilder.java
++++ b/src/main/java/org/joda/time/format/DateTimeFormatterBuilder.java
+@@ -2499,11 +2499,18 @@ public class DateTimeFormatterBuilder {
+             implements DateTimePrinter, DateTimeParser {
+ 
+         INSTANCE;
+-        static final Set<String> ALL_IDS = DateTimeZone.getAvailableIDs();
++        static final java.util.List<String> ALL_IDS;
+         static final int MAX_LENGTH;
+         static {
++            java.util.Set<String> ids = DateTimeZone.getAvailableIDs();
++            ALL_IDS = new java.util.ArrayList<String>(ids);
++            java.util.Collections.sort(ALL_IDS, new java.util.Comparator<String>() {
++                public int compare(String left, String right) {
++                    return right.length() - left.length(); // Sort in descending order of length
++                }
++            });
+             int max = 0;
+-            for (String id : ALL_IDS) {
++            for (String id : ids) {
+                 max = Math.max(max, id.length());
+             }
+             MAX_LENGTH = max;

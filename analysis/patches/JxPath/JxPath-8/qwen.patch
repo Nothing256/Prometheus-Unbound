@@ -1,0 +1,34 @@
+diff --git a/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationCompare.java b/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationCompare.java
+index 39d00a9..d506cf8 100644
+--- a/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationCompare.java
++++ b/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationCompare.java
+@@ -132,7 +132,13 @@ public abstract class CoreOperationCompare extends CoreOperation {
+             return (InfoSetUtil.booleanValue(l) == InfoSetUtil.booleanValue(r));
+         }
+         if (l instanceof Number || r instanceof Number) {
+-            return (InfoSetUtil.doubleValue(l) == InfoSetUtil.doubleValue(r));
++            double ld = InfoSetUtil.doubleValue(l);
++            double rd = InfoSetUtil.doubleValue(r);
++            // Handle NaN comparisons: NaN = NaN should be true in XPath
++            if (Double.isNaN(ld) && Double.isNaN(rd)) {
++                return true;
++            }
++            return ld == rd;
+         }
+         if (l instanceof String || r instanceof String) {
+             return (
+diff --git a/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationRelationalExpression.java b/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationRelationalExpression.java
+index c6e0041..ce5f2c4 100644
+--- a/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationRelationalExpression.java
++++ b/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationRelationalExpression.java
+@@ -74,6 +74,10 @@ public abstract class CoreOperationRelationalExpression extends CoreOperation {
+         }
+         double ld = InfoSetUtil.doubleValue(left);
+         double rd = InfoSetUtil.doubleValue(right);
++        // Relational comparisons with NaN should return false in XPath
++        if (Double.isNaN(ld) || Double.isNaN(rd)) {
++            return false;
++        }
+         return evaluateCompare(ld == rd ? 0 : ld < rd ? -1 : 1);
+     }
+ 

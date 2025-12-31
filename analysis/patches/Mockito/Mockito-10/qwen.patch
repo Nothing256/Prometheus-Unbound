@@ -1,0 +1,11 @@
+--- /Users/nothing/workspace/prometheus_workdir_qwen/mockito_10_blind_auto/src/org/mockito/internal/stubbing/defaultanswers/ReturnsDeepStubs.java.backup	2025-12-22 16:59:52
++++ /Users/nothing/workspace/prometheus_workdir_qwen/mockito_10_blind_auto/src/org/mockito/internal/stubbing/defaultanswers/ReturnsDeepStubs.java	2025-12-22 16:58:54
+@@ -96,7 +96,7 @@
+                 withSettings().extraInterfaces(returnTypeGenericMetadata.rawExtraInterfaces())
+                 : withSettings();
+ 
+-        return mockSettings.serializable()
++        return mockSettings
+                 .defaultAnswer(returnsDeepStubsAnswerUsing(returnTypeGenericMetadata));
+     }
+ 

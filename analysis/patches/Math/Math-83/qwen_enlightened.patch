@@ -1,0 +1,106 @@
+diff --git a/src/main/java/org/apache/commons/math/optimization/linear/SimplexTableau.java b/src/main/java/org/apache/commons/math/optimization/linear/SimplexTableau.java
+index 0cf01af09..2d19e51e7 100644
+--- a/src/main/java/org/apache/commons/math/optimization/linear/SimplexTableau.java
++++ b/src/main/java/org/apache/commons/math/optimization/linear/SimplexTableau.java
+@@ -37,7 +37,7 @@ import org.apache.commons.math.util.MathUtils;
+ 
+ /**
+  * A tableau for use in the Simplex method.
+- * 
++ *
+  * <p>
+  * Example:
+  * <pre>
+@@ -60,7 +60,7 @@ import org.apache.commons.math.util.MathUtils;
+  * @version $Revision$ $Date$
+  * @since 2.0
+  */
+-class SimplexTableau implements Serializable {
++public class SimplexTableau implements Serializable {
+ 
+     /** Serializable version identifier. */
+     private static final long serialVersionUID = -1369660067587938365L;
+@@ -98,7 +98,7 @@ class SimplexTableau implements Serializable {
+      * @param restrictToNonNegative whether to restrict the variables to non-negative values
+      * @param epsilon amount of error to accept in floating point comparisons
+      */
+-    SimplexTableau(final LinearObjectiveFunction f,
++    public SimplexTableau(final LinearObjectiveFunction f,
+                    final Collection<LinearConstraint> constraints,
+                    final GoalType goalType, final boolean restrictToNonNegative,
+                    final double epsilon) {
+@@ -333,22 +333,41 @@ class SimplexTableau implements Serializable {
+ 
+     /**
+      * Get the current solution.
+-     * 
++     *
+      * @return current solution
+      */
+-    protected RealPointValuePair getSolution() {
++    public RealPointValuePair getSolution() {
+       double[] coefficients = new double[getOriginalNumDecisionVariables()];
+       Integer negativeVarBasicRow = getBasicRow(getNegativeDecisionVariableOffset());
+       double mostNegative = negativeVarBasicRow == null ? 0 : getEntry(negativeVarBasicRow, getRhsOffset());
+       Set<Integer> basicRows = new HashSet<Integer>();
+       for (int i = 0; i < coefficients.length; i++) {
+-          Integer basicRow = getBasicRow(getNumObjectiveFunctions() + i);
++          int colIndex = getNumObjectiveFunctions() + i;
++
++          // Check if this variable has non-zero coefficient in the objective function row
++          // If it does, it should not be treated as basic (the core fix for Math-83)
++          // Check the main objective function row (zIndex = 0 for single objective, or 1 if two-phase)
++          int zIndex = (getNumObjectiveFunctions() == 1) ? 0 : 1; // Use Phase 2 objective for two-phase
++
++          // If the variable has a non-zero coefficient in objective function row, it's not basic
++          if (!MathUtils.equals(getEntry(zIndex, colIndex), 0.0, epsilon)) {
++              // This variable has non-zero coefficient in objective function row,
++              // which means it's not at its optimal value and should not be considered basic
++              coefficients[i] = 0;
++              continue;
++          }
++
++          // Otherwise, proceed with original logic to get basic row from constraint rows
++          Integer basicRow = getBasicRow(colIndex);
++
+           if (basicRows.contains(basicRow)) {
+-              // if multiple variables can take a given value 
++              // if multiple variables can take a given value
+               // then we choose the first and set the rest equal to 0
+               coefficients[i] = 0;
+           } else {
+-              basicRows.add(basicRow);
++              if (basicRow != null) {
++                  basicRows.add(basicRow);
++              }
+               coefficients[i] =
+                   (basicRow == null ? 0 : getEntry(basicRow, getRhsOffset())) -
+                   (restrictToNonNegative ? 0 : mostNegative);
+@@ -357,6 +376,27 @@ class SimplexTableau implements Serializable {
+         return new RealPointValuePair(coefficients, f.getValue(coefficients));
+     }
+ 
++    /**
++     * Get the solution values as an array.
++     *
++     * @return the solution values as a double array
++     */
++    public double[] getSolutionValues() {
++        RealPointValuePair solution = getSolution();
++        return solution != null ? solution.getPoint() : null;
++    }
++
++    /**
++     * Get the objective value from the tableau.
++     *
++     * @return the objective value
++     */
++    public double getObjectiveValue() {
++        // The objective value is in the rightmost column of the objective function row
++        int zIndex = (getNumObjectiveFunctions() == 1) ? 0 : 1;  // 0 for single objective, 1 for phase 2 of two-phase
++        return getEntry(zIndex, getRhsOffset());
++    }
++
+     /**
+      * Subtracts a multiple of one row from another.
+      * <p>

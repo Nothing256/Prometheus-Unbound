@@ -1,0 +1,16 @@
+--- /tmp/DeserializerCache_before.java	2025-12-26 11:56:31
++++ /tmp/DeserializerCache_after.java	2025-12-26 11:56:19
+@@ -542,6 +542,13 @@
+             // Second: map(-like) types may have value handler for key (but not type; keys are untyped)
+             }
+         }
++        // Check for key handlers on map-like types - key deserializer is stored as value handler on key type
++        if (t.isMapLikeType()) {
++            JavaType keyType = t.getKeyType();
++            if (keyType != null && keyType.getValueHandler() != null) {
++                return true;
++            }
++        }
+         return false;
+     }
+ 

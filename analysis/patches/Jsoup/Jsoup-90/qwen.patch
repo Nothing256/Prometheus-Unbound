@@ -1,0 +1,27 @@
+diff --git a/src/main/java/org/jsoup/helper/HttpConnection.java b/src/main/java/org/jsoup/helper/HttpConnection.java
+index a941e483..dfb51c1e 100644
+--- a/src/main/java/org/jsoup/helper/HttpConnection.java
++++ b/src/main/java/org/jsoup/helper/HttpConnection.java
+@@ -412,16 +412,21 @@ public class HttpConnection implements Connection {
+ 
+                 // UTF-8 leading:
+                 if ((o & 0xE0) == 0xC0) {
++                    // 110xxxxx - needs 1 more byte
++                    if (i + 1 >= j) return false; // not enough bytes remaining
+                     end = i + 1;
+                 } else if ((o & 0xF0) == 0xE0) {
++                    // 1110xxxx - needs 2 more bytes
++                    if (i + 2 >= j) return false; // not enough bytes remaining
+                     end = i + 2;
+                 } else if ((o & 0xF8) == 0xF0) {
++                    // 11110xxx - needs 3 more bytes
++                    if (i + 3 >= j) return false; // not enough bytes remaining
+                     end = i + 3;
+                 } else {
+                     return false;
+                 }
+ 
+-
+                 while (i < end) {
+                     i++;
+                     o = input[i];

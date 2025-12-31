@@ -1,0 +1,14 @@
+--- /tmp/SimplexTableau.java.original	2025-12-16 14:17:53
++++ /Users/nothing/workspace/prometheus_workdir_qwen/math_33_blind_auto/src/main/java/org/apache/commons/math3/optimization/linear/SimplexTableau.java	2025-12-16 14:16:48
+@@ -409,9 +409,8 @@
+           Integer basicRow = getBasicRow(colIndex);
+           if (basicRow != null && basicRow == 0) {
+               // if the basic row is found to be the objective function row
+-              // set the coefficient to 0 -> this case handles unconstrained
+-              // variables that are still part of the objective function
+-              coefficients[i] = 0;
++              // set the coefficient to 0, but account for negative variable adjustment
++              coefficients[i] = 0 - (restrictToNonNegative ? 0 : mostNegative);
+           } else if (basicRows.contains(basicRow)) {
+               // if multiple variables can take a given value
+               // then we choose the first and set the rest equal to 0

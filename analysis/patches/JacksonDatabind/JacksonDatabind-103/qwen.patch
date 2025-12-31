@@ -1,0 +1,38 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/JsonMappingException.java b/src/main/java/com/fasterxml/jackson/databind/JsonMappingException.java
+index e0c6408b2..ce6334b7d 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/JsonMappingException.java
++++ b/src/main/java/com/fasterxml/jackson/databind/JsonMappingException.java
+@@ -7,6 +7,7 @@ import java.util.*;
+ 
+ import com.fasterxml.jackson.annotation.JsonIgnore;
+ import com.fasterxml.jackson.core.*;
++import com.fasterxml.jackson.databind.util.ClassUtil;
+ 
+ /**
+  * Checked exception used to signal fatal problems with mapping of
+@@ -377,7 +378,7 @@ public class JsonMappingException
+             jme = (JsonMappingException) src;
+         } else {
+             // [databind#2128]: try to avoid duplication
+-            String msg = src.getMessage();
++            String msg = ClassUtil.getExceptionMessage(src);
+             // Let's use a more meaningful placeholder if all we have is null
+             if (msg == null || msg.length() == 0) {
+                 msg = "(was "+src.getClass().getName()+")";
+diff --git a/src/main/java/com/fasterxml/jackson/databind/util/ClassUtil.java b/src/main/java/com/fasterxml/jackson/databind/util/ClassUtil.java
+index b241a7552..2ef7c0d28 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/util/ClassUtil.java
++++ b/src/main/java/com/fasterxml/jackson/databind/util/ClassUtil.java
+@@ -749,6 +749,12 @@ public final class ClassUtil
+      *
+      * @since 2.9.7
+      */
++    public static String getExceptionMessage(Throwable t) {
++        if (t instanceof com.fasterxml.jackson.core.JsonProcessingException) {
++            return ((com.fasterxml.jackson.core.JsonProcessingException) t).getOriginalMessage();
++        }
++        return t.getMessage();
++    }
+     
+     /*
+     /**********************************************************

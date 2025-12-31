@@ -1,0 +1,24 @@
+diff --git a/src/main/java/org/apache/commons/math/optimization/univariate/BrentOptimizer.java b/src/main/java/org/apache/commons/math/optimization/univariate/BrentOptimizer.java
+index 1f4c6f6..3a2b5c7 100644
+--- a/src/main/java/org/apache/commons/math/optimization/univariate/BrentOptimizer.java
++++ b/src/main/java/org/apache/commons/math/optimization/univariate/BrentOptimizer.java
+@@ -56,9 +56,18 @@ public class BrentOptimizer extends AbstractUnivariateRealOptimizer {
+      * @return the optimum.
+      */
+     protected double doOptimize()
+-        throws MaxIterationsExceededException, FunctionEvaluationException {
+-        throw new UnsupportedOperationException();
+-    }
++        throws MaxIterationsExceededException, FunctionEvaluationException {
++        // Create a function that accesses the internal function to avoid double counting
++        // We need to be careful about evaluation counting
++        return localMin(getGoalType() == GoalType.MINIMIZE,
++                        new UnivariateRealFunction() {
++                            public double value(double x) throws FunctionEvaluationException {
++                                // Call the internal function evaluation directly
++                                return computeObjectiveValue(x);
++                            }
++                        }, getGoalType(), 
++                        getMin(), getStartValue(), getMax(),
++                        getRelativeAccuracy(), getAbsoluteAccuracy());
++    }

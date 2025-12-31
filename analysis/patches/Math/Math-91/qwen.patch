@@ -1,0 +1,20 @@
+--- /tmp/Fraction.java.original	2025-12-16 15:21:57
++++ /Users/nothing/workspace/prometheus_workdir_qwen/math_91_blind_auto/src/java/org/apache/commons/math/fraction/Fraction.java	2025-12-16 15:20:51
+@@ -256,9 +256,14 @@
+      *         than <tt>object</tt>, 0 if they are equal.
+      */
+     public int compareTo(Fraction object) {
+-        double nOd = doubleValue();
+-        double dOn = object.doubleValue();
+-        return (nOd < dOn) ? -1 : ((nOd > dOn) ? +1 : 0);
++        // Cross-multiply to compare (numerator/denominator) vs (object.numerator/object.denominator)
++        // Uses BigInteger to avoid overflow, similar to the addSub method
++        // Since denominators are guaranteed to be positive (see constructor),
++        // comparing numerator * object.denominator vs denominator * object.numerator
++        // gives us the correct result without sign adjustments
++        BigInteger n1d2 = BigInteger.valueOf(numerator).multiply(BigInteger.valueOf(object.denominator));
++        BigInteger n2d1 = BigInteger.valueOf(denominator).multiply(BigInteger.valueOf(object.numerator));
++        return n1d2.compareTo(n2d1);
+     }
+     
+     /**

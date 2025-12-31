@@ -1,0 +1,63 @@
+diff --git a/src/java/org/apache/commons/codec/binary/Base64InputStream.java b/src/java/org/apache/commons/codec/binary/Base64InputStream.java
+index 583a5847..cc0721eb 100644
+--- a/src/java/org/apache/commons/codec/binary/Base64InputStream.java
++++ b/src/java/org/apache/commons/codec/binary/Base64InputStream.java
+@@ -100,16 +100,57 @@ public class Base64InputStream extends FilterInputStream {
+ 
+     /**
+      * Reads one <code>byte</code> from this input stream.
+-     * 
++     *
+      * @return the byte as an integer in the range 0 to 255. Returns -1 if EOF has been reached.
+      * @throws IOException
+      *             if an I/O error occurs.
+      */
+     public int read() throws IOException {
+         int r = read(singleByte, 0, 1);
++
++        // To prevent infinite loop, track if we've already tried processing internal data
++        int noProgressCount = 0;
++        final int MAX_NO_PROGRESS = 2;
++
+         while (r == 0) {
++            noProgressCount++;
++
++            // If we've tried multiple times with no progress, check more thoroughly for EOF
++            if (noProgressCount >= MAX_NO_PROGRESS) {
++                if (!base64.hasData()) {
++                    // No internal base64 data left, check underlying stream
++                    if (in.read() == -1) {
++                        return -1; // Truly at EOF
++                    } else {
++                        noProgressCount = 0; // Reset since we got new data
++                    }
++                } else {
++                    // Internal base64 has data but readResults keeps returning 0
++                    // This indicates there's no more decodable data available
++                    return -1;
++                }
++            } else {
++                // Continue the original logic for normal cases
++                if (!base64.hasData()) {
++                    int next = in.read();
++                    if (next == -1) {
++                        return -1;
++                    } else {
++                        byte[] buf = new byte[1];
++                        buf[0] = (byte) next;
++                        if (doEncode) {
++                            base64.encode(buf, 0, 1);
++                        } else {
++                            base64.decode(buf, 0, 1);
++                        }
++                        noProgressCount = 0; // Reset counter
++                    }
++                }
++            }
++
+             r = read(singleByte, 0, 1);
+         }
++
+         if (r > 0) {
+             return singleByte[0] < 0 ? 256 + singleByte[0] : singleByte[0];
+         }

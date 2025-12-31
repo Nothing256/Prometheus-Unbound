@@ -1,0 +1,48 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/type/ResolvedRecursiveType.java b/src/main/java/com/fasterxml/jackson/databind/type/ResolvedRecursiveType.java
+index 30807836d..1f32ec18b 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/type/ResolvedRecursiveType.java
++++ b/src/main/java/com/fasterxml/jackson/databind/type/ResolvedRecursiveType.java
+@@ -17,6 +17,12 @@ public class ResolvedRecursiveType extends TypeBase
+         super(erasedType, bindings, null, null, 0, null, null, false);
+     }
+ 
++    // Constructor for refinement that includes super type information
++    protected ResolvedRecursiveType(Class<?> erasedType, TypeBindings bindings,
++            JavaType superClass, JavaType[] superInterfaces) {
++        super(erasedType, bindings, superClass, superInterfaces, 0, null, null, false);
++    }
++
+     public void setReference(JavaType ref)
+     {
+         // sanity check; should not be called multiple times
+@@ -39,6 +45,15 @@ public class ResolvedRecursiveType extends TypeBase
+         return _referencedType.getErasedSignature(sb);
+     }
+ 
++    @Override
++    public JavaType getSuperClass() {
++        if (_referencedType != null) {
++            return _referencedType.getSuperClass();
++        }
++        // If no referenced type yet, delegate to parent implementation
++        return super.getSuperClass();
++    }
++
+     @Override
+     public JavaType withContentType(JavaType contentType) {
+         return this;
+@@ -78,7 +93,13 @@ public class ResolvedRecursiveType extends TypeBase
+     @Override
+     public JavaType refine(Class<?> rawType, TypeBindings bindings,
+             JavaType superClass, JavaType[] superInterfaces) {
+-        return null;
++        // If we already have a referenced type, delegate to its refine method
++        if (_referencedType != null) {
++            return _referencedType.refine(rawType, bindings, superClass, superInterfaces);
++        }
++        // Otherwise, create a new instance with the refined hierarchy information
++        ResolvedRecursiveType result = new ResolvedRecursiveType(rawType, bindings, superClass, superInterfaces);
++        return result;
+     }
+ 
+     @Override

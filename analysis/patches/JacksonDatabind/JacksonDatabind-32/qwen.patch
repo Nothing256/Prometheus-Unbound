@@ -1,0 +1,66 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/std/UntypedObjectDeserializer.java b/src/main/java/com/fasterxml/jackson/databind/deser/std/UntypedObjectDeserializer.java
+index 76754bd37..070ba8fbf 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/std/UntypedObjectDeserializer.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/std/UntypedObjectDeserializer.java
+@@ -493,6 +493,8 @@ public class UntypedObjectDeserializer
+                 }
+             case JsonTokenId.ID_FIELD_NAME:
+                 return mapObject(p, ctxt);
++            case JsonTokenId.ID_END_OBJECT: // [databind#989] can be given when expecting field name
++                return mapObject(p, ctxt);
+             case JsonTokenId.ID_START_ARRAY:
+                 {
+                     JsonToken t = p.nextToken();
+@@ -620,13 +622,33 @@ public class UntypedObjectDeserializer
+          */
+         protected Object mapObject(JsonParser p, DeserializationContext ctxt) throws IOException
+         {
+-            // will point to FIELD_NAME at this point, guaranteed
+-            String key1 = p.getText();
++            String key1;
++
++            JsonToken t = p.getCurrentToken();
++
++            if (t == JsonToken.START_OBJECT) {
++                key1 = p.nextFieldName();
++            } else if (t == JsonToken.FIELD_NAME) {
++                key1 = p.getCurrentName();
++            } else {
++                if (t != JsonToken.END_OBJECT) {
++                    throw ctxt.mappingException(handledType(), p.getCurrentToken());
++                }
++                key1 = null;
++            }
++            if (key1 == null) {
++                // empty map might work; but caller may want to modify... so better just give small modifiable
++                return new LinkedHashMap<String,Object>(2);
++            }
++            // minor optimization; let's handle 1 and 2 entry cases separately
++            // 24-Mar-2015, tatu: Ideally, could use one of 'nextXxx()' methods, but for
++            //   that we'd need new method(s) in JsonDeserializer. So not quite yet.
+             p.nextToken();
+             Object value1 = deserialize(p, ctxt);
+ 
+             String key2 = p.nextFieldName();
+-            if (key2 == null) { // single entry; but we want modifiable
++            if (key2 == null) { // has to be END_OBJECT, then
++                // single entry; but we want modifiable
+                 LinkedHashMap<String, Object> result = new LinkedHashMap<String, Object>(2);
+                 result.put(key1, value1);
+                 return result;
+@@ -635,6 +657,7 @@ public class UntypedObjectDeserializer
+             Object value2 = deserialize(p, ctxt);
+ 
+             String key = p.nextFieldName();
++
+             if (key == null) {
+                 LinkedHashMap<String, Object> result = new LinkedHashMap<String, Object>(4);
+                 result.put(key1, value1);
+@@ -645,6 +668,7 @@ public class UntypedObjectDeserializer
+             LinkedHashMap<String, Object> result = new LinkedHashMap<String, Object>();
+             result.put(key1, value1);
+             result.put(key2, value2);
++
+             do {
+                 p.nextToken();
+                 result.put(key, deserialize(p, ctxt));

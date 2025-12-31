@@ -1,0 +1,50 @@
+diff --git a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMAttributeIterator.java b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMAttributeIterator.java
+index f4c2ac6..2347cd6 100644
+--- a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMAttributeIterator.java
++++ b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMAttributeIterator.java
+@@ -77,7 +77,7 @@ public class DOMAttributeIterator implements NodeIterator {
+             return false;
+         }
+ 
+-        String testLocalName = name.getName();
++        String testLocalName = testName.getName();
+         if (testLocalName.equals("*") || testLocalName.equals(nodeLocalName)) {
+             String testPrefix = testName.getPrefix();
+ 
+diff --git a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java
+index 6393ccd..f09ee93 100644
+--- a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java
++++ b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java
+@@ -26,6 +26,7 @@ import org.apache.commons.jxpath.JXPathContext;
+ import org.apache.commons.jxpath.JXPathException;
+ import org.apache.commons.jxpath.Pointer;
+ import org.apache.commons.jxpath.ri.Compiler;
++import org.apache.commons.jxpath.ri.NamespaceResolver;
+ import org.apache.commons.jxpath.ri.QName;
+ import org.apache.commons.jxpath.ri.compiler.NodeNameTest;
+ import org.apache.commons.jxpath.ri.compiler.NodeTest;
+@@ -196,6 +197,15 @@ public class DOMNodePointer extends NodePointer {
+             return XMLNS_NAMESPACE_URI;
+         }
+ 
++        // First, try to resolve using the namespace resolver (for context-registered prefixes)
++        NamespaceResolver namespaceResolver = getNamespaceResolver();
++        if (namespaceResolver != null) {
++            String namespace = namespaceResolver.getNamespaceURI(prefix);
++            if (namespace != null) {
++                return namespace;
++            }
++        }
++
+         String namespace = null;
+         if (namespaces == null) {
+             namespaces = new HashMap();
+@@ -229,7 +239,7 @@ public class DOMNodePointer extends NodePointer {
+         if (namespace == UNKNOWN_NAMESPACE) {
+             return null;
+         }
+-        
++
+         // TBD: We are supposed to resolve relative URIs to absolute ones.
+         return namespace;
+     }

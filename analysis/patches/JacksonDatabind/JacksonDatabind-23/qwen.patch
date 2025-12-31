@@ -1,0 +1,120 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/ser/std/NumberSerializers.java b/src/main/java/com/fasterxml/jackson/databind/ser/std/NumberSerializers.java
+index c11155e6c..101470c72 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/ser/std/NumberSerializers.java
++++ b/src/main/java/com/fasterxml/jackson/databind/ser/std/NumberSerializers.java
+@@ -126,6 +126,11 @@ public class NumberSerializers
+         public void serialize(Short value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+             gen.writeNumber(value.shortValue());
+         }
++
++        @Override
++        public boolean isEmpty(SerializerProvider provider, Short value) {
++            return value != null && value.shortValue() == 0;
++        }
+     }
+ 
+     /**
+@@ -153,7 +158,22 @@ public class NumberSerializers
+         public void serializeWithType(Object value, JsonGenerator gen,
+                 SerializerProvider provider, TypeSerializer typeSer) throws IOException {
+             // no type info, just regular serialization
+-            serialize(value, gen, provider);            
++            serialize(value, gen, provider);
++        }
++
++        @Override
++        public boolean isEmpty(SerializerProvider provider, Object value) {
++            if (value == null) {
++                return true;
++            }
++            if (value instanceof Integer) {
++                return ((Integer) value).intValue() == 0;
++            }
++            // For other number types cast to this serializer
++            if (value instanceof Number) {
++                return ((Number) value).intValue() == 0;
++            }
++            return false;
+         }
+ 
+     }
+@@ -177,6 +197,11 @@ public class NumberSerializers
+         public void serialize(Number value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+             gen.writeNumber(value.intValue());
+         }
++
++        @Override
++        public boolean isEmpty(SerializerProvider provider, Number value) {
++            return value != null && value.intValue() == 0;
++        }
+     }
+ 
+     @JacksonStdImpl
+@@ -192,6 +217,21 @@ public class NumberSerializers
+         public void serialize(Object value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+             gen.writeNumber(((Long) value).longValue());
+         }
++
++        @Override
++        public boolean isEmpty(SerializerProvider provider, Object value) {
++            if (value == null) {
++                return true;
++            }
++            if (value instanceof Long) {
++                return ((Long) value).longValue() == 0L;
++            }
++            // For other number types cast to this serializer
++            if (value instanceof Number) {
++                return ((Number) value).longValue() == 0L;
++            }
++            return false;
++        }
+     }
+ 
+     @JacksonStdImpl
+@@ -207,6 +247,21 @@ public class NumberSerializers
+         public void serialize(Object value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+             gen.writeNumber(((Float) value).floatValue());
+         }
++
++        @Override
++        public boolean isEmpty(SerializerProvider provider, Object value) {
++            if (value == null) {
++                return true;
++            }
++            if (value instanceof Float) {
++                return ((Float) value).floatValue() == 0.0f;
++            }
++            // For other number types cast to this serializer
++            if (value instanceof Number) {
++                return ((Number) value).floatValue() == 0.0f;
++            }
++            return false;
++        }
+     }
+ 
+     /**
+@@ -235,7 +290,22 @@ public class NumberSerializers
+         public void serializeWithType(Object value, JsonGenerator gen,
+                 SerializerProvider provider, TypeSerializer typeSer) throws IOException {
+             // no type info, just regular serialization
+-            serialize(value, gen, provider);            
++            serialize(value, gen, provider);
++        }
++
++        @Override
++        public boolean isEmpty(SerializerProvider provider, Object value) {
++            if (value == null) {
++                return true;
++            }
++            if (value instanceof Double) {
++                return ((Double) value).doubleValue() == 0.0d;
++            }
++            // For other number types cast to this serializer
++            if (value instanceof Number) {
++                return ((Number) value).doubleValue() == 0.0d;
++            }
++            return false;
+         }
+     }
+ }

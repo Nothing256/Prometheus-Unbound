@@ -1,0 +1,87 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/JavaType.java b/src/main/java/com/fasterxml/jackson/databind/JavaType.java
+index 4ac467b34..fcdb89a35 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/JavaType.java
++++ b/src/main/java/com/fasterxml/jackson/databind/JavaType.java
+@@ -148,13 +148,36 @@ public abstract class JavaType
+      * If type does not have a content type (which is the case with
+      * <code>SimpleType</code>), {@link IllegalArgumentException}
+      * will be thrown.
+-     * 
++     *
+      * @return Newly created type instance
+      *
+      * @since 2.7
+      */
+     public abstract JavaType withContentType(JavaType contentType);
+ 
++    /**
++     * Mutant factory method that will try to copy handlers that the specified
++     * source type instance had, if any; this must be done recursively where
++     * necessary (as content types may be structured).
++     *
++     * @since 2.8.4
++     */
++    public JavaType withHandlersFrom(JavaType source)
++    {
++        JavaType result = this;
++        if (source.hasHandlers()) {
++            Object h = source.getTypeHandler();
++            if (h != null) {
++                result = result.withTypeHandler(h);
++            }
++            h = source.getValueHandler();
++            if (h != null) {
++                result = result.withValueHandler(h);
++            }
++        }
++        return result;
++    }
++
+     /**
+      * Method that can be called to get a type instance that indicates
+      * that values of the type should be handled using "static typing" for purposes
+@@ -163,7 +186,7 @@ public abstract class JavaType
+      * The main use case is to allow forcing of specific root value serialization type,
+      * and specifically in resolving serializers for contained types (element types
+      * for arrays, Collections and Maps).
+-     * 
++     *
+      * @since 2.2
+      */
+     public abstract JavaType withStaticTyping();
+diff --git a/src/main/java/com/fasterxml/jackson/databind/type/TypeFactory.java b/src/main/java/com/fasterxml/jackson/databind/type/TypeFactory.java
+index 8bf10e83f..ccac25117 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/type/TypeFactory.java
++++ b/src/main/java/com/fasterxml/jackson/databind/type/TypeFactory.java
+@@ -425,6 +425,31 @@ public final class TypeFactory
+ 
+         // 25-Sep-2016, tatu: As per [databind#1384] also need to ensure handlers get
+         //   copied as well
++        if (baseType.hasHandlers()) {
++            newType = newType.withTypeHandler(baseType.getTypeHandler())
++                .withValueHandler(baseType.getValueHandler());
++        }
++        // Also copy handlers for contained types recursively
++        if (baseType.isContainerType()) {
++            if (baseType.isMapLikeType()) {
++                JavaType keyType = newType.getKeyType();
++                JavaType contentType = newType.getContentType();
++                if (keyType != null) {
++                    keyType = keyType.withHandlersFrom(baseType.getKeyType());
++                    newType = ((MapLikeType) newType).withKeyType(keyType);
++                }
++                if (contentType != null) {
++                    contentType = contentType.withHandlersFrom(baseType.getContentType());
++                    newType = newType.withContentType(contentType);
++                }
++            } else if (baseType.isCollectionLikeType()) {
++                JavaType contentType = newType.getContentType();
++                if (contentType != null) {
++                    contentType = contentType.withHandlersFrom(baseType.getContentType());
++                    newType = newType.withContentType(contentType);
++                }
++            }
++        }
+         return newType;
+ 
+         // 20-Oct-2015, tatu: Old simplistic approach

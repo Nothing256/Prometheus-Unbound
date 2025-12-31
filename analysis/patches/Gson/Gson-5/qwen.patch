@@ -1,0 +1,39 @@
+diff --git a/gson/src/main/java/com/google/gson/internal/bind/util/ISO8601Utils.java b/gson/src/main/java/com/google/gson/internal/bind/util/ISO8601Utils.java
+index a326f768..d810db73 100644
+--- a/gson/src/main/java/com/google/gson/internal/bind/util/ISO8601Utils.java
++++ b/gson/src/main/java/com/google/gson/internal/bind/util/ISO8601Utils.java
+@@ -233,10 +233,30 @@ public class ISO8601Utils
+                          *   Yes, very inefficient. Hopefully not hit often.
+                          *   If it becomes a perf problem, add 'loose' comparison instead.
+                          */
+-                        String cleaned = act.replace(":", "");
+-                        if (!cleaned.equals(timezoneId)) {
+-                            throw new IndexOutOfBoundsException("Mismatching time zone indicator: "+timezoneId+" given, resolves to "
+-                                    +timezone.getID());
++                        // Check if the timezone IDs differ only by colon format or minute expansion
++                        String cleanedAct = act.replace(":", "");
++                        String cleanedExpected = timezoneId.replace(":", "");
++
++                        // Check original cleaned comparison
++                        if (!cleanedAct.equals(cleanedExpected)) {
++                            // Handle case where timezone like "+01" gets expanded to "+01:00" by Java
++                            boolean isEquivalent = false;
++
++                            // If expected has format like GMT+HH and actual has GMT+HH:00, they're equivalent
++                            if (act.length() == timezoneId.length() + 3 &&
++                                act.equals(timezoneId + ":00")) {
++                                isEquivalent = true;
++                            }
++                            // If expected has format like GMT+H and actual has GMT+H:00
++                            else if (timezoneId.length() < act.length() &&
++                                     act.equals(timezoneId + ":00")) {
++                                isEquivalent = true;
++                            }
++
++                            if (!isEquivalent) {
++                                throw new IndexOutOfBoundsException("Mismatching time zone indicator: "+timezoneId+" given, resolves to "
++                                        +timezone.getID());
++                            }
+                         }
+                     }
+                 }

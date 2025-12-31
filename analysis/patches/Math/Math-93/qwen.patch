@@ -1,0 +1,21 @@
+diff --git a/src/java/org/apache/commons/math/util/MathUtils.java b/src/java/org/apache/commons/math/util/MathUtils.java
+index 1234567..89abcde 100644
+--- a/src/java/org/apache/commons/math/util/MathUtils.java
++++ b/src/java/org/apache/commons/math/util/MathUtils.java
+@@ -344,10 +344,9 @@ public static long factorial(final int n) {
+     public static long factorial(final int n) {
+-        long result = Math.round(factorialDouble(n));
+-        if (result == Long.MAX_VALUE) {
+-            throw new ArithmeticException(
+-                    "factorial value is too large to fit in a long");
+-        }
+-        return factorials[n];
++        if (n < 0) {
++            throw new IllegalArgumentException("must have n >= 0 for n!");
++        }
++        if (n > 20) {
++            throw new ArithmeticException(
++                    "factorial value is too large to fit in a long");
++        }
++        return factorials[n];
+     }

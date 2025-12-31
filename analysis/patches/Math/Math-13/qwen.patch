@@ -1,0 +1,25 @@
+--- /tmp/original_AbstractLeastSquaresOptimizer.java	2025-12-27 00:38:43
++++ /Users/nothing/workspace/prometheus_workdir_qwen/math_13_blind_auto/src/main/java/org/apache/commons/math3/optimization/general/AbstractLeastSquaresOptimizer.java	2025-12-27 00:36:19
+@@ -223,7 +223,10 @@
+      */
+     protected double computeCost(double[] residuals) {
+         final ArrayRealVector r = new ArrayRealVector(residuals);
+-        return FastMath.sqrt(r.dotProduct(getWeight().operate(r)));
++        final double sumSquares = r.dotProduct(getWeight().operate(r));
++        // Ensure non-negative to avoid NaN in sqrt due to numerical errors
++        final double ss = FastMath.max(0, sumSquares);
++        return FastMath.sqrt(ss);
+     }
+ 
+     /**
+@@ -247,7 +250,9 @@
+      * @return chi-square value
+      */
+     public double getChiSquare() {
+-        return cost * cost;
++        // Handle potential negative result due to numerical errors
++        final double cs = cost * cost;
++        return FastMath.max(0, cs);
+     }
+ 
+     /**

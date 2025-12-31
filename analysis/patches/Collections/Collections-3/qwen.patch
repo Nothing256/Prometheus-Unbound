@@ -1,0 +1,22 @@
+diff --git a/src/java/org/apache/commons/collections/CollectionUtils.java b/src/java/org/apache/commons/collections/CollectionUtils.java
+index 73bd1730..35942d87 100644
+--- a/src/java/org/apache/commons/collections/CollectionUtils.java
++++ b/src/java/org/apache/commons/collections/CollectionUtils.java
+@@ -1109,7 +1109,7 @@ public class CollectionUtils {
+      * in <code>collection</code> unless <code>remove</code> contains <code>e</code>, in which
+      * case the cardinality is zero. This method is useful if you do not wish to modify
+      * the collection <code>c</code> and thus cannot call <code>collection.removeAll(remove);</code>.
+-     * 
++     *
+      * @param collection  the collection from which items are removed (in the returned collection)
+      * @param remove  the items to be removed from the returned <code>collection</code>
+      * @return a <code>Collection</code> containing all the elements of <code>collection</code> except
+@@ -1118,7 +1118,7 @@ public class CollectionUtils {
+      * @since Commons Collections 3.3 (method existed in 3.2 but was completely broken)
+      */
+     public static Collection removeAll(Collection collection, Collection remove) {
+-        return ListUtils.retainAll(collection, remove);
++        return ListUtils.removeAll(collection, remove);
+     }
+ 
+     //-----------------------------------------------------------------------

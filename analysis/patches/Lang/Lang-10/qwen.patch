@@ -1,0 +1,18 @@
+diff --git a/src/main/java/org/apache/commons/lang3/time/FastDateParser.java b/src/main/java/org/apache/commons/lang3/time/FastDateParser.java
+index a01159bdb..a7c9b9b16 100644
+--- a/src/main/java/org/apache/commons/lang3/time/FastDateParser.java
++++ b/src/main/java/org/apache/commons/lang3/time/FastDateParser.java
+@@ -307,7 +307,12 @@ public class FastDateParser implements DateParser, Serializable {
+             if(Character.isWhitespace(c)) {
+                 if(!wasWhite) {
+                     wasWhite= true;
+-                    regex.append("\\s*+");
++                    // For exact matching similar to SimpleDateFormat, replace each whitespace with literal space
++                    // This preserves the exact number of whitespace characters in the pattern
++                    regex.append(' ');
++                } else {
++                    // Add literal space for each additional consecutive whitespace character
++                    regex.append(' ');
+                 }
+                 continue;
+             }

@@ -1,0 +1,19 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/std/FromStringDeserializer.java b/src/main/java/com/fasterxml/jackson/databind/deser/std/FromStringDeserializer.java
+index 4f4eb672a..3351a7773 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/std/FromStringDeserializer.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/std/FromStringDeserializer.java
+@@ -132,12 +132,8 @@ public abstract class FromStringDeserializer<T> extends StdScalarDeserializer<T>
+                 }
+             }
+             // 05-May-2016, tatu: Unlike most usage, this seems legit, so...
+-            JsonMappingException e = ctxt.weirdStringException(text, _valueClass, msg);
+-            if (cause != null) {
+-                e.initCause(cause);
+-            }
+-            throw e;
+-            // nothing to do here, yet? We'll fail anyway
++            // 20-Jun-2017, tatu: But let's allow handlers to handle this, first
++            return (T) ctxt.handleWeirdStringValue(_valueClass, text, msg);
+         }
+         JsonToken t = p.getCurrentToken();
+         // [databind#381]

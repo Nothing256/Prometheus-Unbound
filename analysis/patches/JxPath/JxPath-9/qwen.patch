@@ -1,0 +1,51 @@
+diff --git a/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationEqual.java b/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationEqual.java
+index baca531..b8663c6 100644
+--- a/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationEqual.java
++++ b/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationEqual.java
+@@ -29,6 +29,20 @@ public class CoreOperationEqual extends CoreOperationCompare {
+     }
+ 
+     public Object computeValue(org.apache.commons.jxpath.ri.EvalContext context) {
++        // Check for NaN before doing comparison - if either side is NaN,
++        // no comparison returns true
++        Object l = args[0].compute(context);
++        Object r = args[1].compute(context);
++
++        // Handle NaN: if either is NaN, comparison returns false
++        if (l instanceof Number || r instanceof Number) {
++            double ld = org.apache.commons.jxpath.ri.InfoSetUtil.doubleValue(l);
++            double rd = org.apache.commons.jxpath.ri.InfoSetUtil.doubleValue(r);
++            if (Double.isNaN(ld) || Double.isNaN(rd)) {
++                return Boolean.FALSE;
++            }
++        }
++
+         return equal(context, args[0], args[1]) ? Boolean.TRUE : Boolean.FALSE;
+     }
+     public String getSymbol() {
+diff --git a/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationNotEqual.java b/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationNotEqual.java
+index 6754f46..5d483cd 100644
+--- a/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationNotEqual.java
++++ b/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationNotEqual.java
+@@ -29,6 +29,21 @@ public class CoreOperationNotEqual extends CoreOperationCompare {
+     }
+ 
+     public Object computeValue(org.apache.commons.jxpath.ri.EvalContext context) {
++        // Check for NaN before doing comparison - if either side is NaN,
++        // no comparison returns true (including !=)
++        Object l = args[0].compute(context);
++        Object r = args[1].compute(context);
++
++        // Handle NaN: if either is NaN, comparison returns false
++        // Convert to double to check for NaN
++        if (l instanceof Number || r instanceof Number) {
++            double ld = org.apache.commons.jxpath.ri.InfoSetUtil.doubleValue(l);
++            double rd = org.apache.commons.jxpath.ri.InfoSetUtil.doubleValue(r);
++            if (Double.isNaN(ld) || Double.isNaN(rd)) {
++                return Boolean.FALSE;
++            }
++        }
++
+         return equal(context, args[0], args[1]) ? Boolean.FALSE : Boolean.TRUE;
+     }
+     public String getSymbol() {

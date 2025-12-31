@@ -1,0 +1,66 @@
+diff --git a/src/main/java/org/apache/commons/math/linear/SingularValueDecompositionImpl.java b/src/main/java/org/apache/commons/math/linear/SingularValueDecompositionImpl.java
+index 143688172..da5f13ec0 100644
+--- a/src/main/java/org/apache/commons/math/linear/SingularValueDecompositionImpl.java
++++ b/src/main/java/org/apache/commons/math/linear/SingularValueDecompositionImpl.java
+@@ -163,6 +163,8 @@ public class SingularValueDecompositionImpl implements SingularValueDecompositio
+                 final double[][] eData = e.getData();
+                 final double[][] wData = new double[m][p];
+                 double[] ei1 = eData[0];
++                // Use threshold based on machine precision and largest singular value
++                final double threshold = Math.max(m, p) * Math.ulp(singularValues[0]);
+                 for (int i = 0; i < p - 1; ++i) {
+                     // compute W = B.E.S^(-1) where E is the eigenvectors matrix
+                     final double mi = mainBidiagonal[i];
+@@ -171,11 +173,13 @@ public class SingularValueDecompositionImpl implements SingularValueDecompositio
+                         ei1 = eData[i + 1];
+                         final double si = secondaryBidiagonal[i];
+                         for (int j = 0; j < p; ++j) {
+-                            wi[j] = (mi * ei0[j] + si * ei1[j]) / singularValues[j];
++                            wi[j] = (singularValues[j] > threshold) ?
++                                    (mi * ei0[j] + si * ei1[j]) / singularValues[j] : 0.0;
+                         }
+                 }
+                         for (int j = 0; j < p; ++j) {
+-                            wData[p - 1][j] = ei1[j] * mainBidiagonal[p - 1] / singularValues[j];
++                            wData[p - 1][j] = (singularValues[j] > threshold) ?
++                                               ei1[j] * mainBidiagonal[p - 1] / singularValues[j] : 0.0;
+                         }
+ 
+                 for (int i = p; i < m; ++i) {
+@@ -249,6 +253,8 @@ public class SingularValueDecompositionImpl implements SingularValueDecompositio
+                 final double[][] eData = e.getData();
+                 final double[][] wData = new double[n][p];
+                 double[] ei1 = eData[0];
++                // Use threshold based on machine precision and largest singular value
++                final double threshold = Math.max(n, p) * Math.ulp(singularValues[0]);
+                 for (int i = 0; i < p - 1; ++i) {
+                     final double mi = mainBidiagonal[i];
+                     final double[] ei0 = ei1;
+@@ -256,11 +262,13 @@ public class SingularValueDecompositionImpl implements SingularValueDecompositio
+                         ei1 = eData[i + 1];
+                         final double si = secondaryBidiagonal[i];
+                         for (int j = 0; j < p; ++j) {
+-                            wi[j] = (mi * ei0[j] + si * ei1[j]) / singularValues[j];
++                            wi[j] = (singularValues[j] > threshold) ?
++                                    (mi * ei0[j] + si * ei1[j]) / singularValues[j] : 0.0;
+                         }
+                 }
+                         for (int j = 0; j < p; ++j) {
+-                            wData[p - 1][j] = ei1[j] * mainBidiagonal[p - 1] / singularValues[j];
++                            wData[p - 1][j] = (singularValues[j] > threshold) ?
++                                               ei1[j] * mainBidiagonal[p - 1] / singularValues[j] : 0.0;
+                         }
+                 for (int i = p; i < n; ++i) {
+                     wData[i] = new double[p];
+@@ -371,8 +379,10 @@ public class SingularValueDecompositionImpl implements SingularValueDecompositio
+         private Solver(final double[] singularValues, final RealMatrix uT, final RealMatrix v,
+                        final boolean nonSingular) {
+             double[][] suT      = uT.getData();
++            // Use threshold based on machine precision and largest singular value
++            final double threshold = Math.max(uT.getRowDimension(), uT.getColumnDimension()) * Math.ulp(singularValues[0]);
+             for (int i = 0; i < singularValues.length; ++i) {
+-                final double a      = 1.0 / singularValues[i];
++                final double a      = (singularValues[i] > threshold) ? 1.0 / singularValues[i] : 0.0;
+                 final double[] suTi = suT[i];
+                 for (int j = 0; j < suTi.length; ++j) {
+                     suTi[j] *= a;

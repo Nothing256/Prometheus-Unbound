@@ -1,0 +1,41 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/jsontype/impl/AsPropertyTypeDeserializer.java b/src/main/java/com/fasterxml/jackson/databind/jsontype/impl/AsPropertyTypeDeserializer.java
+index d1d096a75..63c32cec9 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/jsontype/impl/AsPropertyTypeDeserializer.java
++++ b/src/main/java/com/fasterxml/jackson/databind/jsontype/impl/AsPropertyTypeDeserializer.java
+@@ -159,18 +159,36 @@ public class AsPropertyTypeDeserializer extends AsArrayTypeDeserializer
+         return null;
+     }
+ 
++    @Override
++    public Object deserializeTypedFromScalar(JsonParser p, DeserializationContext ctxt) throws IOException {
++        // First, check for the specific case: empty string with ACCEPT_EMPTY_STRING_AS_NULL_OBJECT enabled
++        if (p.getCurrentToken() == JsonToken.VALUE_STRING) {
++            String str = p.getText();
++            if (str != null && str.isEmpty() && ctxt.isEnabled(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT)) {
++                return null;
++            }
++        }
++
++        // For other cases, delegate to the default implementation handling
++        return _deserializeTypedUsingDefaultImpl(p, ctxt, null);
++    }
++
+     /* Also need to re-route "unknown" version. Need to think
+      * this through bit more in future, but for now this does address issue and has
+      * no negative side effects (at least within existing unit test suite).
+      */
+     @Override
+     public Object deserializeTypedFromAny(JsonParser p, DeserializationContext ctxt) throws IOException {
++        JsonToken t = p.getCurrentToken();
+         /* Sometimes, however, we get an array wrapper; specifically
+          * when an array or list has been serialized with type information.
+          */
+-        if (p.getCurrentToken() == JsonToken.START_ARRAY) {
++        if (t == JsonToken.START_ARRAY) {
+             return super.deserializeTypedFromArray(p, ctxt);
+         }
++        if (t.isScalarValue()) {
++            return deserializeTypedFromScalar(p, ctxt);
++        }
+         return deserializeTypedFromObject(p, ctxt);
+     }

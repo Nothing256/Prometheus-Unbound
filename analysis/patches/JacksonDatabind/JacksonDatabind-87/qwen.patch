@@ -1,0 +1,42 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/util/StdDateFormat.java b/src/main/java/com/fasterxml/jackson/databind/util/StdDateFormat.java
+index b1086041d..42f23757f 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/util/StdDateFormat.java
++++ b/src/main/java/com/fasterxml/jackson/databind/util/StdDateFormat.java
+@@ -510,7 +510,7 @@ public class StdDateFormat
+                             _timezone, _locale, _lenient);
+                 }
+             } else {
+-                // If not, plain date, no timezone
++                // If not, plain date, no timezone - should use the configured timezone
+                 StringBuilder sb = new StringBuilder(dateStr);
+                 int timeLen = len - dateStr.lastIndexOf('T') - 1;
+                 // And possible also millisecond part if missing
+@@ -524,16 +524,19 @@ public class StdDateFormat
+                         sb.append(".000");
+                     }
+                 }
+-                sb.append('Z');
++                // For dates with no timezone info, append the timezone offset of the configured timezone
++                TimeZone tz = (_timezone == null) ? DEFAULT_TIMEZONE : _timezone;
++                int rawOffset = tz.getRawOffset();
++                int offsetHours = Math.abs(rawOffset / (1000 * 60 * 60));
++                int offsetMinutes = Math.abs((rawOffset / (1000 * 60)) % 60);
++                char sign = (rawOffset >= 0) ? '+' : '-';
++                sb.append(String.format("%c%02d%02d", sign, offsetHours, offsetMinutes));
+                 dateStr = sb.toString();
+-                df = _formatISO8601_z;
+-                formatStr = DATE_FORMAT_STR_ISO8601_Z;
+-                if (df == null) {
+-                    // 10-Jun-2017, tatu: As per [databind#1651], when using this format,
+-                    //    must use UTC, not whatever is configured as default timezone
+-                    //    (because we know `Z` identifier is used)
+-                    df = _formatISO8601_z = _cloneFormat(DATE_FORMAT_ISO8601_Z, formatStr,
+-                            DEFAULT_TIMEZONE, _locale, _lenient);
++                df = _formatISO8601;
++                formatStr = DATE_FORMAT_STR_ISO8601;
++                if (_formatISO8601 == null) {
++                    df = _formatISO8601 = _cloneFormat(DATE_FORMAT_ISO8601, formatStr,
++                            tz, _locale, _lenient);
+                 }
+             }
+         }

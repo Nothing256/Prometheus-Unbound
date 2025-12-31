@@ -1,0 +1,45 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/MappingIterator.java b/src/main/java/com/fasterxml/jackson/databind/MappingIterator.java
+index b4ce3e956..20d4a52b2 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/MappingIterator.java
++++ b/src/main/java/com/fasterxml/jackson/databind/MappingIterator.java
+@@ -173,6 +173,8 @@ public class MappingIterator<T> implements Iterator<T>, Closeable
+         try {
+             return nextValue();
+         } catch (JsonMappingException e) {
++            // When a JsonMappingException occurs, we've already handled the recovery
++            // in nextValue, so just wrap and re-throw
+             throw new RuntimeJsonMappingException(e.getMessage(), e);
+         } catch (IOException e) {
+             throw new RuntimeException(e.getMessage(), e);
+@@ -252,6 +254,13 @@ public class MappingIterator<T> implements Iterator<T>, Closeable
+                 value = _updatedValue;
+             }
+             return value;
++        } catch (JsonMappingException e) {
++            // If an exception occurred during deserialization, the parser might be in an inconsistent state
++            // within the problematic JSON structure. Skip to the end of the current value to allow
++            // the iterator to resume from the next value in the sequence.
++            _skipChildren();
++            // Re-throw the exception to let the caller handle it
++            throw e;
+         } finally {
+             /* 24-Mar-2015, tatu: As per [#733], need to mark token consumed no
+              *   matter what, to avoid infinite loop for certain failure cases.
+@@ -352,6 +361,17 @@ public class MappingIterator<T> implements Iterator<T>, Closeable
+         // First, a quick check to see if we might have been lucky and no re-sync needed
+ 
+ 
++    /**
++     * Skip any remaining child elements of the current token, to prepare for the next value.
++     * This method is used to recover from deserialization errors by skipping the remainder
++     * of the problematic JSON structure.
++     */
++    protected void _skipChildren() throws IOException {
++        if (_parser != null) {
++            _parser.skipChildren();
++        }
++    }
++
+     protected <R> R _throwNoSuchElement() {
+         throw new NoSuchElementException();
+     }

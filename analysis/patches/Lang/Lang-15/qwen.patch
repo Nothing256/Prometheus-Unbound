@@ -1,0 +1,40 @@
+diff --git a/src/main/java/org/apache/commons/lang3/reflect/TypeUtils.java b/src/main/java/org/apache/commons/lang3/reflect/TypeUtils.java
+index 415cefa31..ceaa153b8 100644
+--- a/src/main/java/org/apache/commons/lang3/reflect/TypeUtils.java
++++ b/src/main/java/org/apache/commons/lang3/reflect/TypeUtils.java
+@@ -92,11 +92,9 @@ public class TypeUtils {
+             return isAssignable(type, (WildcardType) toType, typeVarAssigns);
+         }
+ 
+-        // *
+         if (toType instanceof TypeVariable<?>) {
+             return isAssignable(type, (TypeVariable<?>) toType, typeVarAssigns);
+         }
+-        // */
+ 
+         throw new IllegalStateException("found an unhandled type: " + toType);
+     }
+@@ -570,7 +568,6 @@ public class TypeUtils {
+             return null;
+         }
+ 
+-        // *
+         if (type instanceof TypeVariable<?>) {
+             for (Type bound : getImplicitBounds((TypeVariable<?>) type)) {
+                 // find the first bound that is assignable to the target class
+@@ -581,7 +578,6 @@ public class TypeUtils {
+ 
+             return null;
+         }
+-        // */
+ 
+         throw new IllegalStateException("found an unhandled type: " + type);
+     }
+@@ -672,7 +668,7 @@ public class TypeUtils {
+                 : new HashMap<TypeVariable<?>, Type>(subtypeVarAssigns);
+ 
+         // has target class been reached?
+-        if (cls.getTypeParameters().length > 0 || toClass.equals(cls)) {
++        if (toClass.equals(cls)) {
+             return typeVarAssigns;
+         }

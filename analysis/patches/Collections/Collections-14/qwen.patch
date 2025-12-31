@@ -1,0 +1,19 @@
+--- a/src/java/org/apache/commons/collections/map/CaseInsensitiveMap.java
++++ b/src/java/org/apache/commons/collections/map/CaseInsensitiveMap.java
+@@ -24,6 +24,7 @@
+ import java.io.ObjectInputStream;
+ import java.io.ObjectOutputStream;
+ import java.io.Serializable;
++import java.util.Locale;
+ import java.util.Map;
+ 
+ /**
+@@ -118,9 +119,9 @@
+      */
+     protected Object convertKey(Object key) {
+         if (key != null) {
+-            return key.toString().toLowerCase();
++            return key.toString().toLowerCase(Locale.ENGLISH);
+         } else {
+             return AbstractHashedMap.NULL;
+         }

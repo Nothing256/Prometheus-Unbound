@@ -1,0 +1,71 @@
+diff --git a/src/main/java/org/jsoup/nodes/Element.java b/src/main/java/org/jsoup/nodes/Element.java
+index f9746e56..126b3d68 100644
+--- a/src/main/java/org/jsoup/nodes/Element.java
++++ b/src/main/java/org/jsoup/nodes/Element.java
+@@ -1415,6 +1415,22 @@ public class Element extends Node {
+        return clone;
+    }
+
++    /**
++     * Remove this element from any form it may be associated with.
++     */
++    protected void removeFromAnyForm() {
++        // Walk up the tree to find if this element is contained within a form element
++        Element parent = this.parent();
++        while (parent != null) {
++            if (parent instanceof FormElement) {
++                FormElement form = (FormElement) parent;
++                form.removeElement(this);
++                break; // Only remove from one form
++            }
++            parent = parent.parent();
++        }
++    }
++
+    private static final class NodeList extends ChangeNotifyingArrayList<Node> {
+        private final Element owner;
+
+diff --git a/src/main/java/org/jsoup/nodes/FormElement.java b/src/main/java/org/jsoup/nodes/FormElement.java
+index e498975d..ada61b60 100644
+--- a/src/main/java/org/jsoup/nodes/FormElement.java
++++ b/src/main/java/org/jsoup/nodes/FormElement.java
+@@ -46,6 +46,16 @@ public class FormElement extends Element {
+        return this;
+    }
+
++    /**
++     * Remove a form control element from this form.
++     * @param element form control to remove
++     * @return this form element, for chaining
++     */
++    public FormElement removeElement(Element element) {
++        elements.remove(element);
++        return this;
++    }
++
+
+    /**
+     * Prepare to submit this form. A Connection object is created with the request set up from the form values. You
+diff --git a/src/main/java/org/jsoup/nodes/Node.java b/src/main/java/org/jsoup/nodes/Node.java
+index 37467a7c..ed8ba413 100644
+--- a/src/main/java/org/jsoup/nodes/Node.java
++++ b/src/main/java/org/jsoup/nodes/Node.java
+@@ -439,6 +439,19 @@ public abstract class Node implements Cloneable {
+        final int index = out.siblingIndex;
+        ensureChildNodes().remove(index);
+        reindexChildren(index);
++
++        // If this is an element that might be in a form, remove it from its form
++        if (out instanceof Element) {
++            Element el = (Element) out;
++            // If the parent is a form, remove the element from the form's elements list
++            if (this instanceof FormElement) {
++                ((FormElement) this).removeElement(el);
++            } else {
++                // Otherwise, walk up the tree to find if this element belongs to a form
++                el.removeFromAnyForm();
++            }
++        }
++
+        out.parentNode = null;
+    }

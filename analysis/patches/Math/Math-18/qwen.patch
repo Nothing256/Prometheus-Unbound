@@ -1,0 +1,39 @@
+--- a/src/main/java/org/apache/commons/math3/optimization/direct/CMAESOptimizer.java
++++ b/src/main/java/org/apache/commons/math3/optimization/direct/CMAESOptimizer.java
+@@ -589,10 +589,14 @@
+         // initialize sigma
+         double[][] sigmaArray = new double[guess.length][1];
+         for (int i = 0; i < guess.length; i++) {
+             final double range = (boundaries == null) ? 1.0 : boundaries[1][i] - boundaries[0][i];
+-            sigmaArray[i][0] = ((inputSigma == null) ? 0.3 : inputSigma[i]) / range;
++            final double sigmaVal = (inputSigma == null) ? 0.3 : inputSigma[i];
++            // Calculate sigma in the normalized space [0,1]
++            // To avoid numerical precision issues with extremely large ranges,
++            // use a reasonable minimum that ensures the algorithm can make progress
++            double calculatedSigma = sigmaVal / range;
++            // Use a minimum value that ensures effective search, even with extreme ranges
++            sigmaArray[i][0] = Math.max(calculatedSigma, 1e-2); // Larger minimum for better numerical stability
+         }
+         RealMatrix insigma = new Array2DRowRealMatrix(sigmaArray, false);
+         sigma = max(insigma); // overall standard deviation
+@@ -934,9 +934,13 @@
+         public double[] encode(final double[] x) {
+             if (boundaries == null) {
+                 return x;
+             }
+             double[] res = new double[x.length];
+-            for (int i = 0; i < x.length; i++) {
+-                double diff = boundaries[1][i] - boundaries[0][i];
+-                res[i] = (x[i] - boundaries[0][i]) / diff;
+-            }
++            for (int i = 0; i < x.length; i++) {
++                // Calculate difference avoiding numerical cancellation errors in extreme cases
++                double lower = boundaries[0][i];
++                double upper = boundaries[1][i];
++                double diff = upper - lower;
++
++                // For extremely large ranges, use the standard approach but be careful about precision
++                res[i] = (x[i] - lower) / diff;
++            }
+             return res;
+         }

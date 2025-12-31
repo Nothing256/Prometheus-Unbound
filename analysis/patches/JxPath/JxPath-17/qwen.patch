@@ -1,0 +1,60 @@
+diff --git a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMAttributeIterator.java b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMAttributeIterator.java
+index a2ee4db..c8151a2 100644
+--- a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMAttributeIterator.java
++++ b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMAttributeIterator.java
+@@ -135,7 +135,6 @@ public class DOMAttributeIterator implements NodeIterator {
+             if (!setPosition(1)) {
+                 return null;
+             }
+-            position = 0;
+         }
+         int index = position - 1;
+         if (index < 0) {
+diff --git a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNamespaceIterator.java b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNamespaceIterator.java
+index b0a4c49..a3de77d 100644
+--- a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNamespaceIterator.java
++++ b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNamespaceIterator.java
+@@ -83,7 +83,6 @@ public class DOMNamespaceIterator implements NodeIterator {
+             if (!setPosition(1)) {
+                 return null;
+             }
+-            position = 0;
+         }
+         int index = position - 1;
+         if (index < 0) {
+diff --git a/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMAttributeIterator.java b/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMAttributeIterator.java
+index db0b14d..33fea49 100644
+--- a/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMAttributeIterator.java
++++ b/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMAttributeIterator.java
+@@ -92,7 +92,6 @@ public class JDOMAttributeIterator implements NodeIterator {
+             if (!setPosition(1)) {
+                 return null;
+             }
+-            position = 0;
+         }
+         int index = position - 1;
+         if (index < 0) {
+diff --git a/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMNamespaceIterator.java b/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMNamespaceIterator.java
+index d5b24cc..72384e8 100644
+--- a/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMNamespaceIterator.java
++++ b/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMNamespaceIterator.java
+@@ -88,7 +88,6 @@ public class JDOMNamespaceIterator implements NodeIterator {
+             if (!setPosition(1)) {
+                 return null;
+             }
+-            position = 0;
+         }
+         int index = position - 1;
+         if (index < 0) {
+diff --git a/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMNodeIterator.java b/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMNodeIterator.java
+index 31a38ca..8bf25e3 100644
+--- a/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMNodeIterator.java
++++ b/src/java/org/apache/commons/jxpath/ri/model/jdom/JDOMNodeIterator.java
+@@ -69,7 +69,6 @@ public class JDOMNodeIterator implements NodeIterator {
+             if (!setPosition(1)) {
+                 return null;
+             }
+-            position = 0;
+         }
+ 
+         return new JDOMNodePointer(parent, child);

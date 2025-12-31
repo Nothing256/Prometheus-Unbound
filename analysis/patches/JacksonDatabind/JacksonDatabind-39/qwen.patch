@@ -1,0 +1,35 @@
+--- /tmp/NullifyingDeserializer_original.java	2025-12-26 14:02:22
++++ /Users/nothing/workspace/prometheus_workdir_qwen/jacksondatabind_39_blind_auto/src/main/java/com/fasterxml/jackson/databind/deser/std/NullifyingDeserializer.java	2025-12-26 14:02:06
+@@ -40,15 +40,23 @@
+     public Object deserializeWithType(JsonParser p, DeserializationContext ctxt,
+             TypeDeserializer typeDeserializer) throws IOException
+     {
+-        // Not sure if we need to bother but:
+-
+-        switch (p.getCurrentTokenId()) {
+-        case JsonTokenId.ID_START_ARRAY:
+-        case JsonTokenId.ID_START_OBJECT:
+-        case JsonTokenId.ID_FIELD_NAME:
+-            return typeDeserializer.deserializeTypedFromAny(p, ctxt);
+-        default:
+-            return null;
++        // For a nullifying deserializer, we should always skip the content and return null
++        // regardless of the token type to ensure consistent nullifying behavior
++        switch (p.getCurrentToken()) {
++            case START_OBJECT:
++            case START_ARRAY:
++                p.skipChildren();
++                break;
++            case FIELD_NAME:
++                // When positioned at a field name, advance to the value first
++                p.nextToken();
++                // Then skip the value content
++                p.skipChildren();
++                break;
++            default:
++                // For scalar values, no children to skip
++                break;
+         }
++        return null;
+     }
+ }

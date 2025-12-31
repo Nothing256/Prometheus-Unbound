@@ -1,0 +1,150 @@
+diff --git a/src/main/java/org/jsoup/helper/DataUtil.java b/src/main/java/org/jsoup/helper/DataUtil.java
+index 34880d8b..1919048a 100644
+--- a/src/main/java/org/jsoup/helper/DataUtil.java
++++ b/src/main/java/org/jsoup/helper/DataUtil.java
+@@ -22,6 +22,21 @@ public final class DataUtil {
+     static final String defaultCharset = "UTF-8"; // used if not found in header or meta charset
+     private static final int bufferSize = 0x20000; // ~130K.
+     private static final int UNICODE_BOM = 0xFEFF;
++    private static final byte UTF_8_BOM_1 = (byte) 0xEF;
++    private static final byte UTF_8_BOM_2 = (byte) 0xBB;
++    private static final byte UTF_8_BOM_3 = (byte) 0xBF;
++    private static final byte UTF_16BE_BOM_1 = (byte) 0xFE;
++    private static final byte UTF_16BE_BOM_2 = (byte) 0xFF;
++    private static final byte UTF_16LE_BOM_1 = (byte) 0xFF;
++    private static final byte UTF_16LE_BOM_2 = (byte) 0xFE;
++    private static final byte UTF_32BE_BOM_1 = (byte) 0x00;
++    private static final byte UTF_32BE_BOM_2 = (byte) 0x00;
++    private static final byte UTF_32BE_BOM_3 = (byte) 0xFE;
++    private static final byte UTF_32BE_BOM_4 = (byte) 0xFF;
++    private static final byte UTF_32LE_BOM_1 = (byte) 0xFF;
++    private static final byte UTF_32LE_BOM_2 = (byte) 0xFE;
++    private static final byte UTF_32LE_BOM_3 = (byte) 0x00;
++    private static final byte UTF_32LE_BOM_4 = (byte) 0x00;
+     private static final char[] mimeBoundaryChars =
+             "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+     static final int boundaryLength = 32;
+@@ -90,6 +105,13 @@ public final class DataUtil {
+         Document doc = null;
+ 
+         // look for BOM - overrides any other header or input
++        // Detect and handle different BOMs before processing
++
++        String detectedCharsetFromBom = detectCharsetFromBom(byteData);
++        if (detectedCharsetFromBom != null) {
++            charsetName = detectedCharsetFromBom;
++            // The BOM has been handled by the detection method by skipping the BOM bytes
++        }
+ 
+         if (charsetName == null) { // determine from meta. safe parse as UTF-8
+             // look for <meta http-equiv="Content-Type" content="text/html;charset=gb2312"> or HTML5 <meta charset="gb2312">
+@@ -213,6 +235,109 @@ public final class DataUtil {
+         return null;
+     }
+ 
++    /**
++     * Detects charset from BOM and returns the appropriate charset name.
++     * NOTE: This method does NOT advance the buffer position. The caller is responsible
++     * for ensuring the buffer position remains at the beginning so the charset decoder
++     * can properly handle the BOM.
++     * @param byteData the byte buffer to check for BOM
++     * @return charset name if BOM is found, otherwise null
++     */
++    static String detectCharsetFromBom(ByteBuffer byteData) {
++        if (byteData.remaining() < 2) {
++            return null;
++        }
++
++        // Save current position to restore after BOM check
++        int startPosition = byteData.position();
++
++        // Check for different BOMs in order
++        // UTF-8 BOM: EF BB BF
++        if (byteData.remaining() >= 3) {
++            byte b1 = byteData.get();
++            byte b2 = byteData.get();
++            byte b3 = byteData.get();
++
++            if (b1 == UTF_8_BOM_1 && b2 == UTF_8_BOM_2 && b3 == UTF_8_BOM_3) {
++                // Restore position to beginning of BOM
++                byteData.position(startPosition);
++                return "UTF-8";
++            }
++
++            // Reset to start position to check other BOMs
++            byteData.position(startPosition);
++        }
++
++        if (byteData.remaining() >= 2) {
++            byte b1 = byteData.get();
++            byte b2 = byteData.get();
++
++            if (b1 == UTF_16BE_BOM_1 && b2 == UTF_16BE_BOM_2) {
++                // Restore position to beginning of BOM
++                byteData.position(startPosition);
++                // UTF-16 charset automatically detects endianness when BOM is present
++                return "UTF-16";
++            } else if (b1 == UTF_16LE_BOM_1 && b2 == UTF_16LE_BOM_2) {
++                // Restore position to beginning of BOM
++                byteData.position(startPosition);
++                // UTF-16 charset automatically detects endianness when BOM is present
++                return "UTF-16";
++            }
++
++            // Reset to start position to check other BOMs
++            byteData.position(startPosition);
++        }
++
++        // Check for UTF-32 BOMs - need at least 4 bytes
++        if (byteData.remaining() >= 4) {
++            byte b1 = byteData.get();
++            byte b2 = byteData.get();
++            byte b3 = byteData.get();
++            byte b4 = byteData.get();
++
++            if (b1 == UTF_32BE_BOM_1 && b2 == UTF_32BE_BOM_2 && b3 == UTF_32BE_BOM_3 && b4 == UTF_32BE_BOM_4) {
++                // Restore position to beginning of BOM
++                byteData.position(startPosition);
++                // Check if the specific UTF-32 charset is supported, otherwise use fallback
++                if (Charset.isSupported("UTF-32BE")) {
++                    return "UTF-32BE";
++                } else if (Charset.isSupported("x-UTF-32BE")) {
++                    return "x-UTF-32BE";
++                } else if (Charset.isSupported("UTF-32")) {
++                    return "UTF-32";
++                } else {
++                    // Use UTF-8 as a fallback if UTF-32 is not available
++                    // But this may not decode the content correctly since it's actually UTF-32
++                    // Better to use a more generic approach that will at least not fail
++                    return "UTF-8";
++                }
++            } else if (b1 == UTF_32LE_BOM_1 && b2 == UTF_32LE_BOM_2 && b3 == UTF_32LE_BOM_3 && b4 == UTF_32LE_BOM_4) {
++                // Restore position to beginning of BOM
++                byteData.position(startPosition);
++                // Check if the specific UTF-32 charset is supported, otherwise use fallback
++                if (Charset.isSupported("UTF-32LE")) {
++                    return "UTF-32LE";
++                } else if (Charset.isSupported("x-UTF-32LE")) {
++                    return "x-UTF-32LE";
++                } else if (Charset.isSupported("UTF-32")) {
++                    return "UTF-32";
++                } else {
++                    // Use UTF-8 as a fallback if UTF-32 is not available
++                    // But this may not decode the content correctly since it's actually UTF-32
++                    return "UTF-8";
++                }
++            }
++
++            // Reset to start position if no BOM found
++            byteData.position(startPosition);
++        } else {
++            // Reset to start position if not enough bytes
++            byteData.position(startPosition);
++        }
++
++        return null;
++    }
++
+     /**
+      * Creates a random string, suitable for use as a mime boundary
+      */

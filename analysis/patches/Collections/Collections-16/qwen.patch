@@ -1,0 +1,15 @@
+diff --git a/src/java/org/apache/commons/collections/list/SetUniqueList.java b/src/java/org/apache/commons/collections/list/SetUniqueList.java
+index 8ad35538..8184f6cd 100644
+--- a/src/java/org/apache/commons/collections/list/SetUniqueList.java
++++ b/src/java/org/apache/commons/collections/list/SetUniqueList.java
+@@ -283,7 +283,9 @@ public class SetUniqueList extends AbstractSerializableListDecorator {
+     }
+ 
+     public List subList(int fromIndex, int toIndex) {
+-        return new SetUniqueList(super.subList(fromIndex, toIndex), set);
++        List sub = super.subList(fromIndex, toIndex);
++        Set subSet = new HashSet(sub);
++        return new SetUniqueList(sub, subSet);
+     }
+ 
+     //-----------------------------------------------------------------------

@@ -1,0 +1,15 @@
+diff --git a/src/main/java/org/jsoup/nodes/Document.java b/src/main/java/org/jsoup/nodes/Document.java
+index c5814afd..d7f78de8 100644
+--- a/src/main/java/org/jsoup/nodes/Document.java
++++ b/src/main/java/org/jsoup/nodes/Document.java
+@@ -66,7 +66,9 @@ public class Document extends Element {
+     public String title() {
+         // title is a preserve whitespace tag (for document output), but normalised here
+         Element titleEl = getElementsByTag("title").first();
+-        return titleEl != null ? titleEl.text().trim() : "";
++        String titleText = titleEl != null ? titleEl.text() : "";
++        // Normalize whitespace to handle internal spaces, newlines, tabs, etc.
++        return TextNode.normaliseWhitespace(titleText);
+     }
+ 
+     /**

@@ -1,0 +1,17 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/DatabindContext.java b/src/main/java/com/fasterxml/jackson/databind/DatabindContext.java
+index 134498bd6..d9aed49e6 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/DatabindContext.java
++++ b/src/main/java/com/fasterxml/jackson/databind/DatabindContext.java
+@@ -360,6 +360,12 @@ public abstract class DatabindContext
+         if (extra == null) {
+             return msgBase;
+         }
++        // Check if extra contains location information that might already be in msgBase
++        // to prevent duplicate location information in error messages
++        if (msgBase != null && extra.contains("at [Source")) {
++            // If extra already contains location info, avoid duplication by returning msgBase as is
++            return msgBase;
++        }
+         return msgBase + ": " + extra;
+     }
+ 

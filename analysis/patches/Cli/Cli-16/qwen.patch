@@ -1,0 +1,47 @@
+diff --git a/src/java/org/apache/commons/cli2/option/GroupImpl.java b/src/java/org/apache/commons/cli2/option/GroupImpl.java
+index e3b69f8..d4625af 100644
+--- a/src/java/org/apache/commons/cli2/option/GroupImpl.java
++++ b/src/java/org/apache/commons/cli2/option/GroupImpl.java
+@@ -157,6 +157,7 @@ public class GroupImpl
+                         final ListIterator arguments)
+         throws OptionException {
+         String previous = null;
++        boolean processedAnyMemberOption = false;
+ 
+         // [START process each command line token
+         while (arguments.hasNext()) {
+@@ -180,6 +181,7 @@ public class GroupImpl
+             if (opt != null) {
+                 arguments.previous();
+                 opt.process(commandLine, arguments);
++                processedAnyMemberOption = true;
+             }
+             // [START option NOT found
+             else {
+@@ -198,6 +200,7 @@ public class GroupImpl
+                             foundMemberOption = true;
+                             arguments.previous();
+                             option.process(commandLine, arguments);
++                            processedAnyMemberOption = true;
+                         }
+                     }
+ 
+@@ -227,11 +230,18 @@ public class GroupImpl
+ 
+                         if (argument.canProcess(commandLine, arguments)) {
+                             argument.process(commandLine, arguments);
++                            processedAnyMemberOption = true;
+                         }
+                     }
+                 } // [END argument is NOT anonymous
+             } // [END option NOT found
+         } // [END process each command line token
++
++        // Add the group itself to the command line if any of its member options were processed
++        // but only if it's not already present to avoid duplicates
++        if (processedAnyMemberOption && !commandLine.hasOption(this)) {
++            commandLine.addOption(this);
++        }
+     }
+ 
+     public void validate(final WriteableCommandLine commandLine)

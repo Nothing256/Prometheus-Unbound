@@ -1,0 +1,41 @@
+--- a/source/org/jfree/data/xy/XYSeries.java
++++ b/source/org/jfree/data/xy/XYSeries.java
+@@ -556,22 +556,29 @@
+         else {
+             // if the series is sorted, the negative index is a result from
+             // Collections.binarySearch() and tells us where to insert the
+             // new item...otherwise it will be just -1 and we should just
+             // append the value to the list...
+-            if (this.autoSort) {
+-                this.data.add(-index - 1, new XYDataItem(x, y));
+-            }
+-            else {
+-                this.data.add(new XYDataItem(x, y));
+-            }
++            if (this.autoSort && this.allowDuplicateXValues && index >= 0) {
++                XYDataItem item = new XYDataItem(x, y);
++                int size = this.data.size();
++                while (index < size && item.compareTo(this.data.get(index)) == 0) {
++                    index++;
++                }
++                if (index < this.data.size()) {
++                    this.data.add(index, item);
++                }
++                else {
++                    this.data.add(item);
++                }
++            } else {
++                // if the series is sorted, the negative index is a result from
++                // Collections.binarySearch() and tells us where to insert the
++                // new item...otherwise it will be just -1 and we should just
++                // append the value to the list...
++                if (this.autoSort) {
++                    this.data.add(-index - 1, new XYDataItem(x, y));
++                }
++                else {
++                    this.data.add(new XYDataItem(x, y));
++                }
++            }
+             // check if this addition will exceed the maximum item count...
+             if (getItemCount() > this.maximumItemCount) {
+                 this.data.remove(0);

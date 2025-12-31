@@ -1,0 +1,38 @@
+diff --git a/src/main/java/org/jsoup/parser/TreeBuilderState.java b/src/main/java/org/jsoup/parser/TreeBuilderState.java
+index 4ae01e1f..1894642a 100644
+--- a/src/main/java/org/jsoup/parser/TreeBuilderState.java
++++ b/src/main/java/org/jsoup/parser/TreeBuilderState.java
+@@ -248,9 +248,8 @@ enum TreeBuilderState {
+                 case Character: {
+                     Token.Character c = t.asCharacter();
+                     if (c.getData().equals(nullString)) {
+-                        // todo confirm that check
+-                        tb.error(this);
+-                        return false;
++                        // Replace null character with replacement character
++                        tb.insert(new Token.Character("\uFFFD"));
+                     } else if (isWhitespace(c)) {
+                         tb.reconstructFormattingElements();
+                         tb.insert(c);
+@@ -905,8 +904,8 @@ enum TreeBuilderState {
+                 case Character:
+                     Token.Character c = t.asCharacter();
+                     if (c.getData().equals(nullString)) {
+-                        tb.error(this);
+-                        return false;
++                        // Replace null character with replacement character
++                        tb.getPendingTableCharacters().add(new Token.Character("\uFFFD"));
+                     } else {
+                         tb.getPendingTableCharacters().add(c);
+                     }
+@@ -1209,8 +1208,8 @@ enum TreeBuilderState {
+                 case Character:
+                     Token.Character c = t.asCharacter();
+                     if (c.getData().equals(nullString)) {
+-                        tb.error(this);
+-                        return false;
++                        // Replace null character with replacement character
++                        tb.insert(new Token.Character("\uFFFD"));
+                     } else {
+                         tb.insert(c);
+                     }

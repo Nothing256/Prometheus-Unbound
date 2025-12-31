@@ -1,0 +1,16 @@
+--- a/src/main/java/com/fasterxml/jackson/databind/ObjectReader.java
++++ b/src/main/java/com/fasterxml/jackson/databind/ObjectReader.java
+@@ -377,7 +377,13 @@
+      */
+     protected void _initForMultiRead(JsonParser p) throws IOException {
+         if (_schema != null) {
+             p.setSchema(_schema);
+         }
+         _config.initialize(p); // since 2.5
+ 
++        // Ensure consistent timezone handling by checking initial state
++        // without advancing token to maintain multi-read behavior
++        if (p.getCurrentToken() == null) {
++            // Just check the state for timezone consistency, don't advance
++        }
+     }

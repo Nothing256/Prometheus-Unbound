@@ -1,0 +1,56 @@
+diff --git a/src/org/mockito/internal/stubbing/defaultanswers/ReturnsDeepStubs.java b/src/org/mockito/internal/stubbing/defaultanswers/ReturnsDeepStubs.java
+index c4384f7fc..aba5a8da5 100644
+--- a/src/org/mockito/internal/stubbing/defaultanswers/ReturnsDeepStubs.java
++++ b/src/org/mockito/internal/stubbing/defaultanswers/ReturnsDeepStubs.java
+@@ -37,8 +37,15 @@ import org.mockito.stubbing.Answer;
+  */
+ public class ReturnsDeepStubs implements Answer<Object>, Serializable {
+     
+     private static final long serialVersionUID = -7105341425736035847L;
+ 
+     private MockitoCore mockitoCore = new MockitoCore();
+     private ReturnsEmptyValues delegate = new ReturnsEmptyValues();
++
++    // Field to store specific metadata, replacing the need for anonymous subclasses
++    private GenericMetadataSupport specificMetadata;
++
++    // Custom serialization method to handle the mockitoCore field
++    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
++        out.defaultWriteObject();
++    }
++
++    // Custom deserialization method to restore the mockitoCore field
++    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
++        in.defaultReadObject();
++        this.mockitoCore = new MockitoCore();
++    }
+ 
+     public Object answer(InvocationOnMock invocation) throws Throwable {
+         GenericMetadataSupport returnTypeGenericMetadata =
+@@ -112,10 +119,9 @@ public class ReturnsDeepStubs implements Answer<Object>, Serializable {
+     }
+ 
+     private ReturnsDeepStubs returnsDeepStubsAnswerUsing(final GenericMetadataSupport returnTypeGenericMetadata) {
+-        return new ReturnsDeepStubs() {
+-            @Override
+-            protected GenericMetadataSupport actualParameterizedType(Object mock) {
+-                return returnTypeGenericMetadata;
+-            }
+-        };
++        ReturnsDeepStubs answer = new ReturnsDeepStubs();
++        answer.specificMetadata = returnTypeGenericMetadata;
++        return answer;
+     }
+ 
+@@ -135,7 +141,10 @@ public class ReturnsDeepStubs implements Answer<Object>, Serializable {
+     }
+ 
+ 
+     protected GenericMetadataSupport actualParameterizedType(Object mock) {
++        if (specificMetadata != null) {
++            return specificMetadata;
++        }
+         CreationSettings mockSettings = (CreationSettings) new MockUtil().getMockHandler(mock).getMockSettings();
+         return GenericMetadataSupport.inferFrom(mockSettings.getTypeToMock());
+     }
+ }

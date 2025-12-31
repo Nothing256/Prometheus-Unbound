@@ -1,0 +1,68 @@
+--- a/source/org/jfree/data/KeyedObjects2D.java
++++ b/source/org/jfree/data/KeyedObjects2D.java
+@@ -295,42 +295,36 @@
+     public void removeObject(Comparable rowKey, Comparable columnKey) {
+         setObject(null, rowKey, columnKey);
+ 
+         // 1. check whether the row is now empty.
+         boolean allNull = true;
+         int rowIndex = getRowIndex(rowKey);
+         KeyedObjects row = (KeyedObjects) this.rows.get(rowIndex);
+ 
+         for (int item = 0, itemCount = row.getItemCount(); item < itemCount;
+              item++) {
+             if (row.getObject(item) != null) {
+                 allNull = false;
+                 break;
+             }
+         }
+ 
+         if (allNull) {
+             this.rowKeys.remove(rowIndex);
+             this.rows.remove(rowIndex);
+         }
+ 
+         // 2. check whether the column is now empty.
++        int colIndex = getColumnIndex(columnKey);
++        if (colIndex >= 0) {
++            boolean columnAllNull = true;
++            for (int r = 0; r < this.rows.size(); r++) {
++                KeyedObjects dataRow = (KeyedObjects) this.rows.get(r);
++                // Check if the object exists in this row for the specified column key
++                int objectIndex = dataRow.getIndex(columnKey);
++                if (objectIndex >= 0 && dataRow.getObject(objectIndex) != null) {
++                    columnAllNull = false;
++                    break;
++                }
++            }
++
++            if (columnAllNull) {
++                this.columnKeys.remove(colIndex);
++            }
++        }
+     }
+ 
+@@ -394,13 +394,21 @@
+     public void removeColumn(Comparable columnKey) {
+         int index = getColumnIndex(columnKey);
+         if (index < 0) {
+             throw new UnknownKeyException("Column key (" + columnKey
+                     + ") not recognised.");
+         }
+         Iterator iterator = this.rows.iterator();
+         while (iterator.hasNext()) {
+             KeyedObjects rowData = (KeyedObjects) iterator.next();
+                 rowData.removeValue(columnKey);
+         }
+         this.columnKeys.remove(columnKey);
++
++        // Check if any rows are now completely empty and remove them
++        for (int r = this.rows.size() - 1; r >= 0; r--) {
++            KeyedObjects rowData = (KeyedObjects) this.rows.get(r);
++            if (rowData.getItemCount() == 0) {
++                // This row is empty, remove it
++                this.rowKeys.remove(r);
++                this.rows.remove(r);
++            }
++        }
+     }

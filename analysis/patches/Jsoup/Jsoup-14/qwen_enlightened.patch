@@ -1,0 +1,30 @@
+diff --git a/src/main/java/org/jsoup/parser/TokeniserState.java b/src/main/java/org/jsoup/parser/TokeniserState.java
+index ca27ea09..c2a82285 100644
+--- a/src/main/java/org/jsoup/parser/TokeniserState.java
++++ b/src/main/java/org/jsoup/parser/TokeniserState.java
+@@ -217,6 +217,9 @@ enum TokeniserState {
+                 t.advanceTransition(RCDATAEndTagOpen);
+                 // diverge from spec: got a start tag, but there's no appropriate end tag (</title>), so rather than
+                 // consuming to EOF; break out here
++            } else if (r.matchesLetter()) {
++                // This is a start tag that should close the RCDATA element
++                t.transition(Data);  // Transition to Data state to process '<' and create proper start tag
+             } else {
+                 t.emit("<");
+                 t.transition(Rcdata);
+diff --git a/src/main/java/org/jsoup/parser/TreeBuilderState.java b/src/main/java/org/jsoup/parser/TreeBuilderState.java
+index 0b36067c..0e739747 100644
+--- a/src/main/java/org/jsoup/parser/TreeBuilderState.java
++++ b/src/main/java/org/jsoup/parser/TreeBuilderState.java
+@@ -797,6 +797,11 @@ public enum TreeBuilderState {
+                 // if: An end tag whose tag name is "script" -- scripting nesting level, if evaluating scripts
+                 tb.pop();
+                 tb.transition(tb.originalState());
++            } else if (t.isStartTag()) {
++                // RCDATA elements (like textarea, title) should be closed by any start tag
++                tb.pop();
++                tb.transition(tb.originalState());
++                return tb.process(t);
+             }
+             return true;
+         }

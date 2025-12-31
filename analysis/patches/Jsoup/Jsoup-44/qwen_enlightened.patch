@@ -1,0 +1,46 @@
+diff --git a/src/main/java/org/jsoup/parser/TreeBuilder.java b/src/main/java/org/jsoup/parser/TreeBuilder.java
+index 3984e87c..4197bb89 100644
+--- a/src/main/java/org/jsoup/parser/TreeBuilder.java
++++ b/src/main/java/org/jsoup/parser/TreeBuilder.java
+@@ -4,6 +4,7 @@ import org.jsoup.helper.Validate;
+ import org.jsoup.nodes.Attributes;
+ import org.jsoup.nodes.Document;
+ import org.jsoup.nodes.Element;
++import org.jsoup.nodes.Node;
+ 
+ import java.util.ArrayList;
+ 
+@@ -76,4 +77,33 @@ abstract class TreeBuilder {
+         int size = stack.size();
+         return size > 0 ? stack.get(size-1) : null;
+     }
++
++    protected Node lastChild(Element element) {
++        if (element != null && element.childNodeSize() > 0) {
++            return element.childNode(element.childNodeSize() - 1);
++        }
++        return null;
++    }
++
++    // Track the context for proper foster parenting order
++    protected Node insertionPosition = null;
++
++    protected void setInsertionPosition(Node node) {
++        insertionPosition = node;
++    }
++
++    protected Node getInsertionPosition() {
++        return insertionPosition;
++    }
++
++    // Track the most recently inserted node in a parent element to help with foster parenting
++    private Node lastInsertedNode = null;
++
++    protected void trackLastInsertedNode(Node node) {
++        lastInsertedNode = node;
++    }
++
++    protected Node getLastInsertedNode() {
++        return lastInsertedNode;
++    }
+ }

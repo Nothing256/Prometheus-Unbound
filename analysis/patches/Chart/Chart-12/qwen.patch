@@ -1,0 +1,16 @@
+diff --git a/source/org/jfree/chart/plot/MultiplePiePlot.java b/source/org/jfree/chart/plot/MultiplePiePlot.java
+index fedc205..5fbc18d 100644
+--- a/source/org/jfree/chart/plot/MultiplePiePlot.java
++++ b/source/org/jfree/chart/plot/MultiplePiePlot.java
+@@ -159,6 +159,11 @@ public class MultiplePiePlot extends Plot implements Cloneable, Serializable {
+         this.aggregatedItemsKey = "Other";
+        this.aggregatedItemsPaint = Color.lightGray;
+        this.sectionPaints = new HashMap();
++
++        // register the plot as a dataset listener (see patch 1943021)...
++        if (dataset != null) {
++            dataset.addChangeListener(this);
++        }
+    }
+ 
+    /**

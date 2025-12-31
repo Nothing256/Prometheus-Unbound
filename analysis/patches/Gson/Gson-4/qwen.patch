@@ -1,0 +1,18 @@
+diff --git a/gson/src/main/java/com/google/gson/stream/JsonReader.java b/gson/src/main/java/com/google/gson/stream/JsonReader.java
+index e3ad50e5..9257545c 100644
+--- a/gson/src/main/java/com/google/gson/stream/JsonReader.java
++++ b/gson/src/main/java/com/google/gson/stream/JsonReader.java
+@@ -1260,8 +1260,11 @@ public class JsonReader implements Closeable {
+       peeked = PEEKED_NONE;
+     } while (count != 0);
+ 
+-    pathIndices[stackSize - 1]++;
+-    pathNames[stackSize - 1] = "null";
++    // Only update path information when inside an array or object, not at document level
++    if (stack[stackSize - 1] != JsonScope.NONEMPTY_DOCUMENT && stack[stackSize - 1] != JsonScope.EMPTY_DOCUMENT) {
++      pathIndices[stackSize - 1]++;
++      pathNames[stackSize - 1] = "null";
++    }
+   }
+ 
+   private void push(int newTop) {

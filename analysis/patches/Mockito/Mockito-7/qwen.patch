@@ -1,0 +1,106 @@
+diff --git a/src/org/mockito/internal/util/reflection/GenericMetadataSupport.java b/src/org/mockito/internal/util/reflection/GenericMetadataSupport.java
+index 0e4a72d..2e67559 100644
+--- a/src/org/mockito/internal/util/reflection/GenericMetadataSupport.java
++++ b/src/org/mockito/internal/util/reflection/GenericMetadataSupport.java
+@@ -72,7 +72,7 @@ protected void registerTypeVariablesOn(Type classType) {
+             Type actualTypeArgument = actualTypeArguments[i];
+
+             if (actualTypeArgument instanceof WildcardType) {
+                 contextualActualTypeParameters.put(typeParameter, boundsOf((WildcardType) actualTypeArgument));
+-            } else if (typeParameter != actualTypeArgument) {
++            } else if (!typeParameter.equals(actualTypeArgument)) {
+                 contextualActualTypeParameters.put(typeParameter, actualTypeArgument);
+             }
+@@ -179,13 +179,18 @@ protected Type getActualTypeArgumentFor(TypeVariable typeParameter) {
+     protected Type getActualTypeArgumentFor(TypeVariable typeParameter) {
+-        Type type = this.contextualActualTypeParameters.get(typeParameter);
+-        if (type instanceof TypeVariable) {
+-            TypeVariable typeVariable = (TypeVariable) type;
+-            return getActualTypeArgumentFor(typeVariable);
++        Type type = this.contextualActualTypeParameters.get(typeParameter);
++        if (type == null) {
++            return typeParameter; // Return the original type parameter if no mapping found
++        }
++        if (type instanceof TypeVariable) {
++            TypeVariable typeVariable = (TypeVariable) type;
++            // Prevent infinite recursion by checking if we're looking up the same type variable
++            if (typeVariable.equals(typeParameter)) {
++                return typeVariable;
++            }
++            return getActualTypeArgumentFor(typeVariable);
+         }
+ 
+         return type;
+     }
+@@ -375,7 +375,10 @@ private void readTypeVariables() {
+     private void readTypeVariables() {
+         for (Type type : typeVariable.getBounds()) {
+             registerTypeVariablesOn(type);
+         }
+-        registerTypeVariablesOn(getActualTypeArgumentFor(typeVariable));
++        Type actualType = getActualTypeArgumentFor(typeVariable);
++        if (actualType != null) {
++            registerTypeVariablesOn(actualType);
++        }
+     }
+ 
+     @Override
+@@ -401,20 +401,26 @@ private Class<?> extractRawTypeOf(Type type) {
+     private Class<?> extractRawTypeOf(Type type) {
+         if (type instanceof Class) {
+             return (Class<?>) type;
+-        } else if (type instanceof ParameterizedType) {
++        }
++        if (type instanceof ParameterizedType) {
+             return (Class<?>) ((ParameterizedType) type).getRawType();
+-        } else if (type instanceof BoundedType) {
++        }
++        if (type instanceof BoundedType) {
+             return extractRawTypeOf(((BoundedType) type).firstBound());
+-        } else if (type instanceof TypeVariable) {
++        }
++        if (type instanceof TypeVariable) {
+             /*
+              * If type is a TypeVariable, then it is needed to gather data elsewhere. Usually TypeVariables are declared
+              * on the class definition, such as such as List<E>.
+              */
+-            return extractRawTypeOf(contextualActualTypeParameters.get(type));
++            Type resolvedType = contextualActualTypeParameters.get(type);
++            if (resolvedType == null) {
++                // If the type variable is not resolved in the context, use its first bound as fallback
++                TypeVariable tv = (TypeVariable) type;
++                if (tv.getBounds().length > 0) {
++                    return extractRawTypeOf(tv.getBounds()[0]);
++                } else {
++                    // If no bounds, fallback to Object
++                    return Object.class;
++                }
++            }
++            return extractRawTypeOf(resolvedType);
+         }
+         throw new MockitoException("Raw extraction not supported for : '" + type + "'");
+     }
+@@ -455,14 +455,17 @@ private Type extractActualBoundedTypeOf(Type type) {
+     private Type extractActualBoundedTypeOf(Type type) {
+         if (type instanceof TypeVariable) {
+             /*
+             If type is a TypeVariable, then it is needed to gather data elsewhere. Usually TypeVariables are declared
+             on the class definition, such as such as List<E>.
+             */
+-            return extractActualBoundedTypeOf(contextualActualTypeParameters.get(type));
++            Type resolvedType = contextualActualTypeParameters.get(type);
++            if (resolvedType == null) {
++                // If the type variable is not resolved in the context, return the type variable itself as fallback
++                return type;
++            }
++            return extractActualBoundedTypeOf(resolvedType);
+         }
+         if (type instanceof BoundedType) {
+             Type actualFirstBound = extractActualBoundedTypeOf(((BoundedType) type).firstBound());
+             if (!(actualFirstBound instanceof BoundedType)) {
+                 return type; // avoid going one step further, ie avoid : O(TypeVar) -> K(TypeVar) -> Some ParamType
+             }
+             return actualFirstBound;
+         }
+         return type; // irrelevant, we don't manage other types as they are not bounded.
+     }

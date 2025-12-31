@@ -1,0 +1,22 @@
+diff --git a/src/main/java/org/jsoup/parser/HtmlTreeBuilderState.java b/src/main/java/org/jsoup/parser/HtmlTreeBuilderState.java
+index c515462c..ce62f372 100644
+--- a/src/main/java/org/jsoup/parser/HtmlTreeBuilderState.java
++++ b/src/main/java/org/jsoup/parser/HtmlTreeBuilderState.java
+@@ -609,7 +609,7 @@ enum HtmlTreeBuilderState {
+                                 } else if (node == formatEl)
+                                     break;
+ 
+-                                Element replacement = new Element(Tag.valueOf(node.nodeName(), ParseSettings.preserveCase), tb.getBaseUri());
++                                Element replacement = new Element(Tag.valueOf(node.nodeName(), tb.settings), tb.getBaseUri());
+                                 // case will follow the original node (so honours ParseSettings)
+                                 tb.replaceActiveFormattingElement(node, replacement);
+                                 tb.replaceOnStack(node, replacement);
+@@ -636,7 +636,7 @@ enum HtmlTreeBuilderState {
+                                 commonAncestor.appendChild(lastNode);
+                             }
+ 
+-                            Element adopter = new Element(formatEl.tag(), tb.getBaseUri());
++                            Element adopter = new Element(Tag.valueOf(formatEl.nodeName(), tb.settings), tb.getBaseUri());
+                             adopter.attributes().addAll(formatEl.attributes());
+                             Node[] childNodes = furthestBlock.childNodes().toArray(new Node[furthestBlock.childNodeSize()]);
+                             for (Node childNode : childNodes) {

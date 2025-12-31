@@ -1,0 +1,34 @@
+diff --git a/src/main/java/org/jsoup/parser/TokeniserState.java b/src/main/java/org/jsoup/parser/TokeniserState.java
+index 3b02501a..cf6fc823 100644
+--- a/src/main/java/org/jsoup/parser/TokeniserState.java
++++ b/src/main/java/org/jsoup/parser/TokeniserState.java
+@@ -157,6 +157,14 @@ enum TokeniserState {
+                     t.transition(BeforeAttributeName);
+                     break;
+                 case '/':
++                    // Check if the tag is known and not an empty tag to generate error
++                    String tagPendingName = t.tagPending.name();
++                    if (tagPendingName != null) {
++                        org.jsoup.parser.Tag tag = org.jsoup.parser.Tag.valueOf(tagPendingName, org.jsoup.parser.ParseSettings.htmlDefault);
++                        if (tag.isKnownTag() && !tag.isEmpty()) {
++                            t.error("Tag cannot be self closing; not a void tag");
++                        }
++                    }
+                     t.transition(SelfClosingStartTag);
+                     break;
+                 case '>':
+@@ -849,6 +857,14 @@ enum TokeniserState {
+                     t.transition(BeforeAttributeName);
+                     break;
+                 case '/':
++                    // Check if the tag is known and not an empty tag to generate error
++                    String tagPendingName = t.tagPending.name();
++                    if (tagPendingName != null) {
++                        org.jsoup.parser.Tag tag = org.jsoup.parser.Tag.valueOf(tagPendingName, org.jsoup.parser.ParseSettings.htmlDefault);
++                        if (tag.isKnownTag() && !tag.isEmpty()) {
++                            t.error("Tag cannot be self closing; not a void tag");
++                        }
++                    }
+                     t.transition(SelfClosingStartTag);
+                     break;
+                 case '>':

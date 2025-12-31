@@ -1,0 +1,23 @@
+diff --git a/src/main/java/org/apache/commons/math/complex/Complex.java b/src/main/java/org/apache/commons/math/complex/Complex.java
+index bebfead56..9ccbf53f8 100644
+--- a/src/main/java/org/apache/commons/math/complex/Complex.java
++++ b/src/main/java/org/apache/commons/math/complex/Complex.java
+@@ -580,6 +580,18 @@ public class Complex implements FieldElement<Complex>, Serializable  {
+             return NaN;
+         }
+ 
++        // Special handling for z = i (where i + z = 2i and i - z = 0)
++        // This would cause division by zero, but mathematically atan(i) should be infinite
++        if (this.equals(I)) {
++            return createComplex(0.0, Double.POSITIVE_INFINITY);
++        }
++
++        // Special handling for z = -i (where i + z = 0 and i - z = 2i)
++        // This would cause division by zero, but mathematically atan(-i) should be infinite
++        if (this.equals(I.negate())) {
++            return createComplex(0.0, Double.NEGATIVE_INFINITY);
++        }
++
+         return this.add(I).divide(I.subtract(this)).log()
+             .multiply(I.divide(createComplex(2.0, 0.0)));
+     }

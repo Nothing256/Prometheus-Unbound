@@ -1,0 +1,25 @@
+diff --git a/src/main/java/org/apache/commons/collections4/trie/AbstractPatriciaTrie.java b/src/main/java/org/apache/commons/collections4/trie/AbstractPatriciaTrie.java
+index 41f8535d..f6934c14 100644
+--- a/src/main/java/org/apache/commons/collections4/trie/AbstractPatriciaTrie.java
++++ b/src/main/java/org/apache/commons/collections4/trie/AbstractPatriciaTrie.java
+@@ -2259,6 +2259,20 @@ abstract class AbstractPatriciaTrie<K, V> extends AbstractBitwiseTrie<K, V> {
+             return new RangeEntryMap(fromKey, fromInclusive, toKey, toInclusive);
+         }
+ 
++        @Override
++        public void clear() {
++            // Get all keys in the prefix range first, then remove them
++            // This prevents issues with iterator invalidation during removal
++            final Set<K> keys = new java.util.HashSet<K>(keySet());
++            for (final K key : keys) {
++                AbstractPatriciaTrie.this.remove(key);
++            }
++            // Reset cached values since all entries in the prefix range are now removed
++            size = 0;
++            fromKey = null;
++            toKey = null;
++            expectedModCount = AbstractPatriciaTrie.this.modCount;
++        }
+     }
+ 
+     /**

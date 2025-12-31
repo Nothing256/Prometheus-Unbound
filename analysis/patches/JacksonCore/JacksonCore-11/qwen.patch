@@ -1,0 +1,70 @@
+diff --git a/src/main/java/com/fasterxml/jackson/core/sym/ByteQuadsCanonicalizer.java b/src/main/java/com/fasterxml/jackson/core/sym/ByteQuadsCanonicalizer.java
+index f19acc72..684fd6e7 100644
+--- a/src/main/java/com/fasterxml/jackson/core/sym/ByteQuadsCanonicalizer.java
++++ b/src/main/java/com/fasterxml/jackson/core/sym/ByteQuadsCanonicalizer.java
+@@ -259,7 +259,7 @@ public final class ByteQuadsCanonicalizer
+         _secondaryStart = _hashSize << 2; // right after primary area
+         _tertiaryStart = _secondaryStart + (_secondaryStart >> 1); // right after secondary
+         _tertiaryShift = state.tertiaryShift;
+-        
++
+         _hashArea = state.mainHash;
+         _names = state.names;
+ 
+@@ -267,7 +267,7 @@ public final class ByteQuadsCanonicalizer
+         _longNameOffset = state.longNameOffset;
+ 
+         // and then set other state to reflect sharing status
+-        _needRehash = false;
++        _needRehash = state.needRehash;
+         _hashShared = true;
+     }
+ 
+@@ -1218,7 +1218,7 @@ public final class ByteQuadsCanonicalizer
+      * Immutable value class used for sharing information as efficiently
+      * as possible, by only require synchronization of reference manipulation
+      * but not access to contents.
+-     * 
++     *
+      * @since 2.1
+      */
+     private final static class TableInfo
+@@ -1230,9 +1230,10 @@ public final class ByteQuadsCanonicalizer
+         public final String[] names;
+         public final int spilloverEnd;
+         public final int longNameOffset;
++        public final boolean needRehash;
+ 
+-        public TableInfo(int size, int count, int tertiaryShift, 
+-                int[] mainHash, String[] names, int spilloverEnd, int longNameOffset)
++        public TableInfo(int size, int count, int tertiaryShift,
++                int[] mainHash, String[] names, int spilloverEnd, int longNameOffset, boolean needRehash)
+         {
+             this.size = size;
+             this.count = count;
+@@ -1241,6 +1242,7 @@ public final class ByteQuadsCanonicalizer
+             this.names = names;
+             this.spilloverEnd = spilloverEnd;
+             this.longNameOffset = longNameOffset;
++            this.needRehash = needRehash;
+         }
+ 
+         public TableInfo(ByteQuadsCanonicalizer src)
+@@ -1252,6 +1254,7 @@ public final class ByteQuadsCanonicalizer
+             names = src._names;
+             spilloverEnd = src._spilloverEnd;
+             longNameOffset = src._longNameOffset;
++            needRehash = src._needRehash;
+         }
+ 
+         public static TableInfo createInitial(int sz) {
+@@ -1264,7 +1267,8 @@ public final class ByteQuadsCanonicalizer
+                     new int[hashAreaSize], // mainHash, 2x slots, 4 ints per slot
+                     new String[sz << 1], // names == 2x slots
+                     hashAreaSize - sz, // at 7/8 of the total area
+-                    hashAreaSize // longNameOffset, immediately after main hashes
++                    hashAreaSize, // longNameOffset, immediately after main hashes
++                    false // needRehash
+             );
+         }
+     }

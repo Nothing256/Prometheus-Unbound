@@ -1,0 +1,16 @@
+diff --git a/src/java/org/apache/commons/lang/StringEscapeUtils.java b/src/java/org/apache/commons/lang/StringEscapeUtils.java
+index 7b22e2144..d8ecd537d 100644
+--- a/src/java/org/apache/commons/lang/StringEscapeUtils.java
++++ b/src/java/org/apache/commons/lang/StringEscapeUtils.java
+@@ -241,7 +241,11 @@ public class StringEscapeUtils {
+                         out.write('\\');
+                         break;
+                     case '/' :
++                        // In JavaScript mode (escapeSingleQuote = true), escape the forward slash
++                        // In Java mode (escapeSingleQuote = false), do not escape the forward slash
++                        if (escapeSingleQuote) {
+                             out.write('\\');
++                        }
+                         out.write('/');
+                         break;
+                     default :

@@ -1,0 +1,24 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/introspect/POJOPropertiesCollector.java b/src/main/java/com/fasterxml/jackson/databind/introspect/POJOPropertiesCollector.java
+index 3d36b0ffc..5fd22f54b 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/introspect/POJOPropertiesCollector.java
++++ b/src/main/java/com/fasterxml/jackson/databind/introspect/POJOPropertiesCollector.java
+@@ -307,16 +307,15 @@ public class POJOPropertiesCollector
+         }
+         _addInjectables(props);
+ 
+-        // Remove ignored properties, first; this MUST precede annotation merging
+-        // since logic relies on knowing exactly which accessor has which annotation
+-        _removeUnwantedProperties(props);
+-
+         // then merge annotations, to simplify further processing
++        // Do this before removing unwanted properties so access annotations are properly merged
+         for (POJOPropertyBuilder property : props.values()) {
+             property.mergeAnnotations(_forSerialization);
+         }
+         // and then remove unneeded accessors (wrt read-only, read-write)
+         _removeUnwantedAccessor(props);
++        // Remove ignored properties AFTER access control, since access control can change visibility
++        _removeUnwantedProperties(props);
+ 
+         // Rename remaining properties
+         _renameProperties(props);

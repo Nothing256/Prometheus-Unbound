@@ -1,0 +1,43 @@
+diff --git a/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java b/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java
+index b07e47f9..72a32963 100644
+--- a/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java
++++ b/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java
+@@ -131,6 +131,8 @@ public class HtmlTreeBuilder extends TreeBuilder {
+             return doc.childNodes();
+     }
+ 
++    private boolean firstDlProcessed = false;
++
+     @Override
+     protected boolean process(Token token) {
+         currentToken = token;
+@@ -205,7 +207,7 @@ public class HtmlTreeBuilder extends TreeBuilder {
+             tokeniser.emit(emptyEnd.reset().name(el.tagName()));  // ensure we get out of whatever state we are in. emitted for yielded processing
+             return el;
+         }
+-        
++
+         Element el = new Element(Tag.valueOf(startTag.name(), settings), baseUri, settings.normalizeAttributes(startTag.attributes));
+         insert(el);
+         return el;
+@@ -564,9 +566,19 @@ public class HtmlTreeBuilder extends TreeBuilder {
+      process, then the UA must perform the above steps as if that element was not in the above list.
+      */
+     void generateImpliedEndTags(String excludeTag) {
++        // Prevent potential infinite loops with deeply nested structures
++        // Limit the number of pops to avoid stack overflow issues
++        int count = 0;
++        final int MAX_IMPLIED_ENDS = 50; // reasonable limit for normal HTML structures
++
+         while ((excludeTag != null && !currentElement().nodeName().equals(excludeTag)) &&
+-                inSorted(currentElement().nodeName(), TagSearchEndTags))
++                inSorted(currentElement().nodeName(), TagSearchEndTags)) {
++            if (count++ >= MAX_IMPLIED_ENDS) {
++                // Break to avoid excessive processing of malformed deeply nested content
++                break;
++            }
+             pop();
++        }
+     }
+ 
+     void generateImpliedEndTags() {

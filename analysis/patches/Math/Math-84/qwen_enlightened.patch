@@ -1,0 +1,91 @@
+diff --git a/src/main/java/org/apache/commons/math/optimization/direct/MultiDirectional.java b/src/main/java/org/apache/commons/math/optimization/direct/MultiDirectional.java
+index 42a4d9dfd..d4e6cfb9b 100644
+--- a/src/main/java/org/apache/commons/math/optimization/direct/MultiDirectional.java
++++ b/src/main/java/org/apache/commons/math/optimization/direct/MultiDirectional.java
+@@ -61,41 +61,62 @@ public class MultiDirectional extends DirectSearchOptimizer {
+     protected void iterateSimplex(final Comparator<RealPointValuePair> comparator)
+         throws FunctionEvaluationException, OptimizationException, IllegalArgumentException {
+ 
+-        while (true) {
++        incrementIterationsCounter();
+ 
+-            incrementIterationsCounter();
++        // save the original simplex
++        final RealPointValuePair[] original = simplex;
++        final RealPointValuePair best = original[0];
+ 
+-            // save the original vertex
+-            final RealPointValuePair[] original = simplex;
+-            final RealPointValuePair best = original[0];
++        // perform a reflection step
++        final RealPointValuePair reflected = evaluateNewSimplex(original, 1.0, comparator);
++        final RealPointValuePair[] reflectedSimplex = simplex; // save the reflected simplex
+ 
+-            // perform a reflection step
+-            final RealPointValuePair reflected = evaluateNewSimplex(original, 1.0, comparator);
+-            if (comparator.compare(reflected, best) < 0) {
++        if (comparator.compare(reflected, best) < 0) {
++            // reflected point is better than the original best
+ 
+-                // compute the expanded simplex
+-                final RealPointValuePair[] reflectedSimplex = simplex;
+-                final RealPointValuePair expanded = evaluateNewSimplex(original, khi, comparator);
+-                if (comparator.compare(reflected, expanded) <= 0) {
+-                    // accept the reflected simplex
+-                    simplex = reflectedSimplex;
+-                }
+-
+-                return;
++            // compute the expanded simplex
++            final RealPointValuePair expanded = evaluateNewSimplex(original, khi, comparator);
+ 
++            if (comparator.compare(reflected, expanded) <= 0) {
++                // accept the reflected simplex
++                simplex = reflectedSimplex;
+             }
++            // else the expanded simplex is already in 'simplex', so keep it
++            return;
++        }
+ 
+-            // compute the contracted simplex
+-            final RealPointValuePair contracted = evaluateNewSimplex(original, gamma, comparator);
+-            if (comparator.compare(contracted, best) < 0) {
+-                // accept the contracted simplex
++        // Reflection was not better, so try contraction
++        // The simplex was reset by evaluateNewSimplex, so we need to work from original
++        // Restore original to try contraction properly
++        simplex = original.clone(); // restore original simplex for contraction step
+ 
+-            // check convergence
+-                return;
+-            }
++        // compute the contracted simplex
++        final RealPointValuePair contracted = evaluateNewSimplex(original, gamma, comparator);
++
++        if (comparator.compare(contracted, best) < 0) {
++            // accept the contracted simplex
++            return; // The contracted simplex is already in 'simplex'
++        }
+ 
++        // Both reflection and contraction failed, so shrink the simplex around the best point
++        final double[] xBest = best.getPointRef();
++        final int n = xBest.length;
++
++        // create the shrunken simplex
++        simplex = new RealPointValuePair[original.length];
++        simplex[0] = best; // Keep the best point
++        for (int i = 1; i < original.length; ++i) {
++            final double[] xOriginal = original[i].getPointRef();
++            final double[] xShrunken = new double[n];
++            for (int j = 0; j < n; ++j) {
++                xShrunken[j] = xBest[j] + 0.5 * (xOriginal[j] - xBest[j]);
++            }
++            simplex[i] = new RealPointValuePair(xShrunken, Double.NaN, false);
+         }
+ 
++        // evaluate the shrunken simplex
++        evaluateSimplex(comparator);
++
+     }
+ 
+     /** Compute and evaluate a new simplex.

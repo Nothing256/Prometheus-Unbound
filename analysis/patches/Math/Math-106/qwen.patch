@@ -1,0 +1,42 @@
+diff --git a/src/java/org/apache/commons/math/fraction/ProperFractionFormat.java b/src/java/org/apache/commons/math/fraction/ProperFractionFormat.java
+index df2713da8..75f9ba303 100644
+--- a/src/java/org/apache/commons/math/fraction/ProperFractionFormat.java
++++ b/src/java/org/apache/commons/math/fraction/ProperFractionFormat.java
+@@ -154,6 +154,11 @@ public Fraction parse(String source, ParsePosition pos) {
+         if (num == null) {
+             // invalid integer number
+             // set index back to initial, error index should already be set
+             // character examined.
+             pos.setIndex(initialIndex);
+             return null;
+         }
+ 
++        // minus signs should be leading, invalid expression
++        if (num.intValue() < 0) {
++            // invalid minus sign in numerator
++            pos.setIndex(initialIndex);
++            return null;
++        }
+ 
+         // parse '/'
+         int startIndex = pos.getIndex();
+@@ -194,6 +199,11 @@ public Fraction parse(String source, ParsePosition pos) {
+         if (den == null) {
+             // invalid integer number
+             // set index back to initial, error index should already be set
+             // character examined.
+             pos.setIndex(initialIndex);
+             return null;
+         }
+ 
++        // minus signs must be leading, invalid
++        if (den.intValue() < 0) {
++            // invalid minus sign in denominator
++            pos.setIndex(initialIndex);
++            return null;
++        }
+ 
+         int w = whole.intValue();
+         int n = num.intValue();
+         int d = den.intValue();
+         return new Fraction(((Math.abs(w) * d) + n) * MathUtils.sign(w), d);

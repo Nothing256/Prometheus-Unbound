@@ -1,0 +1,47 @@
+diff --git a/src/main/java/org/jsoup/helper/DataUtil.java b/src/main/java/org/jsoup/helper/DataUtil.java
+index f07173ce..02265bf1 100644
+--- a/src/main/java/org/jsoup/helper/DataUtil.java
++++ b/src/main/java/org/jsoup/helper/DataUtil.java
+@@ -158,10 +158,41 @@ public class DataUtil {
+         Matcher m = charsetPattern.matcher(contentType);
+         if (m.find()) {
+             String charset = m.group(1).trim();
++
++            // Handle case where charset value itself starts with "charset=" (e.g. "charset=charset=iso-8859-1")
++            if (charset.toLowerCase(Locale.ENGLISH).startsWith("charset=")) {
++                // Extract the actual charset after the "charset=" prefix
++                charset = charset.substring("charset=".length()).trim();
++            }
++
++            // Remove any leading/trailing quotes that might be around the charset value
++            if (charset.length() > 1) {
++                char firstChar = charset.charAt(0);
++                char lastChar = charset.charAt(charset.length() - 1);
++                if ((firstChar == '"' && lastChar == '"') || (firstChar == '\'' && lastChar == '\'')) {
++                    charset = charset.substring(1, charset.length() - 1);
++                }
++            }
++
++            // If charset contains commas (for cases like "ISO-8859-1, charset=1251"),
++            // take only the first part before the comma
++            int commaIndex = charset.indexOf(',');
++            if (commaIndex != -1) {
++                charset = charset.substring(0, commaIndex).trim();
++            }
++
++            // Return null if charset is empty after processing
++            if (charset.isEmpty()) return null;
++
++            try {
+                 if (Charset.isSupported(charset)) return charset;
+                 charset = charset.toUpperCase(Locale.ENGLISH);
+                 if (Charset.isSupported(charset)) return charset;
+-                // if our advanced charset matching fails.... we just take the default
++            } catch (IllegalArgumentException e) {
++                // If charset name is illegal, return null
++                return null;
++            }
++            // if our advanced charset matching fails.... we just take the default
+         }
+         return null;
+     }

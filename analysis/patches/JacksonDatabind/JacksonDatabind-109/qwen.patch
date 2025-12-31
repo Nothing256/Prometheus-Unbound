@@ -1,0 +1,130 @@
+--- /tmp/original_NumberSerializer.java	2025-12-26 13:40:29
++++ /tmp/modified_NumberSerializer.java	2025-12-26 13:40:27
+@@ -9,11 +9,15 @@
+ 
+ import com.fasterxml.jackson.core.JsonGenerator;
+ import com.fasterxml.jackson.core.JsonParser;
++import com.fasterxml.jackson.core.JsonToken;
++import com.fasterxml.jackson.core.type.WritableTypeId;
+ 
+ import com.fasterxml.jackson.databind.*;
+ import com.fasterxml.jackson.databind.annotation.JacksonStdImpl;
+ import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrapper;
+ import com.fasterxml.jackson.databind.ser.ContextualSerializer;
++import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
++import com.fasterxml.jackson.databind.JavaType;
+ 
+ /**
+  * As a fallback, we may need to use this serializer for other
+@@ -55,6 +59,12 @@
+             switch (format.getShape()) {
+             case STRING:
+                 // [databind#2264]: Need special handling for `BigDecimal`
++                // [databind#2230]: However, if WRITE_BIGDECIMAL_AS_PLAIN is enabled, we need
++                // to consider it even with @JsonFormat(shape=STRING)
++                if (prov.isEnabled(SerializationFeature.WRITE_BIGDECIMAL_AS_PLAIN) && isBigDecimalType(property)) {
++                    // Return a custom serializer that handles both @JsonFormat(STRING) and WRITE_BIGDECIMAL_AS_PLAIN
++                    return new BigDecimalAsStringPlainSerializer(this);
++                }
+                 return ToStringSerializer.instance;
+             default:
+             }
+@@ -62,15 +72,55 @@
+         return this;
+     }
+ 
++    /**
++     * Special serializer for BigDecimal when both @JsonFormat(shape=STRING) and
++     * WRITE_BIGDECIMAL_AS_PLAIN are active.
++     */
++    private static class BigDecimalAsStringPlainSerializer extends StdScalarSerializer<Number> {
++        private static final long serialVersionUID = 1L;
++        protected final NumberSerializer parent;
++
++        public BigDecimalAsStringPlainSerializer(NumberSerializer parent) {
++            super(BigDecimal.class, false);
++            this.parent = parent;
++        }
++
++        @Override
++        public void serialize(Number value, JsonGenerator gen, SerializerProvider provider) throws IOException {
++            if (value instanceof BigDecimal) {
++                // Serialize as plain string when WRITE_BIGDECIMAL_AS_PLAIN is enabled
++                gen.writeString(((BigDecimal) value).toPlainString());
++            } else {
++                // Fallback for other number types
++                gen.writeString(value.toString());
++            }
++        }
++    }
++
++    private boolean isBigDecimalType(BeanProperty property) {
++        if (property != null) {
++            return property.getType().getRawClass() == BigDecimal.class;
++        }
++        // If property is null, we can't determine the exact type, so conservatively check handled type
++        // For NumberSerializer, this should only be called for Number types
++        Class<?> handledClass = handledType();
++        return handledClass == BigDecimal.class;
++    }
++
+     @Override
+     public void serialize(Number value, JsonGenerator g, SerializerProvider provider) throws IOException
+     {
+         // should mostly come in as one of these two:
+         if (value instanceof BigDecimal) {
+-            g.writeNumber((BigDecimal) value);
++            // [databind#2230] need to respect WRITE_BIGDECIMAL_AS_PLAIN setting
++            if (g.isEnabled(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN)) {
++                g.writeString(((BigDecimal) value).toPlainString());
++            } else {
++                g.writeNumber((BigDecimal) value);
++            }
+         } else if (value instanceof BigInteger) {
+             g.writeNumber((BigInteger) value);
+-            
++
+         // These should not occur, as more specific methods should have been called; but
+         // just in case let's cover all bases:
+         } else if (value instanceof Long) {
+@@ -110,14 +160,30 @@
+     /**
+      * @since 2.10
+      */
+-    
+-
+-
+-                // 24-Aug-2016, tatu: [core#315] prevent possible DoS vector, so we need this
+-                    // ... but wouldn't it be nice to trigger error via generator? Alas,
+-                    // no method to do that. So we'll do...
+-
+-            // should never be called
+-
+-        // 24-Aug-2016, tatu: [core#315] prevent possible DoS vector, so we need this
++    @Override
++    public void serializeWithType(Number value, JsonGenerator g, SerializerProvider provider,
++            TypeSerializer typeSer) throws IOException
++    {
++        // For typed serialization, we need to handle WRITE_BIGDECIMAL_AS_PLAIN properly
++        if (value instanceof BigDecimal) {
++            // [databind#2230] need to respect WRITE_BIGDECIMAL_AS_PLAIN setting
++            WritableTypeId typeIdDef = typeSer.writeTypePrefix(g,
++                    typeSer.typeId(value, JsonToken.VALUE_NUMBER_FLOAT));
++            if (g.isEnabled(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN)) {
++                g.writeString(((BigDecimal) value).toPlainString());
++            } else {
++                g.writeNumber((BigDecimal) value);
++            }
++            typeSer.writeTypeSuffix(g, typeIdDef);
++        } else if (value instanceof BigInteger) {
++            // For BigInteger, also respect the context but serialize as number
++            WritableTypeId typeIdDef = typeSer.writeTypePrefix(g,
++                    typeSer.typeId(value, JsonToken.VALUE_NUMBER_INT));
++            g.writeNumber((BigInteger) value);
++            typeSer.writeTypeSuffix(g, typeIdDef);
++        } else {
++            // Otherwise use default behavior
++            super.serializeWithType(value, g, provider, typeSer);
++        }
++    }
+ }

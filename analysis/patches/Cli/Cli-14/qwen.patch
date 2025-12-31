@@ -1,0 +1,252 @@
+diff --git a/src/java/org/apache/commons/cli2/commandline/Parser.java b/src/java/org/apache/commons/cli2/commandline/Parser.java
+index 07ecdba..6e341cc 100644
+--- a/src/java/org/apache/commons/cli2/commandline/Parser.java
++++ b/src/java/org/apache/commons/cli2/commandline/Parser.java
+@@ -95,7 +95,8 @@ public class Parser {
+ 
+         // if there are more arguments we have a problem
+         if (iterator.hasNext()) {
+-            final String arg = (String) iterator.next();
++            final Object argObject = iterator.next();
++            final String arg = argObject instanceof String ? (String) argObject : argObject.toString();
+             throw new OptionException(group, ResourceConstants.UNEXPECTED_TOKEN, arg);
+         }
+ 
+diff --git a/src/java/org/apache/commons/cli2/option/ArgumentImpl.java b/src/java/org/apache/commons/cli2/option/ArgumentImpl.java
+index f776f7e..25f35ab 100644
+--- a/src/java/org/apache/commons/cli2/option/ArgumentImpl.java
++++ b/src/java/org/apache/commons/cli2/option/ArgumentImpl.java
+@@ -144,8 +144,8 @@ public class ArgumentImpl
+         int argumentCount = commandLine.getUndefaultedValues(option).size();
+ 
+         while (arguments.hasNext() && (argumentCount < maximum)) {
+-            final String allValuesQuoted = (String) arguments.next();
+-            final String allValues = stripBoundaryQuotes(allValuesQuoted);
++            final Object allValuesQuotedObject = arguments.next();
++            final String allValuesQuoted = allValuesQuotedObject instanceof String ? (String) allValuesQuotedObject : allValuesQuotedObject.toString();
+ 
+             // should we ignore things that look like options?
+             if (allValuesQuoted.equals(consumeRemaining)) {
+@@ -163,7 +163,7 @@ public class ArgumentImpl
+             // should we split the string up?
+             else if (subsequentSplit) {
+                 final StringTokenizer values =
+-                    new StringTokenizer(allValues, String.valueOf(subsequentSeparator));
++                    new StringTokenizer(allValuesQuoted, String.valueOf(subsequentSeparator));
+ 
+                 arguments.remove();
+ 
+@@ -182,6 +182,7 @@ public class ArgumentImpl
+             }
+             // it must be a value as it is
+             else {
++                final String allValues = stripBoundaryQuotes(allValuesQuoted);
+                 ++argumentCount;
+                 commandLine.addValue(option, allValues);
+             }
+diff --git a/src/java/org/apache/commons/cli2/option/Command.java b/src/java/org/apache/commons/cli2/option/Command.java
+index 99f8c72..7b11257 100644
+--- a/src/java/org/apache/commons/cli2/option/Command.java
++++ b/src/java/org/apache/commons/cli2/option/Command.java
+@@ -102,7 +102,8 @@ public class Command
+                               final ListIterator arguments)
+         throws OptionException {
+         // grab the argument to process
+-        final String arg = (String) arguments.next();
++        final Object argObject = arguments.next();
++        final String arg = argObject instanceof String ? (String) argObject : argObject.toString();
+ 
+         // if we can process it
+         if (canProcess(commandLine, arg)) {
+diff --git a/src/java/org/apache/commons/cli2/option/DefaultOption.java b/src/java/org/apache/commons/cli2/option/DefaultOption.java
+index d5246e1..c8724a2 100644
+--- a/src/java/org/apache/commons/cli2/option/DefaultOption.java
++++ b/src/java/org/apache/commons/cli2/option/DefaultOption.java
+@@ -129,11 +129,12 @@ public class DefaultOption
+     public void processParent(WriteableCommandLine commandLine,
+                               ListIterator arguments)
+         throws OptionException {
+-        final String argument = (String) arguments.next();
++        final Object argumentObject = arguments.next();
++        final String argument = argumentObject instanceof String ? (String) argumentObject : argumentObject.toString();
+ 
+         if (triggers.contains(argument)) {
+             commandLine.addOption(this);
+-            arguments.set(preferredName);
++            arguments.set(argument); // Keep original object type if possible, but for triggers we know it should be string
+         } else if (burstEnabled && (argument.length() >= burstLength)) {
+             final String burst = argument.substring(0, burstLength);
+ 
+diff --git a/src/java/org/apache/commons/cli2/option/GroupImpl.java b/src/java/org/apache/commons/cli2/option/GroupImpl.java
+index 781d0b6..54ce15c 100644
+--- a/src/java/org/apache/commons/cli2/option/GroupImpl.java
++++ b/src/java/org/apache/commons/cli2/option/GroupImpl.java
+@@ -156,15 +156,16 @@ public class GroupImpl
+     public void process(final WriteableCommandLine commandLine,
+                         final ListIterator arguments)
+         throws OptionException {
+-        String previous = null;
++        Object previous = null;
+ 
+         // [START process each command line token
+         while (arguments.hasNext()) {
+             // grab the next argument
+-            final String arg = (String) arguments.next();
++            final Object argObject = arguments.next();
++            final String arg = argObject instanceof String ? (String) argObject : argObject.toString();
+ 
+             // if we have just tried to process this instance
+-            if (arg == previous) {
++            if (argObject == previous) {
+                 // rollback and abort
+                 arguments.previous();
+ 
+@@ -172,7 +173,7 @@ public class GroupImpl
+             }
+ 
+             // remember last processed instance
+-            previous = arg;
++            previous = argObject;
+ 
+             final Option opt = (Option) optionMap.get(arg);
+ 
+diff --git a/src/java/org/apache/commons/cli2/option/OptionImpl.java b/src/java/org/apache/commons/cli2/option/OptionImpl.java
+index eab47a9..43c8472 100644
+--- a/src/java/org/apache/commons/cli2/option/OptionImpl.java
++++ b/src/java/org/apache/commons/cli2/option/OptionImpl.java
+@@ -48,7 +48,8 @@ public abstract class OptionImpl implements Option {
+     public boolean canProcess(final WriteableCommandLine commandLine,
+                               final ListIterator arguments) {
+         if (arguments.hasNext()) {
+-            final String argument = (String) arguments.next();
++            final Object argumentObject = arguments.next();
++            final String argument = argumentObject instanceof String ? (String) argumentObject : argumentObject.toString();
+             arguments.previous();
+ 
+             return canProcess(commandLine, argument);
+diff --git a/src/java/org/apache/commons/cli2/option/ParentImpl.java b/src/java/org/apache/commons/cli2/option/ParentImpl.java
+index 064c804..4c48477 100644
+--- a/src/java/org/apache/commons/cli2/option/ParentImpl.java
++++ b/src/java/org/apache/commons/cli2/option/ParentImpl.java
+@@ -209,7 +209,8 @@ public abstract class ParentImpl
+     private void handleInitialSeparator(final ListIterator arguments,
+                                         final char separator) {
+         // next token
+-        final String newArgument = (String) arguments.next();
++        final Object newArgumentObject = arguments.next();
++        final String newArgument = newArgumentObject instanceof String ? (String) newArgumentObject : newArgumentObject.toString();
+ 
+         // split the token
+         final int initialIndex = newArgument.indexOf(separator);
+diff --git a/src/java/org/apache/commons/cli2/option/PropertyOption.java b/src/java/org/apache/commons/cli2/option/PropertyOption.java
+index ccd3409..4e847e8 100644
+--- a/src/java/org/apache/commons/cli2/option/PropertyOption.java
++++ b/src/java/org/apache/commons/cli2/option/PropertyOption.java
+@@ -81,7 +81,8 @@ public class PropertyOption
+     public void process(final WriteableCommandLine commandLine,
+                         final ListIterator arguments)
+         throws OptionException {
+-        final String arg = (String) arguments.next();
++        final Object argObject = arguments.next();
++        final String arg = argObject instanceof String ? (String) argObject : argObject.toString();
+ 
+         if (!canProcess(commandLine, arg)) {
+             throw new OptionException(this, ResourceConstants.UNEXPECTED_TOKEN, arg);
+diff --git a/src/java/org/apache/commons/cli2/option/Switch.java b/src/java/org/apache/commons/cli2/option/Switch.java
+index 0781bb6..07f7ec9 100644
+--- a/src/java/org/apache/commons/cli2/option/Switch.java
++++ b/src/java/org/apache/commons/cli2/option/Switch.java
+@@ -139,7 +139,8 @@ public class Switch
+     public void processParent(final WriteableCommandLine commandLine,
+                               final ListIterator arguments)
+         throws OptionException {
+-        final String arg = (String) arguments.next();
++        final Object argObject = arguments.next();
++        final String arg = argObject instanceof String ? (String) argObject : argObject.toString();
+ 
+         if (canProcess(commandLine, arg)) {
+             if (arg.startsWith(enabledPrefix)) {
+diff --git a/src/java/org/apache/commons/cli2/validation/ClassValidator.java b/src/java/org/apache/commons/cli2/validation/ClassValidator.java
+index a4770f2..4f1c439 100644
+--- a/src/java/org/apache/commons/cli2/validation/ClassValidator.java
++++ b/src/java/org/apache/commons/cli2/validation/ClassValidator.java
+@@ -67,7 +67,8 @@ public class ClassValidator implements Validator {
+     public void validate(final List values)
+         throws InvalidArgumentException {
+         for (final ListIterator i = values.listIterator(); i.hasNext();) {
+-            final String name = (String) i.next();
++            final Object nameObject = i.next();
++            final String name = nameObject instanceof String ? (String) nameObject : nameObject.toString();
+ 
+             if (!isPotentialClassName(name)) {
+                 throw new InvalidArgumentException(resources.getMessage(ResourceConstants.CLASSVALIDATOR_BAD_CLASSNAME,
+diff --git a/src/java/org/apache/commons/cli2/validation/DateValidator.java b/src/java/org/apache/commons/cli2/validation/DateValidator.java
+index 85fff68..0a785d5 100644
+--- a/src/java/org/apache/commons/cli2/validation/DateValidator.java
++++ b/src/java/org/apache/commons/cli2/validation/DateValidator.java
+@@ -143,7 +143,8 @@ public class DateValidator implements Validator {
+         throws InvalidArgumentException {
+         // for each value
+         for (final ListIterator i = values.listIterator(); i.hasNext();) {
+-            final String value = (String) i.next();
++            final Object valueObject = i.next();
++            final String value = valueObject instanceof String ? (String) valueObject : valueObject.toString();
+ 
+             Date date = null;
+ 
+diff --git a/src/java/org/apache/commons/cli2/validation/EnumValidator.java b/src/java/org/apache/commons/cli2/validation/EnumValidator.java
+index 12e376c..4f51ab6 100644
+--- a/src/java/org/apache/commons/cli2/validation/EnumValidator.java
++++ b/src/java/org/apache/commons/cli2/validation/EnumValidator.java
+@@ -65,7 +65,8 @@ public class EnumValidator implements Validator {
+     public void validate(final List values)
+         throws InvalidArgumentException {
+         for (final Iterator iter = values.iterator(); iter.hasNext();) {
+-            final String value = (String) iter.next();
++            final Object valueObject = iter.next();
++            final String value = valueObject instanceof String ? (String) valueObject : valueObject.toString();
+ 
+             if (!this.validValues.contains(value)) {
+                 throw new InvalidArgumentException(ResourceHelper.getResourceHelper().getMessage(ResourceConstants.ENUM_ILLEGAL_VALUE,
+diff --git a/src/java/org/apache/commons/cli2/validation/FileValidator.java b/src/java/org/apache/commons/cli2/validation/FileValidator.java
+index 3b1e131..e29ce38 100644
+--- a/src/java/org/apache/commons/cli2/validation/FileValidator.java
++++ b/src/java/org/apache/commons/cli2/validation/FileValidator.java
+@@ -120,7 +120,8 @@ public class FileValidator implements Validator {
+      */
+     public void validate(final List values) throws InvalidArgumentException {
+         for (final ListIterator i = values.listIterator(); i.hasNext();) {
+-            final String name = (String)i.next();
++            final Object nameObject = i.next();
++            final String name = nameObject instanceof String ? (String) nameObject : nameObject.toString();
+             final File f = new File(name);
+ 
+             if ((existing && !f.exists())
+diff --git a/src/java/org/apache/commons/cli2/validation/NumberValidator.java b/src/java/org/apache/commons/cli2/validation/NumberValidator.java
+index 5761a71..3742f27 100644
+--- a/src/java/org/apache/commons/cli2/validation/NumberValidator.java
++++ b/src/java/org/apache/commons/cli2/validation/NumberValidator.java
+@@ -123,7 +123,8 @@ public class NumberValidator implements Validator {
+     public void validate(final List values)
+         throws InvalidArgumentException {
+         for (final ListIterator i = values.listIterator(); i.hasNext();) {
+-            final String value = (String) i.next();
++            final Object valueObject = i.next();
++            final String value = valueObject instanceof String ? (String) valueObject : valueObject.toString();
+ 
+             final ParsePosition pp = new ParsePosition(0);
+             final Number number = format.parse(value, pp);
+diff --git a/src/java/org/apache/commons/cli2/validation/UrlValidator.java b/src/java/org/apache/commons/cli2/validation/UrlValidator.java
+index 4ce1d37..3e53f15 100644
+--- a/src/java/org/apache/commons/cli2/validation/UrlValidator.java
++++ b/src/java/org/apache/commons/cli2/validation/UrlValidator.java
+@@ -76,7 +76,8 @@ public class UrlValidator implements Validator {
+     public void validate(final List values)
+         throws InvalidArgumentException {
+         for (final ListIterator i = values.listIterator(); i.hasNext();) {
+-            final String name = (String) i.next();
++            final Object nameObject = i.next();
++            final String name = nameObject instanceof String ? (String) nameObject : nameObject.toString();
+ 
+             try {
+                 final URL url = new URL(name);

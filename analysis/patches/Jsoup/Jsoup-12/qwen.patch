@@ -1,0 +1,62 @@
+diff --git a/src/main/java/org/jsoup/select/Selector.java b/src/main/java/org/jsoup/select/Selector.java
+index 0e520071..544a03e9 100644
+--- a/src/main/java/org/jsoup/select/Selector.java
++++ b/src/main/java/org/jsoup/select/Selector.java
+@@ -136,8 +136,8 @@ public class Selector {
+     
+     private void combinator(char combinator) {
+         tq.consumeWhitespace();
+-        String subQuery = tq.consumeToAny(combinators);
+-        
++        String subQuery = consumeSubQuery();
++
+         Elements output;
+         if (combinator == '>')
+             output = filterForChildren(elements, select(subQuery, elements));
+@@ -149,10 +149,45 @@ public class Selector {
+             output = filterForGeneralSiblings(elements, select(subQuery, root));
+         else
+             throw new IllegalStateException("Unknown combinator: " + combinator);
+-        
++
+         elements.clear(); elements.addAll(output);
+     }
+ 
++    private String consumeSubQuery() {
++        String remainder = tq.toString(); // Get remaining unparsed string
++        int bracketDepth = 0;
++        int i = 0;
++
++        while (i < remainder.length()) {
++            char c = remainder.charAt(i);
++            if (c == '[') {
++                bracketDepth++;
++                i++;
++            } else if (c == ']') {
++                bracketDepth--;
++                i++;
++            } else if (bracketDepth == 0) {
++                // Check if we're at a combinator sequence at current position
++                for (String combinator : combinators) {
++                    if (i + combinator.length() <= remainder.length() &&
++                        remainder.substring(i, i + combinator.length()).equals(combinator)) {
++                        // Found a combinator outside of brackets, consume up to this point
++                        String result = remainder.substring(0, i);
++                        tq.consume(result);
++                        // DO NOT consume the combinator - leave it for the main loop
++                        return result;
++                    }
++                }
++                i++;
++            } else {
++                i++;
++            }
++        }
++
++        // No combinators found outside brackets, consume and return the entire remainder
++        return tq.remainder();
++    }
++
+     
+     private Elements findElements() {
+         if (tq.matchChomp("#")) {

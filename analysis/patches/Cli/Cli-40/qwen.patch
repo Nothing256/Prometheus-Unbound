@@ -1,0 +1,93 @@
+diff --git a/src/main/java/org/apache/commons/cli/TypeHandler.java b/src/main/java/org/apache/commons/cli/TypeHandler.java
+index 6bd84b0..70cb837 100644
+--- a/src/main/java/org/apache/commons/cli/TypeHandler.java
++++ b/src/main/java/org/apache/commons/cli/TypeHandler.java
+@@ -98,6 +98,88 @@ public class TypeHandler
+         {
+             return (T) createURL(str);
+         }
++        // Handle common primitive wrapper types
++        else if (Integer.class == clazz || Integer.TYPE == clazz)
++        {
++            try
++            {
++                return (T) Integer.valueOf(str);
++            }
++            catch (final NumberFormatException e)
++            {
++                throw new ParseException("Unable to parse the value '" + str + "' as an Integer");
++            }
++        }
++        else if (Boolean.class == clazz || Boolean.TYPE == clazz)
++        {
++            return (T) Boolean.valueOf(str);
++        }
++        else if (Byte.class == clazz || Byte.TYPE == clazz)
++        {
++            try
++            {
++                return (T) Byte.valueOf(str);
++            }
++            catch (final NumberFormatException e)
++            {
++                throw new ParseException("Unable to parse the value '" + str + "' as a Byte");
++            }
++        }
++        else if (Short.class == clazz || Short.TYPE == clazz)
++        {
++            try
++            {
++                return (T) Short.valueOf(str);
++            }
++            catch (final NumberFormatException e)
++            {
++                throw new ParseException("Unable to parse the value '" + str + "' as a Short");
++            }
++        }
++        else if (Long.class == clazz || Long.TYPE == clazz)
++        {
++            try
++            {
++                return (T) Long.valueOf(str);
++            }
++            catch (final NumberFormatException e)
++            {
++                throw new ParseException("Unable to parse the value '" + str + "' as a Long");
++            }
++        }
++        else if (Float.class == clazz || Float.TYPE == clazz)
++        {
++            try
++            {
++                return (T) Float.valueOf(str);
++            }
++            catch (final NumberFormatException e)
++            {
++                throw new ParseException("Unable to parse the value '" + str + "' as a Float");
++            }
++        }
++        else if (Double.class == clazz || Double.TYPE == clazz)
++        {
++            try
++            {
++                return (T) Double.valueOf(str);
++            }
++            catch (final NumberFormatException e)
++            {
++                throw new ParseException("Unable to parse the value '" + str + "' as a Double");
++            }
++        }
++        else if (Character.class == clazz || Character.TYPE == clazz)
++        {
++            if (str.length() == 1)
++            {
++                return (T) Character.valueOf(str.charAt(0));
++            }
++            else
++            {
++                throw new ParseException("The string argument must be a single character");
++            }
++        }
+         else
+         {
+             return null;

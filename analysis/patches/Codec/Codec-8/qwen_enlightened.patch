@@ -1,0 +1,19 @@
+diff --git a/src/java/org/apache/commons/codec/binary/Base64InputStream.java b/src/java/org/apache/commons/codec/binary/Base64InputStream.java
+index a706702f..ced81be6 100644
+--- a/src/java/org/apache/commons/codec/binary/Base64InputStream.java
++++ b/src/java/org/apache/commons/codec/binary/Base64InputStream.java
+@@ -167,7 +167,13 @@ public class Base64InputStream extends FilterInputStream {
+                     byte[] buf = new byte[doEncode ? 4096 : 8192];
+                     int c = in.read(buf);
+                     if (c > 0 && b.length == len) {
+-                        base64.setInitialBuffer(b, offset, len);
++                        // Only use the output buffer as initial buffer if it's large enough for Base64 operations
++                        // For encoding: ensure we have enough space - Base64 encoding of 3 bytes requires up to 4 output bytes
++                        // For decoding: ensure we have enough space - Base64 decoding of 4 bytes requires up to 3 output bytes
++                        int minBufferLen = doEncode ? 4 : 3; // minimum buffer size needed for one Base64 quantum operation
++                        if (len >= minBufferLen) {
++                            base64.setInitialBuffer(b, offset, len);
++                        }
+                     }
+                     if (doEncode) {
+                         base64.encode(buf, 0, c);

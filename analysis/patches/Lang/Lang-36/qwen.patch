@@ -1,0 +1,114 @@
+diff --git a/src/java/org/apache/commons/lang3/math/NumberUtils.java b/src/java/org/apache/commons/lang3/math/NumberUtils.java
+index d3054f3fb..ca2e9694a 100644
+--- a/src/java/org/apache/commons/lang3/math/NumberUtils.java
++++ b/src/java/org/apache/commons/lang3/math/NumberUtils.java
+@@ -543,54 +543,60 @@ public class NumberUtils {
+                     }
+                     //$FALL-THROUGH$
+                 default :
+-                    throw new NumberFormatException(str + " is not a valid number.");
+-
++                    // Check if the character is a decimal point at the end of a potentially valid number.
++                    // This handles cases like "2." where '.' is not a type specifier but part of the number format.
++                    if (lastChar == '.') {
++                        // Allow decimal point to fall through to general number parsing
++                        break; // Break from switch to continue with general number parsing
++                    } else {
++                        // This is a real unrecognized type specifier, throw the original exception
++                        throw new NumberFormatException(str + " is not a valid number.");
++                    }
+             }
++        }
++        //User doesn't have a preference on the return type, so let's start
++        //small and go from there...
++        if (expPos > -1 && expPos < str.length() - 1) {
++            exp = str.substring(expPos + 1, str.length());
+         } else {
+-            //User doesn't have a preference on the return type, so let's start
+-            //small and go from there...
+-            if (expPos > -1 && expPos < str.length() - 1) {
+-                exp = str.substring(expPos + 1, str.length());
+-            } else {
+-                exp = null;
++            exp = null;
++        }
++        if (dec == null && exp == null) {
++            //Must be an int,long,bigint
++            try {
++                return createInteger(str);
++            } catch (NumberFormatException nfe) {
++                // ignore the bad number
+             }
+-            if (dec == null && exp == null) {
+-                //Must be an int,long,bigint
+-                try {
+-                    return createInteger(str);
+-                } catch (NumberFormatException nfe) {
+-                    // ignore the bad number
+-                }
+-                try {
+-                    return createLong(str);
+-                } catch (NumberFormatException nfe) {
+-                    // ignore the bad number
+-                }
+-                return createBigInteger(str);
++            try {
++                return createLong(str);
++            } catch (NumberFormatException nfe) {
++                // ignore the bad number
++            }
++            return createBigInteger(str);
+ 
+-            } else {
+-                //Must be a float,double,BigDec
+-                boolean allZeros = isAllZeros(mant) && isAllZeros(exp);
+-                try {
+-                    Float f = createFloat(str);
+-                    if (!(f.isInfinite() || (f.floatValue() == 0.0F && !allZeros))) {
+-                        return f;
+-                    }
+-                } catch (NumberFormatException nfe) {
+-                    // ignore the bad number
++        } else {
++            //Must be a float,double,BigDec
++            boolean allZeros = isAllZeros(mant) && isAllZeros(exp);
++            try {
++                Float f = createFloat(str);
++                if (!(f.isInfinite() || (f.floatValue() == 0.0F && !allZeros))) {
++                    return f;
+                 }
+-                try {
+-                    Double d = createDouble(str);
+-                    if (!(d.isInfinite() || (d.doubleValue() == 0.0D && !allZeros))) {
+-                        return d;
+-                    }
+-                } catch (NumberFormatException nfe) {
+-                    // ignore the bad number
++            } catch (NumberFormatException nfe) {
++                // ignore the bad number
++            }
++            try {
++                Double d = createDouble(str);
++                if (!(d.isInfinite() || (d.doubleValue() == 0.0D && !allZeros))) {
++                    return d;
+                 }
++            } catch (NumberFormatException nfe) {
++                // ignore the bad number
++            }
+ 
+-                return createBigDecimal(str);
++            return createBigDecimal(str);
+ 
+-            }
+         }
+     }
+ 
+@@ -598,7 +604,7 @@ public class NumberUtils {
+      * <p>Utility method for {@link #createNumber(java.lang.String)}.</p>
+      *
+      * <p>Returns <code>true</code> if s is <code>null</code>.</p>
+-     * 
++     *
+      * @param str  the String to check
+      * @return if it is all zeros or <code>null</code>
+      */

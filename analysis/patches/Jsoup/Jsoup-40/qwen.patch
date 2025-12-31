@@ -1,0 +1,18 @@
+--- /Users/nothing/workspace/prometheus_workdir_qwen/jsoup_40_blind_auto/original_DocumentType.java	2025-12-23 20:14:27
++++ /Users/nothing/workspace/prometheus_workdir_qwen/jsoup_40_blind_auto/src/main/java/org/jsoup/nodes/DocumentType.java	2025-12-23 20:13:38
+@@ -19,7 +19,7 @@
+     public DocumentType(String name, String publicId, String systemId, String baseUri) {
+         super(baseUri);
+ 
+-        Validate.notEmpty(name);
++        Validate.notNull(name);
+         attr("name", name);
+         attr("publicId", publicId);
+         attr("systemId", systemId);
+@@ -45,4 +45,4 @@
+     @Override
+     void outerHtmlTail(StringBuilder accum, int depth, Document.OutputSettings out) {
+     }
+-}
+\ No newline at end of file
++}

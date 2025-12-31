@@ -1,0 +1,25 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/zip/X7875_NewUnix.java b/src/main/java/org/apache/commons/compress/archivers/zip/X7875_NewUnix.java
+index 14aebab1..7e4d7865 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/zip/X7875_NewUnix.java
++++ b/src/main/java/org/apache/commons/compress/archivers/zip/X7875_NewUnix.java
+@@ -210,12 +210,18 @@ public class X7875_NewUnix implements ZipExtraField, Cloneable, Serializable {
+         byte[] uidBytes = new byte[uidSize];
+         System.arraycopy(data, offset, uidBytes, 0, uidSize);
+         offset += uidSize;
+-        this.uid = new BigInteger(1, reverse(uidBytes)); // sign-bit forced positive
++        // Make a copy before reversing since reverse() modifies the array in-place
++        byte[] uidBytesCopy = new byte[uidSize];
++        System.arraycopy(uidBytes, 0, uidBytesCopy, 0, uidSize);
++        this.uid = new BigInteger(1, reverse(uidBytesCopy)); // sign-bit forced positive
+ 
+         int gidSize = signedByteToUnsignedInt(data[offset++]);
+         byte[] gidBytes = new byte[gidSize];
+         System.arraycopy(data, offset, gidBytes, 0, gidSize);
+-        this.gid = new BigInteger(1, reverse(gidBytes)); // sign-bit forced positive
++        // Make a copy before reversing since reverse() modifies the array in-place
++        byte[] gidBytesCopy = new byte[gidSize];
++        System.arraycopy(gidBytes, 0, gidBytesCopy, 0, gidSize);
++        this.gid = new BigInteger(1, reverse(gidBytesCopy)); // sign-bit forced positive
+     }
+ 
+     /**

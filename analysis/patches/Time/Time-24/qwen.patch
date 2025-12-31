@@ -1,0 +1,83 @@
+diff --git a/src/main/java/org/joda/time/format/DateTimeParserBucket.java b/src/main/java/org/joda/time/format/DateTimeParserBucket.java
+index b985cefd..9ceb39f5 100644
+--- a/src/main/java/org/joda/time/format/DateTimeParserBucket.java
++++ b/src/main/java/org/joda/time/format/DateTimeParserBucket.java
+@@ -341,7 +341,20 @@ public class DateTimeParserBucket {
+             DurationField months = DurationFieldType.months().getField(iChrono);
+             DurationField days = DurationFieldType.days().getField(iChrono);
+             DurationField first = savedFields[0].iField.getDurationField();
+-            if (compareReverse(first, months) >= 0 && compareReverse(first, days) <= 0) {
++            // Check if we have a weekyear field to avoid adding default year when not needed
++            boolean hasWeekyear = false;
++            boolean hasWeekOfWeekyear = false;
++            for (int i = 0; i < count; i++) {
++                if (savedFields[i].iField.getType() == DateTimeFieldType.weekyear()) {
++                    hasWeekyear = true;
++                }
++                if (savedFields[i].iField.getType() == DateTimeFieldType.weekOfWeekyear()) {
++                    hasWeekOfWeekyear = true;
++                }
++            }
++            // Only add the default year if we don't have weekyear/weekOfWeekyear fields
++            // This prevents interference with week-based date calculations
++            if (compareReverse(first, months) >= 0 && compareReverse(first, days) <= 0 && !hasWeekyear && !hasWeekOfWeekyear) {
+                 saveField(DateTimeFieldType.year(), iDefaultYear);
+                 return computeMillis(resetFields, text);
+             }
+@@ -358,7 +371,46 @@ public class DateTimeParserBucket {
+             }
+             throw e;
+         }
+-        
++
++        // First pass: set all fields normally
++        try {
++            for (int i = 0; i < count; i++) {
++                millis = savedFields[i].set(millis, resetFields);
++            }
++        } catch (IllegalFieldValueException e) {
++            if (text != null) {
++                e.prependMessage("Cannot parse \"" + text + '"');
++            }
++            throw e;
++        }
++
++        // Perform an extra pass if we have both weekyear and weekOfWeekyear fields,
++        // as the combination of these with other fields (like month) may require
++        // an additional iteration to properly resolve all dependencies
++        boolean hasWeekyear = false;
++        boolean hasWeekOfWeekyear = false;
++        for (int i = 0; i < count; i++) {
++            if (savedFields[i].iField.getType() == DateTimeFieldType.weekyear()) {
++                hasWeekyear = true;
++            }
++            if (savedFields[i].iField.getType() == DateTimeFieldType.weekOfWeekyear()) {
++                hasWeekOfWeekyear = true;
++            }
++        }
++
++        if (hasWeekyear && hasWeekOfWeekyear) {
++            try {
++                for (int i = 0; i < count; i++) {
++                    millis = savedFields[i].set(millis, resetFields);
++                }
++            } catch (IllegalFieldValueException e) {
++                if (text != null) {
++                    e.prependMessage("Cannot parse \"" + text + '"');
++                }
++                throw e;
++            }
++        }
++
+         if (iZone == null) {
+             millis -= iOffset;
+         } else {
+@@ -373,7 +425,7 @@ public class DateTimeParserBucket {
+                 throw new IllegalArgumentException(message);
+             }
+         }
+-        
++
+         return millis;
+     }
+     

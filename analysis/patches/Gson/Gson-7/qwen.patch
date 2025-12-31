@@ -1,0 +1,79 @@
+diff --git a/gson/src/main/java/com/google/gson/stream/JsonReader.java b/gson/src/main/java/com/google/gson/stream/JsonReader.java
+index d375ba15..17fc7a09 100644
+--- a/gson/src/main/java/com/google/gson/stream/JsonReader.java
++++ b/gson/src/main/java/com/google/gson/stream/JsonReader.java
+@@ -212,6 +212,8 @@ public class JsonReader implements Closeable {
+   private static final int PEEKED_LONG = 15;
+   private static final int PEEKED_NUMBER = 16;
+   private static final int PEEKED_EOF = 17;
++  private static final int PEEKED_LONG_NAME = 18;
++  private static final int PEEKED_NUMBER_NAME = 19;
+ 
+   /* State machine when parsing numbers */
+   private static final int NUMBER_CHAR_NONE = 0;
+@@ -441,6 +443,8 @@ public class JsonReader implements Closeable {
+     case PEEKED_SINGLE_QUOTED_NAME:
+     case PEEKED_DOUBLE_QUOTED_NAME:
+     case PEEKED_UNQUOTED_NAME:
++    case PEEKED_LONG_NAME:
++    case PEEKED_NUMBER_NAME:
+       return JsonToken.NAME;
+     case PEEKED_TRUE:
+     case PEEKED_FALSE:
+@@ -511,7 +515,15 @@ public class JsonReader implements Closeable {
+       default:
+         checkLenient();
+         pos--; // Don't consume the first character in an unquoted string.
+-        if (isLiteral((char) c)) {
++        // In lenient mode, a number can be a valid name/key in JSON object
++        int result = peekNumber();
++        if (result == PEEKED_LONG) {
++          // Convert PEEKED_LONG to PEEKED_LONG_NAME for use as object key
++          return peeked = PEEKED_LONG_NAME;
++        } else if (result == PEEKED_NUMBER) {
++          // Convert PEEKED_NUMBER to PEEKED_NUMBER_NAME for use as object key
++          return peeked = PEEKED_NUMBER_NAME;
++        } else if (isLiteral((char) c)) {
+           return peeked = PEEKED_UNQUOTED_NAME;
+         } else {
+           throw syntaxError("Expected name");
+@@ -789,6 +801,11 @@ public class JsonReader implements Closeable {
+       result = nextQuotedValue('\'');
+     } else if (p == PEEKED_DOUBLE_QUOTED_NAME) {
+       result = nextQuotedValue('"');
++    } else if (p == PEEKED_LONG_NAME) {
++      result = Long.toString(peekedLong);
++    } else if (p == PEEKED_NUMBER_NAME) {
++      result = new String(buffer, pos, peekedNumberLength);
++      pos += peekedNumberLength;
+     } else {
+       throw new IllegalStateException("Expected a name but was " + peek()
+           + " at line " + getLineNumber() + " column " + getColumnNumber() + " path " + getPath());
+@@ -1248,8 +1265,16 @@ public class JsonReader implements Closeable {
+         skipQuotedValue('\'');
+       } else if (p == PEEKED_DOUBLE_QUOTED || p == PEEKED_DOUBLE_QUOTED_NAME) {
+         skipQuotedValue('"');
++      } else if (p == PEEKED_LONG) {
++        // Skip the long number
++        peeked = PEEKED_NONE;
+       } else if (p == PEEKED_NUMBER) {
+         pos += peekedNumberLength;
++      } else if (p == PEEKED_LONG_NAME) {
++        // Skip the long name
++        peeked = PEEKED_NONE;
++      } else if (p == PEEKED_NUMBER_NAME) {
++        pos += peekedNumberLength;
+       }
+       peeked = PEEKED_NONE;
+     } while (count != 0);
+@@ -1606,6 +1631,10 @@ public class JsonReader implements Closeable {
+           reader.peeked = PEEKED_SINGLE_QUOTED;
+         } else if (p == PEEKED_UNQUOTED_NAME) {
+           reader.peeked = PEEKED_UNQUOTED;
++        } else if (p == PEEKED_LONG_NAME) {
++          reader.peeked = PEEKED_LONG;
++        } else if (p == PEEKED_NUMBER_NAME) {
++          reader.peeked = PEEKED_NUMBER;
+         } else {
+           throw new IllegalStateException("Expected a name but was " + reader.peek() + " "
+               + " at line " + reader.getLineNumber() + " column " + reader.getColumnNumber()

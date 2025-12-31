@@ -1,0 +1,103 @@
+diff --git a/src/main/java/org/joda/time/field/UnsupportedDurationField.java b/src/main/java/org/joda/time/field/UnsupportedDurationField.java
+index 7e0ce57a..f2407295 100644
+--- a/src/main/java/org/joda/time/field/UnsupportedDurationField.java
++++ b/src/main/java/org/joda/time/field/UnsupportedDurationField.java
+@@ -20,6 +20,7 @@ import java.util.HashMap;
+ 
+ import org.joda.time.DurationField;
+ import org.joda.time.DurationFieldType;
++import org.joda.time.chrono.ISOChronology;
+ 
+ /**
+  * A placeholder implementation to use when a duration field is not supported.
+@@ -219,15 +220,85 @@ public final class UnsupportedDurationField extends DurationField implements Ser
+     }
+ 
+     /**
+-     * Always returns zero, indicating that sort order is not relevent.
++     * Compare to is based on the natural order of duration field types.
+      *
+-     * @return zero always
++     * @return negative if this field is smaller, zero if equal, positive if larger
+      */
+     public int compareTo(DurationField durationField) {
+-        if (durationField.isSupported()) {
+-            return 1;
++        if (durationField instanceof UnsupportedDurationField) {
++            // Compare based on field type ordinals to maintain proper ordering
++            UnsupportedDurationField other = (UnsupportedDurationField) durationField;
++            // Use the field type names to determine order based on the typical size relationship
++            // This is a workaround for the fact that unsupported fields all return 0 for unit millis
++            return compareFieldTypes(iType, other.iType);
++        } else {
++            // An unsupported field should be considered smaller than any supported field
++            if (durationField.isSupported()) {
++                return -1;
++            } else {
++                // If other field is also not supported (but not instance of UnsupportedDurationField)
++                // we return 0 as fallback
++                return 0;
++            }
++        }
++    }
++
++    /**
++     * Compares field types based on their natural duration order.
++     * This ensures unsupported fields maintain proper ordering relative to each other.
++     *
++     * @param type1 first field type
++     * @param type2 second field type
++     * @return negative if type1 is larger (shorter duration), positive if type1 is smaller (longer duration), 0 if equal
++     */
++    private int compareFieldTypes(DurationFieldType type1, DurationFieldType type2) {
++        long millis1 = getTypicalUnitMillis(type1);
++        long millis2 = getTypicalUnitMillis(type2);
++
++        if (millis1 == millis2) {
++            return 0;
++        }
++        if (millis1 < millis2) {
++            return 1;  // type1 is "larger" (shorter duration)
++        } else {
++            return -1; // type1 is "smaller" (longer duration)
++        }
++    }
++
++    /**
++     * Gets the typical unit milliseconds for a field type without creating circular references.
++     */
++    private long getTypicalUnitMillis(DurationFieldType type) {
++        // Use specific duration values based on field type without creating circular dependency
++        String name = type.getName();
++        if ("eras".equals(name)) {
++            return 3155695200000L; // ~100 years (not precise, but order is what matters)
++        } else if ("centuries".equals(name)) {
++            return 3155695200000L; // ~100 years
++        } else if ("weekyears".equals(name)) {
++            return 3155695200000L; // ~1 year (as used in week-year context)
++        } else if ("years".equals(name)) {
++            return 31556952000L; // ~365.25 days
++        } else if ("months".equals(name)) {
++            return 2629746000L; // ~30.44 days (1/12 of Julian year)
++        } else if ("weeks".equals(name)) {
++            return 604800000L; // 7 days
++        } else if ("days".equals(name)) {
++            return 86400000L; // 24 hours
++        } else if ("halfdays".equals(name)) {
++            return 43200000L; // 12 hours
++        } else if ("hours".equals(name)) {
++            return 3600000L; // 60 minutes
++        } else if ("minutes".equals(name)) {
++            return 60000L; // 60 seconds
++        } else if ("seconds".equals(name)) {
++            return 1000L;
++        } else if ("millis".equals(name)) {
++            return 1L;
++        } else {
++            // For any unrecognized field, return 0 as fallback
++            return 0;
+         }
+-        return 0;
+     }
+ 
+     //------------------------------------------------------------------------

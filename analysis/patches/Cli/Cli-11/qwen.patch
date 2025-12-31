@@ -1,0 +1,11 @@
+--- a/src/java/org/apache/commons/cli/HelpFormatter.java
++++ b/src/java/org/apache/commons/cli/HelpFormatter.java
+@@ -630,7 +630,7 @@
+         }
+ 
+         // if the Option has a value
+-        if (option.hasArg() && (option.getArgName() != null))
++        if (option.hasArg() && (option.getArgName() != null && !option.getArgName().isEmpty()))
+         {
+             buff.append(" <").append(option.getArgName()).append(">");
+         }

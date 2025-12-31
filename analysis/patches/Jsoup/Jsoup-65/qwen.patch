@@ -1,0 +1,128 @@
+diff --git a/src/main/java/org/jsoup/parser/HtmlTreeBuilderState.java b/src/main/java/org/jsoup/parser/HtmlTreeBuilderState.java
+index aaf60415..7510b1f6 100644
+--- a/src/main/java/org/jsoup/parser/HtmlTreeBuilderState.java
++++ b/src/main/java/org/jsoup/parser/HtmlTreeBuilderState.java
+@@ -841,6 +841,10 @@ enum HtmlTreeBuilderState {
+                         return tb.process(t);
+                 } else if (StringUtil.in(name, "style", "script")) {
+                     return tb.process(t, InHead);
++                } else if (name.equals("template")) {
++                    tb.insert(startTag);
++                    tb.insertMarkerToFormattingElements(); // template stack
++                    tb.transition(InTemplate);
+                 } else if (name.equals("input")) {
+                     if (!startTag.attributes.get("type").equalsIgnoreCase("hidden")) {
+                         return anythingElse(t, tb);
+@@ -1043,6 +1047,10 @@ enum HtmlTreeBuilderState {
+                         return tb.process(startTag);
+                     } else if (StringUtil.in(name, "caption", "col", "colgroup", "tbody", "tfoot", "thead")) {
+                         return exitTableBody(t, tb);
++                    } else if (name.equals("template")) {
++                        tb.insert(startTag);
++                        tb.insertMarkerToFormattingElements(); // template stack
++                        tb.transition(InTemplate);
+                     } else
+                         return anythingElse(t, tb);
+                     break;
+@@ -1100,6 +1108,10 @@ enum HtmlTreeBuilderState {
+                     tb.insertMarkerToFormattingElements();
+                 } else if (StringUtil.in(name, "caption", "col", "colgroup", "tbody", "tfoot", "thead", "tr")) {
+                     return handleMissingTr(t, tb);
++                } else if (name.equals("template")) {
++                    tb.insert(startTag);
++                    tb.insertMarkerToFormattingElements(); // template stack
++                    tb.transition(InTemplate);
+                 } else {
+                     return anythingElse(t, tb);
+                 }
+@@ -1188,6 +1200,14 @@ enum HtmlTreeBuilderState {
+                 }
+                 closeCell(tb);
+                 return tb.process(t);
++            } else if (t.isStartTag() && t.asStartTag().normalName().equals("template")) {
++                if (!(tb.inTableScope("td") || tb.inTableScope("th"))) {
++                    tb.error(this);
++                    return false;
++                }
++                closeCell(tb);
++                tb.processStartTag("template");
++                return true;
+             } else {
+                 return anythingElse(t, tb);
+             }
+@@ -1450,6 +1470,75 @@ enum HtmlTreeBuilderState {
+             return true;
+         }
+     },
++    InTemplate {
++        boolean process(Token t, HtmlTreeBuilder tb) {
++            switch (t.type) {
++                case Character:
++                    tb.insert(t.asCharacter());
++                    break;
++                case Comment:
++                    tb.insert(t.asComment());
++                    break;
++                case Doctype:
++                    tb.error(this);
++                    break;
++                case StartTag:
++                    Token.StartTag startTag = t.asStartTag();
++                    String name = startTag.normalName();
++                    if (StringUtil.in(name, "base", "basefont", "bgsound", "link", "meta", "noframes", "script", "style", "title", "template")) {
++                        return tb.process(t, InHead);
++                    } else if (StringUtil.in(name, "caption", "colgroup", "tbody", "tfoot", "thead")) {
++                        tb.pop(); // Pop template element from stack
++                        tb.clearFormattingElementsToLastMarker(); // Clear the template insertion mode flag
++                        tb.transition(InTable);
++                        return tb.process(t);
++                    } else if (name.equals("col")) {
++                        tb.pop(); // Pop template element from stack
++                        tb.clearFormattingElementsToLastMarker(); // Clear the template insertion mode flag
++                        tb.transition(InColumnGroup);
++                        return tb.process(t);
++                    } else if (name.equals("tr")) {
++                        tb.pop(); // Pop template element from stack
++                        tb.clearFormattingElementsToLastMarker(); // Clear the template insertion mode flag
++                        tb.transition(InTableBody);
++                        return tb.process(t);
++                    } else if (name.equals("td") || name.equals("th")) {
++                        tb.pop(); // Pop template element from stack
++                        tb.clearFormattingElementsToLastMarker(); // Clear the template insertion mode flag
++                        tb.transition(InRow);
++                        return tb.process(t);
++                    } else {
++                        tb.insert(startTag);
++                    }
++                    break;
++                case EndTag:
++                    Token.EndTag endTag = t.asEndTag();
++                    String normalName = endTag.normalName();
++                    if (normalName.equals("template")) {
++                        tb.pop(); // Pop the template element
++                        tb.clearFormattingElementsToLastMarker(); // Pop the template marker from active formatting stack
++                        tb.resetInsertionMode(); // Reset the insertion mode appropriately
++                    } else {
++                        tb.error(this);
++                        return false;
++                    }
++                    break;
++                case EOF:
++                    if (tb.currentElement() == null || !tb.currentElement().nodeName().equals("template")) {
++                        tb.error(this);
++                        return true;
++                    } else {
++                        tb.pop(); // Pop template element
++                        tb.resetInsertionMode();
++                        return tb.process(t);
++                    }
++                default:
++                    tb.insert(t.asCharacter()); // Treat as character token
++                    break;
++            }
++            return true;
++        }
++    },
+     ForeignContent {
+         boolean process(Token t, HtmlTreeBuilder tb) {
+             return true;

@@ -1,0 +1,83 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveInputStream.java b/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveInputStream.java
+index befee541..32129424 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveInputStream.java
++++ b/src/main/java/org/apache/commons/compress/archivers/zip/ZipArchiveInputStream.java
+@@ -207,6 +207,10 @@ public class ZipArchiveInputStream extends ArchiveInputStream {
+                 if (offsetInBuffer >= lengthOfLastRead) {
+                     offsetInBuffer = 0;
+                     if ((lengthOfLastRead = in.read(buf)) == -1) {
++                        // We've reached EOF but expected to read more data for STORED entry
++                        if (readBytesOfEntry < csize) {
++                            throw new IOException("Truncated ZIP file");
++                        }
+                         return -1;
+                     }
+                     count(lengthOfLastRead);
+@@ -224,11 +228,31 @@ public class ZipArchiveInputStream extends ArchiveInputStream {
+                 crc.update(buffer, start, toRead);
+                 return toRead;
+             }
++            // For DEFLATED entries, check if stream is already exhausted when we're trying to read
++            if (current.getMethod() == ZipArchiveOutputStream.DEFLATED && readBytesOfEntry == 0) {
++                // Check if there's any data available in the underlying stream at all
++                // This handles the case where we have a header that says there should be data
++                // but the underlying stream has been truncated
++                // We need to peek ahead to see if there's any data available for the inflater
++                int availableByte = in.read();
++                if (availableByte == -1) {
++                    // No data available to read - this is a truncated ZIP entry
++                    throw new IOException("Truncated ZIP file");
++                } else {
++                    // There is data, put it back in the stream for the inflater to use
++                    ((PushbackInputStream) in).unread(availableByte);
++                }
++            }
++            // For DEFLATED entries, check if we need input but there's no data available
+             if (inf.needsInput()) {
+                 fill();
+                 if (lengthOfLastRead > 0) {
+                     bytesReadFromStream += lengthOfLastRead;
+                 }
++                // Check after fill if we still need input but couldn't get any
++                if (inf.needsInput() && lengthOfLastRead == -1) {
++                    throw new IOException("Truncated ZIP file");
++                }
+             }
+             int read = 0;
+             try {
+@@ -331,6 +355,35 @@ public class ZipArchiveInputStream extends ArchiveInputStream {
+         }
+         if ((lengthOfLastRead = in.read(buf)) > 0) {
+             inf.setInput(buf, 0, lengthOfLastRead);
++        } else if (lengthOfLastRead == -1) {
++            // We've reached EOF but may still need more data for the current entry
++            // For both STORED and DEFLATED entries, we should check if we've read expected data
++            if (current != null) {
++                // For STORED entries, check if we've read expected size
++                if (current.getMethod() == ZipArchiveOutputStream.STORED) {
++                    long expectedSize = current.getSize();
++                    if (expectedSize > 0 && readBytesOfEntry < expectedSize) {
++                        // We expected to read more data but hit EOF - this is a truncated ZIP
++                        throw new IOException("Truncated ZIP file");
++                    }
++                }
++                // For DEFLATED entries, if we still need input but hit EOF, it's truncated
++                else if (current.getMethod() == ZipArchiveOutputStream.DEFLATED) {
++                    long expectedSize = current.getSize();
++                    // If expected size is 0 but we hit EOF when trying to provide input to inflater,
++                    // and the entry has a non-zero CRC, this indicates truncation
++                    // since even empty deflated data should have minimal zlib format
++                    if (expectedSize == 0 && readBytesOfEntry == 0) {
++                        // If the stream has no data and we're expecting to read for a DEFLATED entry,
++                        // this is a truncated entry - even empty compressed data needs the minimal format
++                        throw new IOException("Truncated ZIP file");
++                    }
++                    // Check if we expected to read more data but hit EOF early
++                    else if (expectedSize > 0 && readBytesOfEntry < expectedSize) {
++                        throw new IOException("Truncated ZIP file");
++                    }
++                }
++            }
+         }
+     }
+ 

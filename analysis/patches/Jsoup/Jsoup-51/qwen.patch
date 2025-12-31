@@ -1,0 +1,16 @@
+diff --git a/src/main/java/org/jsoup/parser/TokeniserState.java b/src/main/java/org/jsoup/parser/TokeniserState.java
+index 4947af58..0bafcacd 100644
+--- a/src/main/java/org/jsoup/parser/TokeniserState.java
++++ b/src/main/java/org/jsoup/parser/TokeniserState.java
+@@ -150,7 +150,10 @@ enum TokeniserState {
+                     t.advanceTransition(BogusComment);
+                     break;
+                 default:
+-                    if (r.matchesLetter()) {
++                    char c = r.current();
++                    // Check if the character is valid at start of tag name (not one of the tag name terminators)
++                    if (c != '\t' && c != '\n' && c != '\r' && c != '\f' && c != ' ' &&
++                        c != '/' && c != '>' && c != TokeniserState.nullChar && c != '!') {
+                         t.createTagPending(true);
+                         t.transition(TagName);
+                     } else {

@@ -1,0 +1,31 @@
+diff --git a/src/java/org/apache/commons/lang/text/ExtendedMessageFormat.java b/src/java/org/apache/commons/lang/text/ExtendedMessageFormat.java
+index 404be490c..bd8be0dd5 100644
+--- a/src/java/org/apache/commons/lang/text/ExtendedMessageFormat.java
++++ b/src/java/org/apache/commons/lang/text/ExtendedMessageFormat.java
+@@ -407,7 +407,7 @@ public class ExtendedMessageFormat extends MessageFormat {
+     /**
+      * Consume a quoted string, adding it to <code>appendTo</code> if
+      * specified.
+-     * 
++     *
+      * @param pattern pattern to parse
+      * @param pos current parse position
+      * @param appendTo optional StringBuffer to append
+@@ -419,13 +419,14 @@ public class ExtendedMessageFormat extends MessageFormat {
+         int start = pos.getIndex();
+         char[] c = pattern.toCharArray();
+         if (escapingOn && c[start] == QUOTE) {
++            next(pos);
+             return appendTo == null ? null : appendTo.append(QUOTE);
+         }
+         int lastHold = start;
+-        for (int i = pos.getIndex(); i < pattern.length(); i++) {
++        while (pos.getIndex() < pattern.length()) {
++            int i = pos.getIndex();
+             if (escapingOn && pattern.substring(i).startsWith(ESCAPED_QUOTE)) {
+-                appendTo.append(c, lastHold, pos.getIndex() - lastHold).append(
+-                        QUOTE);
++                appendTo.append(c, lastHold, i - lastHold).append(QUOTE);
+                 pos.setIndex(i + ESCAPED_QUOTE.length());
+                 lastHold = pos.getIndex();
+                 continue;

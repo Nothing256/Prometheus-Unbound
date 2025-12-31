@@ -1,0 +1,53 @@
+diff --git a/src/main/java/com/fasterxml/jackson/dataformat/xml/ser/ToXmlGenerator.java b/src/main/java/com/fasterxml/jackson/dataformat/xml/ser/ToXmlGenerator.java
+index 63e42a19..5fde9f92 100644
+--- a/src/main/java/com/fasterxml/jackson/dataformat/xml/ser/ToXmlGenerator.java
++++ b/src/main/java/com/fasterxml/jackson/dataformat/xml/ser/ToXmlGenerator.java
+@@ -293,7 +293,6 @@ public final class ToXmlGenerator
+         return this;
+     }
+ 
+-    @Override
+     public boolean canWriteFormattedNumbers() { return true; }
+ 
+     // @since 2.7.5
+@@ -488,7 +487,7 @@ public final class ToXmlGenerator
+     public final void writeEndArray() throws IOException
+     {
+         if (!_writeContext.inArray()) {
+-            _reportError("Current context not Array but "+_writeContext.typeDesc());
++            _reportError("Current context not Array but "+_writeContext.toString());
+         }
+         if (_cfgPrettyPrinter != null) {
+             _cfgPrettyPrinter.writeEndArray(this, _writeContext.getEntryCount());
+@@ -514,7 +513,7 @@ public final class ToXmlGenerator
+     public final void writeEndObject() throws IOException
+     {
+         if (!_writeContext.inObject()) {
+-            _reportError("Current context not Object but "+_writeContext.typeDesc());
++            _reportError("Current context not Object but "+_writeContext.toString());
+         }
+         _writeContext = _writeContext.getParent();
+         if (_cfgPrettyPrinter != null) {
+@@ -816,6 +815,22 @@ public final class ToXmlGenerator
+         if (_nextName == null) {
+             handleMissingName();
+         }
++        // Handle empty binary data - write empty element instead of binary content
++        if (len == 0) {
++            try {
++                if (_nextIsAttribute) {
++                    // For attributes, write empty string
++                    _xmlWriter.writeAttribute(_nextName.getNamespaceURI(), _nextName.getLocalPart(), "");
++                } else if (checkNextIsUnwrapped()) {
++                    // For unwrapped, do nothing or write empty
++                } else {
++                    _xmlWriter.writeEmptyElement(_nextName.getNamespaceURI(), _nextName.getLocalPart());
++                }
++            } catch (XMLStreamException e) {
++                StaxUtil.throwAsGenerationException(e, this);
++            }
++            return;
++        }
+         try {
+             if (_nextIsAttribute) {
+                 // Stax2 API only has 'full buffer' write method:

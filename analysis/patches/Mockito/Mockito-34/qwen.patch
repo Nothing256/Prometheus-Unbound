@@ -1,0 +1,22 @@
+diff --git a/src/org/mockito/internal/invocation/InvocationMatcher.java b/src/org/mockito/internal/invocation/InvocationMatcher.java
+index c72b119dd..87d0519df 100644
+--- a/src/org/mockito/internal/invocation/InvocationMatcher.java
++++ b/src/org/mockito/internal/invocation/InvocationMatcher.java
+@@ -102,9 +102,16 @@ public class InvocationMatcher implements PrintableInvocation, PrintingFriendlyI
+ 
+     public void captureArgumentsFrom(Invocation i) {
+         int k = 0;
++        Object[] arguments = i.getArguments();
+         for (Matcher m : matchers) {
+             if (m instanceof CapturesArguments) {
+-                ((CapturesArguments) m).captureFrom(i.getArguments()[k]);
++                if (k < arguments.length) {
++                    ((CapturesArguments) m).captureFrom(arguments[k]);
++                } else {
++                    // If there are more matchers than arguments, capture null or skip
++                    // This handles cases where args count doesn't match
++                    ((CapturesArguments) m).captureFrom(null);
++                }
+             }
+             k++;
+         }

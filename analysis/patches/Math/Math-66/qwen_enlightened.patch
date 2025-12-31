@@ -1,0 +1,13 @@
+diff --git a/src/main/java/org/apache/commons/math/optimization/univariate/BrentOptimizer.java b/src/main/java/org/apache/commons/math/optimization/univariate/BrentOptimizer.java
+index 926541536..9cdab08c6 100644
+--- a/src/main/java/org/apache/commons/math/optimization/univariate/BrentOptimizer.java
++++ b/src/main/java/org/apache/commons/math/optimization/univariate/BrentOptimizer.java
+@@ -130,7 +130,7 @@ public class BrentOptimizer extends AbstractUnivariateRealOptimizer {
+             final double tol2 = 2 * tol1;
+ 
+             // Check stopping criterion.
+-            if (Math.abs(x - m) > tol2 - 0.5 * (b - a)) {
++            if (b - a > tol2) {
+                 double p = 0;
+                 double q = 0;
+                 double r = 0;

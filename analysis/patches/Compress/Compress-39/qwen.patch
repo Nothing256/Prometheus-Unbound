@@ -1,0 +1,16 @@
+diff --git a/src/main/java/org/apache/commons/compress/utils/ArchiveUtils.java b/src/main/java/org/apache/commons/compress/utils/ArchiveUtils.java
+index 0a755ce3..99f863ee 100644
+--- a/src/main/java/org/apache/commons/compress/utils/ArchiveUtils.java
++++ b/src/main/java/org/apache/commons/compress/utils/ArchiveUtils.java
+@@ -284,6 +284,11 @@ public class ArchiveUtils {
+             }
+             sb.append('?');
+         }
++
++        // Limit the string length to 255 chars maximum
++        if (sb.length() > 255) {
++            return sb.substring(0, 252) + "...";
++        }
+         return sb.toString();
+     }
+ 

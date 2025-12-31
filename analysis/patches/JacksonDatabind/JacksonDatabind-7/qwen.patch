@@ -1,0 +1,22 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializer.java b/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializer.java
+index 0d9af6507..db3c0d013 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializer.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/BeanDeserializer.java
+@@ -117,6 +117,17 @@ public class BeanDeserializer
+             if (_vanillaProcessing) {
+                 return vanillaDeserialize(jp, ctxt, jp.nextToken());
+             }
++            // Check if we have a delegate creator that needs the original token
++            if (_valueInstantiator.canCreateUsingDelegate()) {
++                JavaType delegateType = _valueInstantiator.getDelegateType(ctxt.getConfig());
++                // If the delegate type is TokenBuffer, we need to pass the original token position
++                // so the TokenBuffer captures the complete structure including the container token
++                if (delegateType != null && delegateType.getRawClass() == TokenBuffer.class) {
++                    return _valueInstantiator.createUsingDelegate(ctxt,
++                            _delegateDeserializer.deserialize(jp, ctxt));
++                }
++            }
++            // For other cases, advance the parser to process field names
+             jp.nextToken();
+             if (_objectIdReader != null) {
+                 return deserializeWithObjectId(jp, ctxt);

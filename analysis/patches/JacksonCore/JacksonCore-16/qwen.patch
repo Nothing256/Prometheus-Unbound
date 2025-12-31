@@ -1,0 +1,55 @@
+diff --git a/src/main/java/com/fasterxml/jackson/core/util/JsonParserSequence.java b/src/main/java/com/fasterxml/jackson/core/util/JsonParserSequence.java
+index 9dadc51f..dedd4b57 100644
+--- a/src/main/java/com/fasterxml/jackson/core/util/JsonParserSequence.java
++++ b/src/main/java/com/fasterxml/jackson/core/util/JsonParserSequence.java
+@@ -32,7 +32,8 @@ public class JsonParserSequence extends JsonParserDelegate
+      *
+      * @since 2.8
+      */
+-    
++    protected boolean _initialized;
++
+     /*
+      *******************************************************
+      * Construction
+@@ -44,6 +45,7 @@ public class JsonParserSequence extends JsonParserDelegate
+         super(parsers[0]);
+         _parsers = parsers;
+         _nextParser = 1;
++        _initialized = false;
+     }
+ 
+     /**
+@@ -103,9 +105,31 @@ public class JsonParserSequence extends JsonParserDelegate
+     @Override
+     public JsonToken nextToken() throws IOException, JsonParseException
+     {
+-        JsonToken t = delegate.nextToken();
++        JsonToken t;
++
++        // If this is the first call and the delegate has a current token, return it first
++        if (!_initialized) {
++            t = delegate.getCurrentToken();
++            if (t != null) {
++                _initialized = true;
++                return t;
++            }
++            _initialized = true; // Mark as initialized even if no current token
++        }
++
++        // After initialization, advance to next token
++        t = delegate.nextToken();
+         if (t != null) return t;
++
++        // If that was null, try switching to next parser
+         while (switchToNext()) {
++            _initialized = false; // Reset for the new delegate
++            t = delegate.getCurrentToken();
++            if (t != null) {
++                _initialized = true;
++                return t;
++            }
++            _initialized = true; // Mark as initialized
+             t = delegate.nextToken();
+             if (t != null) return t;
+         }

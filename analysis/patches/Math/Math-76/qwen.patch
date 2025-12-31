@@ -1,0 +1,29 @@
+--- original_SingularValueDecompositionImpl.java	2025-12-27 09:04:52
++++ src/main/java/org/apache/commons/math/linear/SingularValueDecompositionImpl.java	2025-12-27 09:04:06
+@@ -139,14 +139,23 @@
+                                        MathUtils.SAFE_MIN);
+         final double[] eigenValues = eigenDecomposition.getRealEigenvalues();
+         int p = Math.min(max, eigenValues.length);
+-        while ((p > 0) && (eigenValues[p - 1] <= 0)) {
++
++        // Calculate threshold to handle numerical precision issues for rank-deficient matrices
++        // Use common threshold based on machine precision: max(m,n) * eps * max_eigenvalue
++        final double maxSingularValue = Math.sqrt(Math.max(eigenValues[0], 0.0));
++        final double singularValueTolerance = Math.max(m, n) * Math.ulp(maxSingularValue);
++        final double eigenvalueTolerance = singularValueTolerance * singularValueTolerance;
++
++        // Adjust p to only include eigenvalues that are significantly positive
++        // This addresses the MATH-320 issue with numerical precision in rank-deficient matrices
++        while ((p > 0) && (eigenValues[p - 1] <= eigenvalueTolerance)) {
+             --p;
+         }
++
+         singularValues = new double[p];
+         for (int i = 0; i < p; ++i) {
+-            singularValues[i] = Math.sqrt(eigenValues[i]);
++            singularValues[i] = Math.sqrt(Math.max(eigenValues[i], 0.0));
+         }
+-
+     }
+ 
+     /** {@inheritDoc} */

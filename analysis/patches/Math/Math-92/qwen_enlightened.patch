@@ -1,0 +1,106 @@
+diff --git a/src/java/org/apache/commons/math/util/MathUtils.java b/src/java/org/apache/commons/math/util/MathUtils.java
+index 1ae554ced..c332cb462 100644
+--- a/src/java/org/apache/commons/math/util/MathUtils.java
++++ b/src/java/org/apache/commons/math/util/MathUtils.java
+@@ -181,30 +181,78 @@ public final class MathUtils {
+         if ((k == 1) || (k == n - 1)) {
+             return n;
+         }
+-        long result = Math.round(binomialCoefficientDouble(n, k));
+-        if (result == Long.MAX_VALUE) {
+-            throw new ArithmeticException(
+-                "result too large to represent in a long integer");
++
++        // Use symmetry to optimize: binomial(n, k) = binomial(n, n-k)
++        int kPrime = Math.min(k, n - k);
++
++        // For n > 66, we need to check for overflow
++        if (n > 66) {
++            // Check if result would overflow by using the largest possible value
++            // For n > 66, some coefficients may exceed Long.MAX_VALUE
++            double binomialEstimate = Math.floor(Math.exp(binomialCoefficientLog(n, kPrime)) + 0.5);
++            if (binomialEstimate > Long.MAX_VALUE) {
++                throw new ArithmeticException(
++                    "result too large to represent in a long integer");
++            }
+         }
+-        // Use symmetry for large k
+-        
+-        // We use the formula
+-        // (n choose k) = n! / (n-k)! / k!
+-        // (n choose k) == ((n-k+1)*...*n) / (1*...*k)
+-        // which could be written
+-        // (n choose k) == (n-1 choose k-1) * n / k
+-            // For n <= 61, the naive implementation cannot overflow.
+-            // For n > 61 but n <= 66, the result cannot overflow,
+-            // but we must take care not to overflow intermediate values.
+-                // We know that (result * i) is divisible by j,
+-                // but (result * i) may overflow, so we split j:
+-                // Filter out the gcd, d, so j/d and i/d are integer.
+-                // result is divisible by (j/d) because (j/d)
+-                // is relative prime to (i/d) and is a divisor of
+-                // result * (i/d).
+-            // For n > 66, a result overflow might occur, so we check
+-            // the multiplication, taking care to not overflow
+-            // unnecessary.
++
++        // Compute the binomial coefficient using the multiplicative formula with overflow protection
++        // Use symmetry: C(n, k) = C(n, n-k) to minimize iterations
++        long result = 1;
++
++        for (int i = 0; i < kPrime; i++) {
++            // Calculate: result = result * (n - i) / (i + 1)
++            // To prevent overflow, we can use the fact that this will always be an integer
++            // and use GCD reduction to keep numbers smaller
++
++            // Step 1: Calculate the numerator and denominator for this iteration
++            long num = n - i;
++            long den = i + 1;
++
++            // Step 2: Reduce the fraction using GCD to make numbers as small as possible
++            long gcd1 = gcd((int)num, (int)den);
++            num /= gcd1;
++            den /= gcd1;
++
++            // Step 3: Also reduce with the current result to further minimize overflow risk
++            if (den > 1) {
++                long gcd2 = gcd((int)result, (int)den);
++                result /= gcd2;
++                den /= gcd2;
++            }
++
++            // Step 4: Now multiply and divide
++            // Before multiplying, check for overflow
++            if (result > 0 && num > 0 && result > Long.MAX_VALUE / num) {
++                // Even after GCD reduction, multiplication would overflow
++                // Check if final result would exceed Long.MAX_VALUE
++                if (n > 66) {
++                    double estimate = Math.floor(Math.exp(binomialCoefficientLog(n, kPrime)) + 0.5);
++                    if (estimate > Long.MAX_VALUE) {
++                        throw new ArithmeticException(
++                            "result too large to represent in a long integer");
++                    }
++                }
++
++                // If we get here, the final result should fit but intermediate calculation overflows
++                // We need to use the mathematical property to rearrange operations
++                // Since binomial coefficient is an integer, and we've properly reduced fractions,
++                // the division (result/denominator) must result in an integer before multiplication
++                if (result % den == 0) {
++                    // Safe to divide first, then multiply
++                    result = (result / den) * num;
++                } else {
++                    // This shouldn't happen with proper GCD reduction
++                    throw new ArithmeticException(
++                        "overflow: multiply");
++                }
++            } else {
++                // Safe to multiply first, then divide
++                result = result * num;
++                result = result / den;  // This should be exact division
++            }
++        }
++
+         return result;
+     }
+ 

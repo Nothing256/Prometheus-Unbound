@@ -1,0 +1,130 @@
+diff --git a/src/main/java/org/jsoup/nodes/Element.java b/src/main/java/org/jsoup/nodes/Element.java
+index 12c68cae..5f022b31 100644
+--- a/src/main/java/org/jsoup/nodes/Element.java
++++ b/src/main/java/org/jsoup/nodes/Element.java
+@@ -266,11 +266,71 @@ public class Element extends Node {
+      */
+     public Element append(String html) {
+         Validate.notNull(html);
+-        
++
+         Element fragment = Parser.parseBodyFragment(html, baseUri).body();
+         for (Node node : fragment.childNodes()) {
+             node.parentNode = null;
+-            appendChild(node);
++
++            // Special handling for table elements - if we're appending to a table
++            // and the node is a table row, handle it considering existing structure
++            if (this.tag.getName().equals("table") && node instanceof Element) {
++                Element elementNode = (Element) node;
++                String tagName = elementNode.tagName();
++
++                if ("tr".equalsIgnoreCase(tagName)) {
++                    // Check if table already has TR elements as direct children
++                    java.util.List<Node> directTrElements = new java.util.ArrayList<Node>();
++                    for (Node child : childNodes) {
++                        if (child instanceof Element && "tr".equalsIgnoreCase(((Element) child).tagName())) {
++                            directTrElements.add(child);
++                        }
++                    }
++
++                    if (!directTrElements.isEmpty()) {
++                        // We have direct TR children from initial parse, group them with new TR in tbody
++                        Element tbody = new Element(Tag.valueOf("tbody"), baseUri());
++                        // Move existing direct TR elements to the tbody
++                        for (Node trNode : directTrElements) {
++                            trNode.parentNode.removeChild(trNode);
++                            tbody.appendChild(trNode);
++                        }
++                        // Add the new TR to the tbody
++                        tbody.appendChild(node);
++                        // Add the tbody to the table
++                        appendChild(tbody);
++                    } else {
++                        // No direct TR children, look for existing tbody/thead/tfoot containers
++                        Element container = null;
++                        // Look for existing containers, preferring the last one for appending
++                        for (int i = childNodes.size() - 1; i >= 0; i--) {
++                            Node existingChild = childNodes.get(i);
++                            if (existingChild instanceof Element) {
++                                String existingTagName = ((Element) existingChild).tagName();
++                                if ("tbody".equalsIgnoreCase(existingTagName) ||
++                                    "thead".equalsIgnoreCase(existingTagName) ||
++                                    "tfoot".equalsIgnoreCase(existingTagName)) {
++                                    container = (Element) existingChild;
++                                    break;
++                                }
++                            }
++                        }
++
++                        if (container != null) {
++                            // Add the row to the existing container
++                            container.appendChild(node);
++                        } else {
++                            // No existing containers, add the row directly to the table
++                            appendChild(node);
++                        }
++                    }
++                } else {
++                    // For other elements, add directly
++                    appendChild(node);
++                }
++            } else {
++                // For non-table contexts, add directly as before
++                appendChild(node);
++            }
+         }
+         return this;
+     }
+@@ -283,13 +343,49 @@ public class Element extends Node {
+      */
+     public Element prepend(String html) {
+         Validate.notNull(html);
+-        
++
+         Element fragment = Parser.parseBodyFragment(html, baseUri).body();
+         List<Node> nodes = fragment.childNodes();
+         for (int i = nodes.size() - 1; i >= 0; i--) {
+             Node node = nodes.get(i);
+             node.parentNode = null;
+-            prependChild(node);
++
++            // Special handling for table elements
++            if (this.tag.getName().equals("table") && node instanceof Element) {
++                Element elementNode = (Element) node;
++                String tagName = elementNode.tagName();
++
++                if ("tr".equalsIgnoreCase(tagName)) {
++                    // Find an existing tbody/thead/tfoot to add this row to, checking from start
++                    Element container = null;
++                    for (int j = 0; j < childNodes.size(); j++) {  // Start from beginning
++                        Node existingChild = childNodes.get(j);
++                        if (existingChild instanceof Element) {
++                            String existingTagName = ((Element) existingChild).tagName();
++                            if ("tbody".equalsIgnoreCase(existingTagName) ||
++                                "thead".equalsIgnoreCase(existingTagName) ||
++                                "tfoot".equalsIgnoreCase(existingTagName)) {
++                                container = (Element) existingChild;
++                                break; // Use the first one for prepending
++                            }
++                        }
++                    }
++
++                    if (container != null) {
++                        // Add the row to the beginning of the existing container
++                        container.prependChild(node);
++                    } else {
++                        // No existing container, add the row directly to the table
++                        prependChild(node);
++                    }
++                } else {
++                    // For other elements, prepend directly
++                    prependChild(node);
++                }
++            } else {
++                // For non-table contexts, prepend directly
++                prependChild(node);
++            }
+         }
+         return this;
+     }

@@ -1,0 +1,116 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/type/ResolvedRecursiveType.java b/src/main/java/com/fasterxml/jackson/databind/type/ResolvedRecursiveType.java
+index 30807836d..fb39c337c 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/type/ResolvedRecursiveType.java
++++ b/src/main/java/com/fasterxml/jackson/databind/type/ResolvedRecursiveType.java
+@@ -1,5 +1,6 @@
+ package com.fasterxml.jackson.databind.type;
+ 
++import java.util.List;
+ import com.fasterxml.jackson.databind.JavaType;
+ 
+ /**
+@@ -31,53 +32,101 @@ public class ResolvedRecursiveType extends TypeBase
+ 
+     @Override
+     public StringBuilder getGenericSignature(StringBuilder sb) {
+-        return _referencedType.getGenericSignature(sb);
++        if (_referencedType != null) {
++            return _referencedType.getGenericSignature(sb);
++        }
++        // If not resolved yet, return basic signature for the erased type
++        return new StringBuilder().append(_class.getName()).append(";");
+     }
+ 
+     @Override
+     public StringBuilder getErasedSignature(StringBuilder sb) {
+-        return _referencedType.getErasedSignature(sb);
++        if (_referencedType != null) {
++            return _referencedType.getErasedSignature(sb);
++        }
++        // If not resolved yet, return basic signature for the erased type
++        return sb.append(_class.getSimpleName()).append(";");
++    }
++
++    @Override
++    public JavaType getSuperClass() {
++        if (_referencedType != null) {
++            return _referencedType.getSuperClass();
++        }
++        return super.getSuperClass();
++    }
++
++    @Override
++    public List<JavaType> getInterfaces() {
++        if (_referencedType != null) {
++            return _referencedType.getInterfaces();
++        }
++        return super.getInterfaces();
+     }
+ 
+     @Override
+     public JavaType withContentType(JavaType contentType) {
++        if (_referencedType != null) {
++            return _referencedType.withContentType(contentType);
++        }
+         return this;
+     }
+-    
++
+     @Override
+     public JavaType withTypeHandler(Object h) {
++        if (_referencedType != null) {
++            return _referencedType.withTypeHandler(h);
++        }
+         return this;
+     }
+ 
+     @Override
+     public JavaType withContentTypeHandler(Object h) {
++        if (_referencedType != null) {
++            return _referencedType.withContentTypeHandler(h);
++        }
+         return this;
+     }
+ 
+     @Override
+     public JavaType withValueHandler(Object h) {
++        if (_referencedType != null) {
++            return _referencedType.withValueHandler(h);
++        }
+         return this;
+     }
+ 
+     @Override
+     public JavaType withContentValueHandler(Object h) {
++        if (_referencedType != null) {
++            return _referencedType.withContentValueHandler(h);
++        }
+         return this;
+     }
+ 
+     @Override
+     public JavaType withStaticTyping() {
++        if (_referencedType != null) {
++            return _referencedType.withStaticTyping();
++        }
+         return this;
+     }
+ 
+     @Deprecated // since 2.7
+     @Override
+     protected JavaType _narrow(Class<?> subclass) {
++        if (_referencedType != null) {
++            return _referencedType.forcedNarrowBy(subclass);
++        }
+         return this;
+     }
+ 
+     @Override
+     public JavaType refine(Class<?> rawType, TypeBindings bindings,
+             JavaType superClass, JavaType[] superInterfaces) {
++        if (_referencedType != null) {
++            return _referencedType.refine(rawType, bindings, superClass, superInterfaces);
++        }
+         return null;
+     }
+ 

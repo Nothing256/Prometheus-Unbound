@@ -1,0 +1,55 @@
+diff --git a/gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java b/gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java
+index dea7af76..a80fb1a8 100644
+--- a/gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java
++++ b/gson/src/main/java/com/google/gson/internal/bind/TypeAdapters.java
+@@ -712,8 +712,48 @@ public final class TypeAdapters {
+     }
+   };
+ 
+-  public static final TypeAdapterFactory JSON_ELEMENT_FACTORY
+-      = newTypeHierarchyFactory(JsonElement.class, JSON_ELEMENT);
++  public static final TypeAdapterFactory JSON_ELEMENT_FACTORY = new TypeAdapterFactory() {
++    @SuppressWarnings("unchecked")
++    public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
++      final Class<? super T> requestedType = typeToken.getRawType();
++      if (!JsonElement.class.isAssignableFrom(requestedType)) {
++        return null;
++      }
++
++      // Return an adapter that validates the JSON type against the expected Java type
++      return (TypeAdapter<T>) new TypeAdapter<JsonElement>() {
++        @Override public JsonElement read(JsonReader in) throws IOException {
++          JsonElement element = JSON_ELEMENT.read(in); // Use the original logic
++
++          // Validate that the actual element type matches the expected type
++          if (requestedType == JsonObject.class && !element.isJsonObject()) {
++            throw new JsonSyntaxException("Expected a " + JsonObject.class.getName() +
++                " but was " + element.getClass().getName());
++          } else if (requestedType == JsonArray.class && !element.isJsonArray()) {
++            throw new JsonSyntaxException("Expected a " + JsonArray.class.getName() +
++                " but was " + element.getClass().getName());
++          } else if (requestedType == JsonPrimitive.class && !element.isJsonPrimitive()) {
++            throw new JsonSyntaxException("Expected a " + JsonPrimitive.class.getName() +
++                " but was " + element.getClass().getName());
++          } else if (requestedType == JsonNull.class && !element.isJsonNull()) {
++            throw new JsonSyntaxException("Expected a " + JsonNull.class.getName() +
++                " but was " + element.getClass().getName());
++          }
++
++          return element;
++        }
++
++        @Override public void write(JsonWriter out, JsonElement value) throws IOException {
++          JSON_ELEMENT.write(out, value);
++        }
++      };
++    }
++
++    @Override public String toString() {
++      return "Factory[typeHierarchy=" + JsonElement.class.getName() +
++          ",adapter=" + JSON_ELEMENT + "]";
++    }
++  };
+ 
+   private static final class EnumTypeAdapter<T extends Enum<T>> extends TypeAdapter<T> {
+     private final Map<String, T> nameToConstant = new HashMap<String, T>();

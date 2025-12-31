@@ -1,0 +1,25 @@
+diff --git a/src/java/org/apache/commons/math/util/MathUtils.java b/src/java/org/apache/commons/math/util/MathUtils.java
+index c5342aeb3..0de65c83b 100644
+--- a/src/java/org/apache/commons/math/util/MathUtils.java
++++ b/src/java/org/apache/commons/math/util/MathUtils.java
+@@ -402,16 +402,17 @@ public final class MathUtils {
+      * operations. See Knuth 4.5.2 algorithm B. This algorithm is due to Josef
+      * Stein (1961).
+      * </p>
+-     * 
++     *
+      * @param u a non-zero number
+      * @param v a non-zero number
+      * @return the greatest common divisor, never zero
+      * @since 1.1
+      */
+     public static int gcd(int u, int v) {
+-        if (u * v == 0) {
+-            return (Math.abs(u) + Math.abs(v));
++        if ((u == 0) || (v == 0)) {
++            return Math.abs(u) + Math.abs(v);
+         }
++
+         // keep u and v negative, as negative integers range down to
+         // -2^31, while positive numbers can only be as large as 2^31-1
+         // (i.e. we can't necessarily negate a negative number without

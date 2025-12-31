@@ -1,0 +1,130 @@
+diff --git a/src/main/java/org/jsoup/parser/Token.java b/src/main/java/org/jsoup/parser/Token.java
+index 2d5643b6..a23c87c2 100644
+--- a/src/main/java/org/jsoup/parser/Token.java
++++ b/src/main/java/org/jsoup/parser/Token.java
+@@ -207,6 +207,31 @@ abstract class Token {
+         }
+     }
+ 
++    static class XmlDeclaration extends Token {
++        final StringBuilder data = new StringBuilder();
++        final boolean isProcessingInstruction; // <? = true, <! = false
++
++        XmlDeclaration(boolean isProcessingInstruction) {
++            type = TokenType.XmlDeclaration;
++            this.isProcessingInstruction = isProcessingInstruction;
++        }
++
++        String getData() {
++            return data.toString();
++        }
++
++        boolean isProcessingInstruction() {
++            return isProcessingInstruction;
++        }
++
++        @Override
++        public String toString() {
++            return isProcessingInstruction ?
++                "<?" + getData() + "?>" :
++                "<!" + getData() + ">";
++        }
++    }
++
+     boolean isDoctype() {
+         return type == TokenType.Doctype;
+     }
+@@ -251,12 +276,21 @@ abstract class Token {
+         return type == TokenType.EOF;
+     }
+ 
++    boolean isXmlDeclaration() {
++        return type == TokenType.XmlDeclaration;
++    }
++
++    XmlDeclaration asXmlDeclaration() {
++        return (XmlDeclaration) this;
++    }
++
+     enum TokenType {
+         Doctype,
+         StartTag,
+         EndTag,
+         Comment,
+         Character,
+-        EOF
++        EOF,
++        XmlDeclaration
+     }
+ }
+diff --git a/src/main/java/org/jsoup/parser/TokeniserState.java b/src/main/java/org/jsoup/parser/TokeniserState.java
+index 2a46cf2f..f7cdc8ba 100644
+--- a/src/main/java/org/jsoup/parser/TokeniserState.java
++++ b/src/main/java/org/jsoup/parser/TokeniserState.java
+@@ -145,7 +145,8 @@ enum TokeniserState {
+                     t.advanceTransition(EndTagOpen);
+                     break;
+                 case '?':
+-                    t.advanceTransition(BogusComment);
++                    t.createXmlDeclarationPending(false); // false for xml declaration (processing instructions have different format)
++                    t.advanceTransition(XmlDeclaration);
+                     break;
+                 default:
+                     if (r.matchesLetter()) {
+@@ -1789,8 +1790,28 @@ enum TokeniserState {
+             r.matchConsume("]]>");
+             t.transition(Data);
+         }
+-    };
++    },
++    XmlDeclaration {
++        void read(Tokeniser t, CharacterReader r) {
++            // Read everything between <? and ?>, or handle malformed case
++            String data = r.consumeTo("?>");
+ 
++            // Check if we found the closing ?>
++            if (r.matchConsume("?>")) {
++                // Found proper closing
++                // For XML declarations (isProcessingInstruction = false), we need to include the ? before > in the data
++                // according to XmlDeclaration comment: "and last data char should be ?"
++                t.xmlDeclarationPending.data.append(data).append('?');
++                t.emit(t.xmlDeclarationPending);
++                t.transition(Data);
++            } else {
++                // Hit EOF without finding ?>, emit what we have with error
++                t.xmlDeclarationPending.data.append(data);
++                t.emit(t.xmlDeclarationPending);
++                t.transition(Data);
++            }
++        }
++    };
+ 
+     abstract void read(Tokeniser t, CharacterReader r);
+ 
+diff --git a/src/main/java/org/jsoup/parser/XmlTreeBuilder.java b/src/main/java/org/jsoup/parser/XmlTreeBuilder.java
+index 11eae8ba..044f2a66 100644
+--- a/src/main/java/org/jsoup/parser/XmlTreeBuilder.java
++++ b/src/main/java/org/jsoup/parser/XmlTreeBuilder.java
+@@ -34,6 +34,9 @@ public class XmlTreeBuilder extends TreeBuilder {
+             case Doctype:
+                 insert(token.asDoctype());
+                 break;
++            case XmlDeclaration:
++                insert(token.asXmlDeclaration());
++                break;
+             case EOF: // could put some normalisation here if desired
+                 break;
+             default:
+@@ -77,6 +80,12 @@ public class XmlTreeBuilder extends TreeBuilder {
+         insertNode(doctypeNode);
+     }
+ 
++    void insert(Token.XmlDeclaration decl) {
++        // Create an XML declaration node
++        XmlDeclaration xmlDecl = new XmlDeclaration(decl.getData(), baseUri, decl.isProcessingInstruction());
++        insertNode(xmlDecl);
++    }
++
+     /**
+      * If the stack contains an element with this tag's name, pop up the stack to remove the first occurrence. If not
+      * found, skips.

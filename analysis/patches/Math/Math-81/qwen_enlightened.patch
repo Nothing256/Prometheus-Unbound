@@ -1,0 +1,128 @@
+diff --git a/src/main/java/org/apache/commons/math/linear/EigenDecompositionImpl.java b/src/main/java/org/apache/commons/math/linear/EigenDecompositionImpl.java
+index 2d0d72f22..8db1f690c 100644
+--- a/src/main/java/org/apache/commons/math/linear/EigenDecompositionImpl.java
++++ b/src/main/java/org/apache/commons/math/linear/EigenDecompositionImpl.java
+@@ -932,6 +932,10 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+      * @param n number of rows of the matrix to process
+      */
+     private void initialSplits(final int n) {
++        if (n < 2) {
++            // For small n, no splits needed
++            return;
++        }
+ 
+         pingPong = 0;
+         for (int k = 0; k < 2; ++k) {
+@@ -967,7 +971,9 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+                     d *= work[i + 2] / work[j];
+                }
+             }
+-            work[4 * n - 3 - pingPong] = d;
++            if (4 * n - 3 - pingPong >= 0) {
++                work[4 * n - 3 - pingPong] = d;
++            }
+ 
+             // from ping to pong
+             pingPong = 1 - pingPong;
+@@ -1000,6 +1006,11 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+                 return deflatedEnd;
+             }
+ 
++            // Check if deflatedEnd is too small to safely access the work array
++            if (deflatedEnd < 3) {  // Need at least 3 elements to safely access work[k-11] etc.
++                return deflatedEnd;
++            }
++
+             final int k = 4 * deflatedEnd + pingPong - 1;
+ 
+             if ((start == deflatedEnd - 1) ||
+@@ -1086,7 +1097,9 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+                            (work[4 * deflatedEnd - 5 - pingPong] < TOLERANCE * (sigma + dN1)) &&
+                            (Math.abs(dN) < TOLERANCE * sigma)) {
+                    // convergence hidden by negative DN.
+-                    work[4 * deflatedEnd - 3 - pingPong] = 0.0;
++                    if (4 * deflatedEnd - 3 - pingPong >= 0) {
++                        work[4 * deflatedEnd - 3 - pingPong] = 0.0;
++                    }
+                     dMin = 0.0;
+                     updateSigma(tau);
+                     return deflatedEnd;
+@@ -1269,6 +1282,20 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+      * @param end end index
+      */
+     private void dqds(final int start, final int end) {
++        if (end < 2) {
++            // For small end, nothing to do in this case
++            if (end == 1 && start == 0) {
++                // If there's just one element, handle separately
++                work[4 * end - pingPong - 1] = work[4 * start + pingPong] - tau;
++            } else if (end > 0) {
++                // Just handle the basic case without unrolling
++                eMin = work[4 * start + pingPong + 4];
++                double d = work[4 * start + pingPong] - tau;
++                dMin = d;
++                work[4 * end - pingPong - 1] = eMin;
++            }
++            return;
++        }
+ 
+         eMin = work[4 * start + pingPong + 4];
+         double d = work[4 * start + pingPong] - tau;
+@@ -1314,7 +1341,9 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+         dMin = Math.min(dMin, dN);
+ 
+         work[j4 + 2] = dN;
+-        work[4 * end - pingPong - 1] = eMin;
++        if (4 * end - pingPong - 1 >= 0) {
++            work[4 * end - pingPong - 1] = eMin;
++        }
+ 
+     }
+ 
+@@ -1326,6 +1355,20 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+      * @param end end index
+      */
+     private void dqd(final int start, final int end) {
++        if (end < 2) {
++            // For small end, nothing to do in this case
++            if (end == 1 && start == 0) {
++                // If there's just one element, handle separately
++                work[4 * end - pingPong - 1] = work[4 * start + pingPong];
++            } else if (end > 0) {
++                // Just handle the basic case without unrolling
++                eMin = work[4 * start + pingPong + 4];
++                double d = work[4 * start + pingPong];
++                dMin = d;
++                work[4 * end - pingPong - 1] = eMin;
++            }
++            return;
++        }
+ 
+         eMin = work[4 * start + pingPong + 4];
+         double d = work[4 * start + pingPong];
+@@ -1416,7 +1459,9 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+         dMin = Math.min(dMin, dN);
+ 
+         work[j4 + 2] = dN;
+-        work[4 * end - pingPong - 1] = eMin;
++        if (4 * end - pingPong - 1 >= 0) {
++            work[4 * end - pingPong - 1] = eMin;
++        }
+ 
+     }
+ 
+@@ -1441,6 +1486,14 @@ public class EigenDecompositionImpl implements EigenDecomposition {
+             return;
+         }
+ 
++        // Check if end is too small to safely access work array with the planned indices
++        if (end < 2) {
++            // For very small end values, use a conservative approach
++            tau = 0;
++            tType = -12;
++            return;
++        }
++
+         int nn = 4 * end + pingPong - 1;
+         switch (deflated) {
+ 

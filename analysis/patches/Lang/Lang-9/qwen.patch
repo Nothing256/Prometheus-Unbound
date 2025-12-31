@@ -1,0 +1,16 @@
+diff --git a/src/main/java/org/apache/commons/lang3/time/FastDateParser.java b/src/main/java/org/apache/commons/lang3/time/FastDateParser.java
+index 8df302f9c..b2c4a068c 100644
+--- a/src/main/java/org/apache/commons/lang3/time/FastDateParser.java
++++ b/src/main/java/org/apache/commons/lang3/time/FastDateParser.java
+@@ -130,6 +130,11 @@ public class FastDateParser implements DateParser, Serializable {
+         for(;;) {
+             patternMatcher.region(patternMatcher.end(), patternMatcher.regionEnd());
+             if(!patternMatcher.lookingAt()) {
++                // Check if there are unconsumed characters remaining in the pattern
++                if (patternMatcher.regionStart() < patternMatcher.regionEnd()) {
++                    // There are remaining characters that couldn't be parsed
++                    throw new IllegalArgumentException("Invalid pattern");
++                }
+                 nextStrategy = null;
+                 break;
+             }

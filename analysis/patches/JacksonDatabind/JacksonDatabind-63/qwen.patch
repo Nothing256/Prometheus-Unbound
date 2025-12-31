@@ -1,0 +1,19 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/JsonMappingException.java b/src/main/java/com/fasterxml/jackson/databind/JsonMappingException.java
+index 482622b82..6042545ed 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/JsonMappingException.java
++++ b/src/main/java/com/fasterxml/jackson/databind/JsonMappingException.java
+@@ -131,8 +131,13 @@ public class JsonMappingException
+                     if (pkgName != null) {
+                         sb.append(pkgName);
+                         sb.append('.');
++                        // For inner classes, we need to get just the class name part after the package
++                        // instead of using getSimpleName() which loses the outer class relationship
++                        String fullName = cls.getName();
++                        sb.append(fullName.substring(pkgName.length() + 1));
++                    } else {
++                        sb.append(cls.getSimpleName());
+                     }
+-                    sb.append(cls.getSimpleName());
+                 }
+                 sb.append('[');
+                 if (_fieldName != null) {

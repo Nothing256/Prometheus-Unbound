@@ -1,0 +1,55 @@
+--- original.java	2025-12-27 03:15:11
++++ src/main/java/org/apache/commons/math/analysis/solvers/BaseSecantSolver.java	2025-12-27 03:11:36
+@@ -155,6 +155,12 @@
+         // larger than the right bound.
+         boolean inverted = false;
+ 
++        // Track consecutive iterations where the same side is selected
++        // Use different thresholds for different methods to avoid false positives
++        int sameSideStuckCount = 0;
++        final int REGULA_FALSI_MAX_STUCK_COUNT = 1000; // Lower threshold for Regula Falsi which is prone to getting stuck
++        final int OTHER_METHODS_MAX_STUCK_COUNT = 10000000; // Very high threshold for other methods to avoid false positives
++
+         // Keep finding better approximations.
+         while (true) {
+             // Calculate the next approximation.
+@@ -175,17 +181,28 @@
+                 x0 = x1;
+                 f0 = f1;
+                 inverted = !inverted;
++
++                // Reset the stuck counter since we moved to the other side (applies to all methods)
++                sameSideStuckCount = 0;
+             } else {
+                 switch (method) {
+                 case ILLINOIS:
+                     f0 *= 0.5;
++                    // Illinois method modification helps avoid getting stuck, so reset counter
++                    sameSideStuckCount = 0;
+                     break;
+                 case PEGASUS:
+                     f0 *= f1 / (f1 + fx);
++                    // Pegasus method modification helps avoid getting stuck, so reset counter
++                    sameSideStuckCount = 0;
+                     break;
+                 case REGULA_FALSI:
+-                    // Detect early that algorithm is stuck, instead of waiting
++                    // For Regula Falsi, detect early that algorithm is stuck, instead of waiting
+                     // for the maximum number of iterations to be exceeded.
++                    sameSideStuckCount++;
++                    if (sameSideStuckCount >= REGULA_FALSI_MAX_STUCK_COUNT) {
++                        throw new ConvergenceException();
++                    }
+                     break;
+                 default:
+                     // Should never happen.
+--- original_illinois.java	2025-12-27 03:16:14
++++ src/main/java/org/apache/commons/math/analysis/solvers/IllinoisSolver.java	2025-12-27 03:03:18
+@@ -78,6 +78,6 @@
+     public IllinoisSolver(final double relativeAccuracy,
+                           final double absoluteAccuracy,
+                           final double functionValueAccuracy) {
+-        super(relativeAccuracy, absoluteAccuracy, functionValueAccuracy, Method.PEGASUS);
++        super(relativeAccuracy, absoluteAccuracy, functionValueAccuracy, Method.ILLINOIS);
+     }
+ }

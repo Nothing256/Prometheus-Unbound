@@ -1,0 +1,119 @@
+diff --git a/src/main/java/org/jsoup/nodes/Attributes.java b/src/main/java/org/jsoup/nodes/Attributes.java
+index a716abc4..a2fe9e87 100644
+--- a/src/main/java/org/jsoup/nodes/Attributes.java
++++ b/src/main/java/org/jsoup/nodes/Attributes.java
+@@ -3,6 +3,7 @@ package org.jsoup.nodes;
+ import org.jsoup.SerializationException;
+ import org.jsoup.helper.Validate;
+ import org.jsoup.internal.StringUtil;
++import org.jsoup.parser.ParseSettings;
+ 
+ import java.io.IOException;
+ import java.util.AbstractMap;
+@@ -107,6 +108,13 @@ public class Attributes implements Iterable<Attribute>, Cloneable {
+      * @return the first matching attribute value if set; or empty string if not set (ora boolean attribute).
+      */
+     public String getIgnoreCase(String key) {
++        // First, look for an exact match
++        int exactIndex = indexOfKey(key);
++        if (exactIndex != NotFound) {
++            return checkNotNull(vals[exactIndex]);
++        }
++
++        // If no exact match, look for case-insensitive match
+         int i = indexOfKeyIgnoreCase(key);
+         return i == NotFound ? EmptyString : checkNotNull(vals[i]);
+     }
+@@ -123,16 +131,15 @@ public class Attributes implements Iterable<Attribute>, Cloneable {
+     }
+ 
+     /**
+-     * Set a new attribute, or replace an existing one by key.
++     * Set a new attribute if the key doesn't exist yet.
++     * If the key already exists, this method does nothing, preserving the first occurrence.
+      * @param key case sensitive attribute key
+      * @param value attribute value
+      * @return these attributes, for chaining
+      */
+     public Attributes put(String key, String value) {
+         int i = indexOfKey(key);
+-        if (i != NotFound)
+-            vals[i] = value;
+-        else
++        if (i == NotFound)
+             add(key, value);
+         return this;
+     }
+@@ -394,6 +401,50 @@ public class Attributes implements Iterable<Attribute>, Cloneable {
+      * @param settings case sensitivity
+      * @return number of removed dupes
+      */
++    public int removeDups(ParseSettings settings) {
++        int originalSize = size;
++
++        // Create new arrays to hold unique attributes
++        String[] newKeys = new String[keys.length];
++        String[] newVals = new String[vals.length];
++        int newSize = 0;
++
++        for (int i = 0; i < size; i++) {
++            String currentKey = keys[i];
++
++            // Check if this key already exists in our new array based on case sensitivity
++            boolean duplicateFound = false;
++            for (int j = 0; j < newSize; j++) {
++                if (settings.preserveAttributeCase()) {
++                    // Case sensitive: keys must match exactly
++                    if (currentKey.equals(newKeys[j])) {
++                        duplicateFound = true;
++                        break;
++                    }
++                } else {
++                    // Case insensitive: compare ignoring case
++                    if (currentKey.equalsIgnoreCase(newKeys[j])) {
++                        duplicateFound = true;
++                        break;
++                    }
++                }
++            }
++
++            // Only add if not a duplicate
++            if (!duplicateFound) {
++                newKeys[newSize] = currentKey;
++                newVals[newSize] = vals[i];
++                newSize++;
++            }
++        }
++
++        // Update this instance with the deduplicated arrays
++        keys = newKeys;
++        vals = newVals;
++        size = newSize;
++
++        return originalSize - newSize; // Return number of removed duplicates
++    }
+ 
+     private static class Dataset extends AbstractMap<String, String> {
+         private final Attributes attributes;
+diff --git a/src/main/java/org/jsoup/parser/ParseSettings.java b/src/main/java/org/jsoup/parser/ParseSettings.java
+index 1378978a..fd5f6c1f 100644
+--- a/src/main/java/org/jsoup/parser/ParseSettings.java
++++ b/src/main/java/org/jsoup/parser/ParseSettings.java
+@@ -35,6 +35,9 @@ public class ParseSettings {
+     /**
+      * Returns true if preserving attribute case.
+      */
++    public boolean preserveAttributeCase() {
++        return preserveAttributeCase;
++    }
+ 
+     /**
+      * Define parse settings.
+@@ -70,6 +73,7 @@ public class ParseSettings {
+         if (!preserveAttributeCase) {
+             attributes.normalize();
+         }
++        attributes.removeDups(this);
+         return attributes;
+     }
+ }

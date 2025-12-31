@@ -1,0 +1,29 @@
+diff --git a/gson/src/main/java/com/google/gson/internal/$Gson$Types.java b/gson/src/main/java/com/google/gson/internal/$Gson$Types.java
+index 17ed0ff2..32d73eff 100644
+--- a/gson/src/main/java/com/google/gson/internal/$Gson$Types.java
++++ b/gson/src/main/java/com/google/gson/internal/$Gson$Types.java
+@@ -339,12 +339,23 @@ public final class $Gson$Types {
+     while (true) {
+       if (toResolve instanceof TypeVariable) {
+         TypeVariable<?> typeVariable = (TypeVariable<?>) toResolve;
+-          // cannot reduce due to infinite recursion
++        // Check if this type variable has already been visited to prevent infinite recursion
++        if (visitedTypeVariables.contains(typeVariable)) {
++          // Cannot reduce due to infinite recursion
++          return typeVariable;
++        }
++        // Add the type variable to the visited set
++        Collection<TypeVariable> visitedTypeVariablesNew = new ArrayList<TypeVariable>(visitedTypeVariables);
++        visitedTypeVariablesNew.add(typeVariable);
++
+         toResolve = resolveTypeVariable(context, contextRawType, typeVariable);
+         if (toResolve == typeVariable) {
+           return toResolve;
+         }
+ 
++        // Continue with the resolved type, but with the new visited set
++        visitedTypeVariables = visitedTypeVariablesNew;
++
+       } else if (toResolve instanceof Class && ((Class<?>) toResolve).isArray()) {
+         Class<?> original = (Class<?>) toResolve;
+         Type componentType = original.getComponentType();

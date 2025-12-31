@@ -1,0 +1,82 @@
+diff --git a/src/main/java/org/apache/commons/math3/util/ContinuedFraction.java b/src/main/java/org/apache/commons/math3/util/ContinuedFraction.java
+index b881bb2d7..d4ea2f3ad 100644
+--- a/src/main/java/org/apache/commons/math3/util/ContinuedFraction.java
++++ b/src/main/java/org/apache/commons/math3/util/ContinuedFraction.java
+@@ -142,31 +142,57 @@ public abstract class ContinuedFraction {
+ 
+             double cN = a * hPrev + b * p0;
+             double q2 = a * q1 + b * dPrev;
+-            if (Double.isInfinite(cN) || Double.isInfinite(q2)) {
++
++            // Enhanced check for potential underflow/overflow/NAN conditions
++            // This addresses the requirement to prevent NaN divergence
++            if (Double.isInfinite(cN) || Double.isInfinite(q2) || Double.isNaN(cN) || Double.isNaN(q2) ||
++                (FastMath.abs(cN) < small && FastMath.abs(q2) < small && q2 != 0.0)) {
+                 double scaleFactor = 1d;
+                 double lastScaleFactor = 1d;
+                 final int maxPower = 5;
+-                final double scale = FastMath.max(a,b);
++                final double scale = FastMath.max(FastMath.abs(a), FastMath.abs(b));
+                 if (scale <= 0) {  // Can't scale
+                     throw new ConvergenceException(LocalizedFormats.CONTINUED_FRACTION_INFINITY_DIVERGENCE, x);
+                 }
+                 for (int i = 0; i < maxPower; i++) {
+                     lastScaleFactor = scaleFactor;
+                     scaleFactor *= scale;
+-                    if (a != 0.0 && a > b) {
++                    if (a != 0.0 && FastMath.abs(a) > FastMath.abs(b)) {
+                         cN = hPrev / lastScaleFactor + (b / scaleFactor * p0);
+                         q2 = q1 / lastScaleFactor + (b / scaleFactor * dPrev);
+                     } else if (b != 0) {
+                         cN = (a / scaleFactor * hPrev) + p0 / lastScaleFactor;
+                         q2 = (a / scaleFactor * q1) + dPrev / lastScaleFactor;
+                     }
+-                    if (!(Double.isInfinite(cN) || Double.isInfinite(q2))) {
++                    if (!(Double.isInfinite(cN) || Double.isInfinite(q2) || Double.isNaN(cN) || Double.isNaN(q2))) {
+                         break;
+                     }
+                 }
+             }
+ 
+-            final double deltaN = cN / q2 / cPrev;
++            // Protect against division by very small numbers that can cause numerical instability
++            if (FastMath.abs(q2) < small) {
++                // When q2 is very small, the fraction cN/q2 can become extremely large or unstable
++                // Instead of allowing this to cause NaN, we handle it more carefully
++                if (FastMath.abs(cN) < small) {
++                    // Both numerator and denominator are small - use the previous value to avoid NaN
++                    hN = cPrev;
++                    break; // Converged as both values are near zero
++                } else {
++                    // cN is not small but q2 is small - this creates a large value that can cause issues
++                    // Use a more conservative approach
++                    q2 = FastMath.copySign(small, q2);
++                }
++            }
++
++            final double ratio = cN / q2;
++            // Check for NaN in the ratio calculation
++            if (Double.isNaN(ratio)) {
++                throw new ConvergenceException(LocalizedFormats.CONTINUED_FRACTION_NAN_DIVERGENCE,
++                                               x);
++            }
++
++            final double deltaN = ratio / cPrev;
+             hN = cPrev * deltaN;
+ 
+             if (Double.isInfinite(hN)) {
+@@ -183,7 +209,13 @@ public abstract class ContinuedFraction {
+             }
+ 
+             dPrev = q1;
+-            cPrev = cN / q2;
++            // Also check before updating cPrev to avoid propagation of numerical errors
++            double newCPrev = cN / q2;
++            if (Double.isInfinite(newCPrev) || Double.isNaN(newCPrev)) {
++                throw new ConvergenceException(LocalizedFormats.CONTINUED_FRACTION_INFINITY_DIVERGENCE,
++                                               x);
++            }
++            cPrev = newCPrev;
+             p0 = hPrev;
+             hPrev = cN;
+             q1 = q2;

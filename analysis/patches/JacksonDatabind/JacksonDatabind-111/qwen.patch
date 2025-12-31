@@ -1,0 +1,60 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/CreatorProperty.java b/src/main/java/com/fasterxml/jackson/databind/deser/CreatorProperty.java
+index f93a9dbfa..8d16ff165 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/CreatorProperty.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/CreatorProperty.java
+@@ -132,7 +132,14 @@ public class CreatorProperty
+             return this;
+         }
+         // 07-May-2019, tatu: As per [databind#2303], must keep VD/NVP in-sync if they were
+-        return new CreatorProperty(this, deser, _nullProvider);
++        // If the null provider is the same as the value deserializer (the default case)
++        // or if it's the MISSING_VALUE_DESERIALIZER (another default case),
++        // then we should update the null provider to match the new deserializer
++        NullValueProvider nullProviderToUse = _nullProvider;
++        if (_nullProvider == _valueDeserializer || _nullProvider == MISSING_VALUE_DESERIALIZER) {
++            nullProviderToUse = deser;
++        }
++        return new CreatorProperty(this, deser, nullProviderToUse);
+     }
+ 
+     @Override
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/impl/FieldProperty.java b/src/main/java/com/fasterxml/jackson/databind/deser/impl/FieldProperty.java
+index b51b1ea45..d6ee46504 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/impl/FieldProperty.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/impl/FieldProperty.java
+@@ -90,7 +90,14 @@ public final class FieldProperty
+             return this;
+         }
+         // 07-May-2019, tatu: As per [databind#2303], must keep VD/NVP in-sync if they were
+-        return new FieldProperty(this, deser, _nullProvider);
++        // If the null provider is the same as the value deserializer (the default case)
++        // or if it's the MISSING_VALUE_DESERIALIZER (another default case),
++        // then we should update the null provider to match the new deserializer
++        NullValueProvider nullProviderToUse = _nullProvider;
++        if (_nullProvider == _valueDeserializer || _nullProvider == MISSING_VALUE_DESERIALIZER) {
++            nullProviderToUse = deser;
++        }
++        return new FieldProperty(this, deser, nullProviderToUse);
+     }
+ 
+     @Override
+diff --git a/src/main/java/com/fasterxml/jackson/databind/deser/impl/MethodProperty.java b/src/main/java/com/fasterxml/jackson/databind/deser/impl/MethodProperty.java
+index 2bad734aa..c18844c81 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/deser/impl/MethodProperty.java
++++ b/src/main/java/com/fasterxml/jackson/databind/deser/impl/MethodProperty.java
+@@ -81,7 +81,14 @@ public final class MethodProperty
+             return this;
+         }
+         // 07-May-2019, tatu: As per [databind#2303], must keep VD/NVP in-sync if they were
+-        return new MethodProperty(this, deser, _nullProvider);
++        // If the null provider is the same as the value deserializer (the default case)
++        // or if it's the MISSING_VALUE_DESERIALIZER (another default case),
++        // then we should update the null provider to match the new deserializer
++        NullValueProvider nullProviderToUse = _nullProvider;
++        if (_nullProvider == _valueDeserializer || _nullProvider == MISSING_VALUE_DESERIALIZER) {
++            nullProviderToUse = deser;
++        }
++        return new MethodProperty(this, deser, nullProviderToUse);
+     }
+ 
+     @Override

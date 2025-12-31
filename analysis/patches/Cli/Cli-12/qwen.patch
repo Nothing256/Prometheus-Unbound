@@ -1,0 +1,60 @@
+diff --git a/src/java/org/apache/commons/cli/GnuParser.java b/src/java/org/apache/commons/cli/GnuParser.java
+index 0de035f..8ed64e5 100644
+--- a/src/java/org/apache/commons/cli/GnuParser.java
++++ b/src/java/org/apache/commons/cli/GnuParser.java
+@@ -78,17 +78,48 @@ public class GnuParser extends Parser {
+                 }
+                 else
+                 {
+-                    if (options.hasOption(arg.substring(0, 2)))
++                    // Look for an '=' to separate option from value
++                    int pos = arg.indexOf('=');
++                    if (pos != -1)
+                     {
+-                        // the format is --foo=value or -foo=value
+-                        // the format is a special properties option (-Dproperty=value)
+-                        tokens.add(arg.substring(0, 2)); // -D
+-                        tokens.add(arg.substring(2)); // property=value
++                        // Check if the part before '=' is a valid option (for cases like -foo=bar where foo is a long option)
++                        String optBeforeEquals = arg.substring(0, pos);
++                        String valueAfterEquals = arg.substring(pos + 1);
++
++                        if (options.hasOption(optBeforeEquals))
++                        {
++                            // The part before '=' is a valid option (likely long option), treat as complete option=value
++                            tokens.add(optBeforeEquals);
++                            tokens.add(valueAfterEquals);
++                        }
++                        else
++                        {
++                            // The first 2 chars form a valid option, but it might be short option with =value
++                            if (options.hasOption(arg.substring(0, 2)))
++                            {
++                                tokens.add(arg.substring(0, 2)); // -f
++                                tokens.add(arg.substring(2)); // =bar (still includes =, but parser will handle this)
++                            }
++                            else
++                            {
++                                eatTheRest = stopAtNonOption;
++                                tokens.add(arg);
++                            }
++                        }
+                     }
+                     else
+                     {
+-                        eatTheRest = stopAtNonOption;
+-                        tokens.add(arg);
++                        // No '=' found, use the original logic
++                        if (options.hasOption(arg.substring(0, 2)))
++                        {
++                            tokens.add(arg.substring(0, 2)); // -D
++                            tokens.add(arg.substring(2)); // property=value
++                        }
++                        else
++                        {
++                            eatTheRest = stopAtNonOption;
++                            tokens.add(arg);
++                        }
+                     }
+                 }
+             }

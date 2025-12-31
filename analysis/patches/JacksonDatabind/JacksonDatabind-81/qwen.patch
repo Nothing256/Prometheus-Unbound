@@ -1,0 +1,176 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/introspect/JacksonAnnotationIntrospector.java b/src/main/java/com/fasterxml/jackson/databind/introspect/JacksonAnnotationIntrospector.java
+index df4c2a770..2e0d6e9f3 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/introspect/JacksonAnnotationIntrospector.java
++++ b/src/main/java/com/fasterxml/jackson/databind/introspect/JacksonAnnotationIntrospector.java
+@@ -1117,13 +1117,32 @@ public class JacksonAnnotationIntrospector
+         // Ok: start by refining the main type itself; common to all types
+         final Class<?> valueClass = (jsonDeser == null) ? null : _classIfExplicit(jsonDeser.as());
+         if ((valueClass != null) && !type.hasRawClass(valueClass)) {
++            Class<?> currRaw = type.getRawClass();
+             try {
+-                type = tf.constructSpecializedType(type, valueClass);
++                // 11-Oct-2015, tatu: For deser, we call `TypeFactory.constructSpecializedType()`,
++                //   may be needed here too in future?
++                if (valueClass.isAssignableFrom(currRaw)) { // common case
++                    type = tf.constructGeneralizedType(type, valueClass);
++                } else if (currRaw.isAssignableFrom(valueClass)) { // specialization, ok as well
++                    type = tf.constructSpecializedType(type, valueClass);
++                } else if (_isPrimitiveAndWrapperEquivalent(currRaw, valueClass)) { // primitive<->wrapper refinement
++                    // 27-Apr-2017, tatu: [databind#1592] ignore primitive<->wrapper refinements
++                    // Just keep the original type when it's a primitive<->wrapper refinement
++                } else {
++                    throw new JsonMappingException(null,
++                            String.format("Can not refine deserialization type %s into %s; types not related",
++                                    type, valueClass.getName()));
++                }
+             } catch (IllegalArgumentException iae) {
+-                throw new JsonMappingException(null,
+-                        String.format("Failed to narrow type %s with annotation (value %s), from '%s': %s",
+-                                type, valueClass.getName(), a.getName(), iae.getMessage()),
+-                                iae);
++                // 27-Apr-2017, tatu: [databind#1592] ignore primitive<->wrapper refinements
++                if (_isPrimitiveAndWrapperEquivalent(currRaw, valueClass)) {
++                    // Just keep the original type when it's a primitive<->wrapper refinement that failed
++                } else {
++                    throw new JsonMappingException(null,
++                            String.format("Failed to narrow type %s with annotation (value %s), from '%s': %s",
++                                    type, valueClass.getName(), a.getName(), iae.getMessage()),
++                                    iae);
++                }
+             }
+         }
+         // Then further processing for container types
+@@ -1133,15 +1152,32 @@ public class JacksonAnnotationIntrospector
+             JavaType keyType = type.getKeyType();
+             final Class<?> keyClass = (jsonDeser == null) ? null : _classIfExplicit(jsonDeser.keyAs());
+             if (keyClass != null) {
+-                try {
+-                    keyType = tf.constructSpecializedType(keyType, keyClass);
+-                    type = ((MapLikeType) type).withKeyType(keyType);
+-                } catch (IllegalArgumentException iae) {
+-                    throw new JsonMappingException(null,
+-                            String.format("Failed to narrow key type of %s with concrete-type annotation (value %s), from '%s': %s",
+-                                    type, keyClass.getName(), a.getName(), iae.getMessage()),
+-                                    iae);
++                if (keyType.hasRawClass(keyClass)) {
++                    // 27-Apr-2017, tatu: [databind#1592] ignore primitive<->wrapper refinements
++                } else {
++                    Class<?> currRaw = keyType.getRawClass();
++                    try {
++                        // 19-May-2016, tatu: As per [databind#1231], [databind#1178] may need to actually
++                        //   specialize (narrow) type sometimes, even if more commonly opposite
++                        //   is needed.
++                        if (keyClass.isAssignableFrom(currRaw)) { // common case
++                            keyType = tf.constructGeneralizedType(keyType, keyClass);
++                        } else if (currRaw.isAssignableFrom(keyClass)) { // specialization, ok as well
++                            keyType = tf.constructSpecializedType(keyType, keyClass);
++                            // 27-Apr-2017, tatu: [databind#1592] ignore primitive<->wrapper refinements
++                        } else {
++                            throw new JsonMappingException(null,
++                                    String.format("Can not refine deserialization key type %s into %s; types not related",
++                                            keyType, keyClass.getName()));
++                        }
++                    } catch (IllegalArgumentException iae) {
++                        throw new JsonMappingException(null,
++                                String.format("Failed to narrow key type of %s with concrete-type annotation (value %s), from '%s': %s",
++                                        type, keyClass.getName(), a.getName(), iae.getMessage()),
++                                        iae);
++                    }
+                 }
++                type = ((MapLikeType) type).withKeyType(keyType);
+             }
+         }
+         JavaType contentType = type.getContentType();
+@@ -1149,15 +1185,32 @@ public class JacksonAnnotationIntrospector
+             // And then value types for all containers:
+             final Class<?> contentClass = (jsonDeser == null) ? null : _classIfExplicit(jsonDeser.contentAs());
+             if (contentClass != null) {
+-                try {
+-                    contentType = tf.constructSpecializedType(contentType, contentClass);
+-                    type = type.withContentType(contentType);
+-                } catch (IllegalArgumentException iae) {
+-                    throw new JsonMappingException(null,
+-                            String.format("Failed to narrow value type of %s with concrete-type annotation (value %s), from '%s': %s",
+-                                    type, contentClass.getName(), a.getName(), iae.getMessage()),
+-                            iae);
++                if (contentType.hasRawClass(contentClass)) {
++                    contentType = contentType.withStaticTyping();
++                } else {
++                    Class<?> currRaw = contentType.getRawClass();
++                    try {
++                        // 03-Apr-2016, tatu: As per [databind#1178], may need to actually
++                        //   specialize (narrow) type sometimes, even if more commonly opposite
++                        //   is needed.
++                        if (contentClass.isAssignableFrom(currRaw)) { // common case
++                            contentType = tf.constructGeneralizedType(contentType, contentClass);
++                        } else if (currRaw.isAssignableFrom(contentClass)) { // specialization, ok as well
++                            contentType = tf.constructSpecializedType(contentType, contentClass);
++                            // 27-Apr-2017, tatu: [databind#1592] ignore primitive<->wrapper refinements
++                        } else {
++                            throw new JsonMappingException(null,
++                                    String.format("Can not refine deserialization content type %s into %s; types not related",
++                                            contentType, contentClass.getName()));
++                        }
++                    } catch (IllegalArgumentException iae) { // shouldn't really happen
++                        throw new JsonMappingException(null,
++                                String.format("Internal error: failed to narrow value type of %s with concrete-type annotation (value %s), from '%s': %s",
++                                        type, contentClass.getName(), a.getName(), iae.getMessage()),
++                                        iae);
++                    }
+                 }
++                type = type.withContentType(contentType);
+             }
+         }
+         return type;
+@@ -1454,5 +1507,51 @@ public class JacksonAnnotationIntrospector
+         return StdTypeResolverBuilder.noTypeInfoBuilder();
+     }
+ 
++    /**
++     * Helper method to check if two classes are primitive-wrapper equivalents
++     * (e.g., int and Integer, boolean and Boolean, etc.)
++     *
++     * @param cls1 First class to check
++     * @param cls2 Second class to check
++     * @return true if cls1 and cls2 are primitive-wrapper equivalents
++     */
++    protected boolean _isPrimitiveAndWrapperEquivalent(Class<?> cls1, Class<?> cls2) {
++        if (cls1 == cls2) {
++            return true;
++        }
++        if (cls1.isPrimitive() && cls2.isPrimitive()) {
++            return cls1 == cls2;
++        }
++        if (!cls1.isPrimitive() && !cls2.isPrimitive()) {
++            return cls1 == cls2;
++        }
++
++        // One is primitive, one is wrapper - check if they're a matched pair
++        if (cls1.isPrimitive()) {
++            // cls1 is primitive, cls2 should be its wrapper
++            if (cls1 == int.class) return cls2 == Integer.class;
++            if (cls1 == long.class) return cls2 == Long.class;
++            if (cls1 == boolean.class) return cls2 == Boolean.class;
++            if (cls1 == double.class) return cls2 == Double.class;
++            if (cls1 == float.class) return cls2 == Float.class;
++            if (cls1 == byte.class) return cls2 == Byte.class;
++            if (cls1 == char.class) return cls2 == Character.class;
++            if (cls1 == short.class) return cls2 == Short.class;
++            if (cls1 == void.class) return cls2 == Void.class;
++        } else {
++            // cls2 is primitive, cls1 should be its wrapper
++            if (cls2 == int.class) return cls1 == Integer.class;
++            if (cls2 == long.class) return cls1 == Long.class;
++            if (cls2 == boolean.class) return cls1 == Boolean.class;
++            if (cls2 == double.class) return cls1 == Double.class;
++            if (cls2 == float.class) return cls1 == Float.class;
++            if (cls2 == byte.class) return cls1 == Byte.class;
++            if (cls2 == char.class) return cls1 == Character.class;
++            if (cls2 == short.class) return cls1 == Short.class;
++            if (cls2 == void.class) return cls1 == Void.class;
++        }
++        return false;
++    }
++
+ 
+ }

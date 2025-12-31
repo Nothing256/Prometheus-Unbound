@@ -1,0 +1,50 @@
+diff --git a/gson/src/main/java/com/google/gson/stream/JsonReader.java b/gson/src/main/java/com/google/gson/stream/JsonReader.java
+index e3ad50e5..6a529c42 100644
+--- a/gson/src/main/java/com/google/gson/stream/JsonReader.java
++++ b/gson/src/main/java/com/google/gson/stream/JsonReader.java
+@@ -543,8 +543,8 @@ public class JsonReader implements Closeable {
+       if (c == -1) {
+         return peeked = PEEKED_EOF;
+       } else {
+-        checkLenient();
+-        pos--;
++        pos--; // Don't consume the first character in a literal value at top level
++        // Continue with normal parsing to handle top-level values
+       }
+     } else if (peekStack == JsonScope.CLOSED) {
+       throw new IllegalStateException("JsonReader is closed");
+@@ -571,7 +571,10 @@ public class JsonReader implements Closeable {
+       checkLenient();
+       return peeked = PEEKED_SINGLE_QUOTED;
+     case '"':
++      // RFC 7159 allows top-level string values in strict mode
+       if (stackSize == 1) {
++        // At top level, allow strings in strict mode per RFC 7159
++      } else {
+         checkLenient();
+       }
+       return peeked = PEEKED_DOUBLE_QUOTED;
+@@ -582,7 +585,13 @@ public class JsonReader implements Closeable {
+     default:
+       pos--; // Don't consume the first character in a literal value.
+     }
++    // RFC 7159 allows top-level primitive values in strict mode,
++    // so don't call checkLenient() when at the top level for primitive values
+     if (stackSize == 1) {
++      // At top level, we want to allow any valid JSON value per RFC 7159
++      // so we don't checkLenient() here for top-level values
++    } else {
++      // For nested structures, still apply lenient check as before
+       checkLenient();
+     }
+ 
+@@ -1256,6 +1265,9 @@ public class JsonReader implements Closeable {
+         skipQuotedValue('"');
+       } else if (p == PEEKED_NUMBER) {
+         pos += peekedNumberLength;
++      } else if (p == PEEKED_TRUE || p == PEEKED_FALSE || p == PEEKED_NULL) {
++        // Skip true, false, or null literals
++        // These are already consumed during peeking, so we just need to advance the peeked state
+       }
+       peeked = PEEKED_NONE;
+     } while (count != 0);

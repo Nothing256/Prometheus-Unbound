@@ -1,0 +1,38 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/zip/X5455_ExtendedTimestamp.java b/src/main/java/org/apache/commons/compress/archivers/zip/X5455_ExtendedTimestamp.java
+index f7a74406..e8b0e786 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/zip/X5455_ExtendedTimestamp.java
++++ b/src/main/java/org/apache/commons/compress/archivers/zip/X5455_ExtendedTimestamp.java
+@@ -234,10 +234,18 @@ public void parseFromLocalFileData(
+         if (bit1_accessTimePresent && offset + 4 <= len) {
+             accessTime = new ZipLong(data, offset);
+             offset += 4;
++        } else if (bit1_accessTimePresent && !(offset + 4 <= len)) {
++            // If flag indicates present but no data, mark as not present
++            bit1_accessTimePresent = false;
++            flags = (byte) (flags & ~ACCESS_TIME_BIT);
+         }
+         if (bit2_createTimePresent && offset + 4 <= len) {
+             createTime = new ZipLong(data, offset);
+             offset += 4; // NOSONAR - assignment as documentation
++        } else if (bit2_createTimePresent && !(offset + 4 <= len)) {
++            // If flag indicates present but no data, mark as not present
++            bit2_createTimePresent = false;
++            flags = (byte) (flags & ~CREATE_TIME_BIT);
+         }
+     }
+ 
+@@ -526,11 +534,11 @@ private static ZipLong dateToZipLong(final Date d) {
+     }
+ 
+     private static ZipLong unixTimeToZipLong(long l) {
+-        final long TWO_TO_32 = 0x100000000L;
+-        if (l >= TWO_TO_32) {
++        // Check if the value fits in a signed 32-bit integer (signed 32-bit max is 0x7FFFFFFF)
++        if (l > Integer.MAX_VALUE || l < Integer.MIN_VALUE) {
+             throw new IllegalArgumentException("X5455 timestamps must fit in a signed 32 bit integer: " + l);
+         }
+-        return new ZipLong(l);
++        return new ZipLong((int) l);
+     }
+ 
+     /**

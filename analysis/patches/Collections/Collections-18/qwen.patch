@@ -1,0 +1,46 @@
+--- a/src/main/java/org/apache/commons/collections/set/ListOrderedSet.java
++++ b/src/main/java/org/apache/commons/collections/set/ListOrderedSet.java
+@@ -228,25 +228,28 @@
+     @Override
+     public boolean retainAll(Collection<?> coll) {
+-        boolean result = collection.retainAll(coll);
+-        if (result == false) {
+-            return false;
+-        }
+-        if (collection.size() == 0) {
+-            setOrder.clear();
+-        } else {
+-            for (Iterator<E> it = setOrder.iterator(); it.hasNext();) {
+-                if (!collection.contains(it.next())) {
+-                    it.remove();
+-                }
+-            }
++        // Convert coll to a set for efficient lookups, especially important when
++        // coll is a list with many elements
++        Set<?> collSet = coll instanceof Set ? (Set<?>) coll : new HashSet<Object>(coll);
++
++        // Remember original size to determine if anything changed
++        int originalSize = collection.size();
++
++        // Build new order and update collection efficiently
++        Set<E> newSet = new HashSet<E>();
++        List<E> newList = new ArrayList<E>();
++
++        // Iterate in original order, preserving only those in the given collection
++        for (E element : setOrder) {
++            if (collSet.contains(element) && newSet.add(element)) {
++                // Only add if it should be retained and we haven't added it before
++                newList.add(element);
++            }
+         }
+-        return result;
++
++        // Update both structures
++        collection.clear();
++        collection.addAll(newSet);
++        setOrder.clear();
++        setOrder.addAll(newList);
++
++        // Return true if set changed
++        return originalSize != newSet.size();
+     }

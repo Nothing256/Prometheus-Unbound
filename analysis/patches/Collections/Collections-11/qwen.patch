@@ -1,0 +1,27 @@
+diff --git a/src/java/org/apache/commons/collections/keyvalue/MultiKey.java b/src/java/org/apache/commons/collections/keyvalue/MultiKey.java
+index 7aaa7ecf..bd9d61d1 100644
+--- a/src/java/org/apache/commons/collections/keyvalue/MultiKey.java
++++ b/src/java/org/apache/commons/collections/keyvalue/MultiKey.java
+@@ -266,10 +266,16 @@ public class MultiKey implements Serializable {
+         hashCode = total;
+ 	}
+ 	
+-	/**
+-	 * Recalculate the hash code after deserialization. The hash code of some
+-	 * keys might have change (hash codes based on the system hash code are
+-	 * only stable for the same process). 
+-	 * @return the instance with recalculated hash code
+-	 */
++    /**
++     * Recalculate the hash code after deserialization. The hash code of some
++     * keys might have change (hash codes based on the system hash code are
++     * only stable for the same process).
++     * @return the instance with recalculated hash code
++     */
++    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
++        in.defaultReadObject();
++        // Recalculate hash code after deserialization to account for
++        // keys whose hash code might have changed
++        calculateHashCode(keys);
++    }
+ }

@@ -1,0 +1,50 @@
+diff --git a/src/main/java/org/jsoup/Jsoup.java b/src/main/java/org/jsoup/Jsoup.java
+index d25c1869..02eada2e 100644
+--- a/src/main/java/org/jsoup/Jsoup.java
++++ b/src/main/java/org/jsoup/Jsoup.java
+@@ -1,6 +1,10 @@
+ package org.jsoup;
+ 
+ import org.jsoup.nodes.Document;
++import org.jsoup.nodes.Element;
++import org.jsoup.nodes.Node;
++import org.jsoup.parser.HtmlTreeBuilder;
++import org.jsoup.parser.ParseErrorList;
+ import org.jsoup.parser.Parser;
+ import org.jsoup.safety.Cleaner;
+ import org.jsoup.safety.Whitelist;
+@@ -11,6 +15,7 @@ import java.io.File;
+ import java.io.IOException;
+ import java.io.InputStream;
+ import java.net.URL;
++import java.util.List;
+ 
+ /**
+  The core public access point to the jsoup functionality.
+@@ -244,10 +249,24 @@ public class Jsoup {
+      @param bodyHtml HTML to test
+      @param whitelist whitelist to test against
+      @return true if no tags or attributes were removed; false otherwise
+-     @see #clean(String, org.jsoup.safety.Whitelist) 
++     @see #clean(String, org.jsoup.safety.Whitelist)
+      */
+     public static boolean isValid(String bodyHtml, Whitelist whitelist) {
+-        return new Cleaner(whitelist).isValid(parseBodyFragment(bodyHtml, ""));
++        // Create a parser that tracks errors using the public API
++        Parser parser = Parser.htmlParser();
++        parser.setTrackErrors(1); // Only need to know if there are any errors
++
++        // Parse as if it were a document with body element - this preserves body fragment parsing behavior
++        // We wrap the input in body tags while preserving the same parsing logic
++        Document doc = parser.parseInput("<body>" + bodyHtml + "</body>", "");
++
++        // Check for errors after parsing
++        if (!parser.getErrors().isEmpty()) {
++            return false;
++        }
++
++        // If no parse errors, check if tags and attributes are safe according to whitelist
++        return new Cleaner(whitelist).isValid(doc);
+     }
+     
+ }

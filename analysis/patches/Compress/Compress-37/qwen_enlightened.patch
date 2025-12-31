@@ -1,0 +1,33 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/tar/TarArchiveInputStream.java b/src/main/java/org/apache/commons/compress/archivers/tar/TarArchiveInputStream.java
+index 7a409d65..50c1309a 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/tar/TarArchiveInputStream.java
++++ b/src/main/java/org/apache/commons/compress/archivers/tar/TarArchiveInputStream.java
+@@ -457,6 +457,28 @@ public class TarArchiveInputStream extends ArchiveInputStream {
+             int ch;
+             int len = 0;
+             int read = 0;
++
++            // First, skip any blank lines (newline characters) at the beginning
++            ch = i.read();
++            if (ch == -1) { // EOF
++                break;
++            }
++            read = 1;
++
++            // If we encounter a newline, skip it and continue to next iteration
++            if (ch == '\n') {
++                continue;
++            }
++
++            // If it's a digit, process as normal PAX header line by treating it as first digit
++            if (Character.isDigit(ch)) {
++                len = ch - '0';
++            } else {
++                // Unexpected character, skip to next line
++                continue;
++            }
++
++            // Now read the remaining digits for the length
+             while((ch = i.read()) != -1) {
+                 read++;
+                 if (ch == ' '){

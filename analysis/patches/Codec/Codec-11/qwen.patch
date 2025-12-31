@@ -1,0 +1,44 @@
+diff --git a/src/main/java/org/apache/commons/codec/net/QuotedPrintableCodec.java b/src/main/java/org/apache/commons/codec/net/QuotedPrintableCodec.java
+index 13291cd5..5bcacbe1 100644
+--- a/src/main/java/org/apache/commons/codec/net/QuotedPrintableCodec.java
++++ b/src/main/java/org/apache/commons/codec/net/QuotedPrintableCodec.java
+@@ -225,15 +225,34 @@ public class QuotedPrintableCodec implements BinaryEncoder, BinaryDecoder, Strin
+             final int b = bytes[i];
+             if (b == ESCAPE_CHAR) {
+                 try {
+-                    // if the next octet is a CR we have found a soft line break
+-                    int u = Utils.digit16(bytes[++i]);
+-                    int l = Utils.digit16(bytes[++i]);
+-                    buffer.write((char) ((u << 4) + l));
++                    // Check for soft line break which should be ignored
++                    if (i + 1 < bytes.length && bytes[i + 1] == '\r') {
++                        if (i + 2 < bytes.length && bytes[i + 2] == '\n') {
++                            // This is a soft line break (=\r\n), skip it entirely
++                            i += 2; // Skip the \r\n part after =
++                        } else {
++                            // = followed by CR but not LF - decode normally as hex
++                            int u = Utils.digit16(bytes[++i]);
++                            int l = Utils.digit16(bytes[++i]);
++                            buffer.write((char) ((u << 4) + l));
++                        }
++                    } else if (i + 1 < bytes.length && bytes[i + 1] == '\n') {
++                        // This is a soft line break with just =\n, skip it entirely
++                        i++; // Skip the \n part after =
++                    } else {
++                        // Normal encoded character
++                        int u = Utils.digit16(bytes[++i]);
++                        int l = Utils.digit16(bytes[++i]);
++                        buffer.write((char) ((u << 4) + l));
++                    }
+                 } catch (ArrayIndexOutOfBoundsException e) {
+                     throw new DecoderException("Invalid quoted-printable encoding", e);
+                 }
++            } else if (b == '\r' || b == '\n') {
++                // Skip standalone CR and LF characters that are not part of soft line breaks
++                continue;
+             } else {
+-                // every other octet is appended except for CR & LF
++                // every other octet is appended
+                 buffer.write(b);
+             }
+         }

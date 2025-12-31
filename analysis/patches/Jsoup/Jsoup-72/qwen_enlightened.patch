@@ -1,0 +1,24 @@
+diff --git a/src/main/java/org/jsoup/parser/CharacterReader.java b/src/main/java/org/jsoup/parser/CharacterReader.java
+index 9ed41639..20d9f835 100644
+--- a/src/main/java/org/jsoup/parser/CharacterReader.java
++++ b/src/main/java/org/jsoup/parser/CharacterReader.java
+@@ -158,6 +158,9 @@ public final class CharacterReader {
+      * @return the chars read
+      */
+     public String consumeTo(char c) {
++        if (isEmpty()) {
++            return "";
++        }
+         int offset = nextIndexOf(c);
+         if (offset != -1) {
+             String consumed = cacheString(charBuf, stringCache, bufPos, offset);
+@@ -169,6 +172,9 @@ public final class CharacterReader {
+     }
+ 
+     String consumeTo(String seq) {
++        if (isEmpty()) {
++            return "";
++        }
+         int offset = nextIndexOf(seq);
+         if (offset != -1) {
+             String consumed = cacheString(charBuf, stringCache, bufPos, offset);

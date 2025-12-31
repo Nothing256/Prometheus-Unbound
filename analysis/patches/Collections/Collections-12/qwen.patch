@@ -1,0 +1,24 @@
+diff --git a/src/java/org/apache/commons/collections/ExtendedProperties.java b/src/java/org/apache/commons/collections/ExtendedProperties.java
+index c5bda4f3..03329121 100644
+--- a/src/java/org/apache/commons/collections/ExtendedProperties.java
++++ b/src/java/org/apache/commons/collections/ExtendedProperties.java
+@@ -820,7 +820,18 @@ public class ExtendedProperties extends Hashtable {
+     public void combine(ExtendedProperties props) {
+         for (Iterator it = props.getKeys(); it.hasNext();) {
+             String key = (String) it.next();
+-            super.put(key, props.get(key));
++            Object value = props.get(key);
++            if (value instanceof List) {
++                // For List values, we need to add each element individually to maintain proper handling
++                List list = (List) value;
++                clearProperty(key); // Clear any existing value
++                for (int i = 0; i < list.size(); i++) {
++                    addPropertyInternal(key, list.get(i));
++                }
++            } else {
++                // For single values, use addPropertyDirect to preserve already-processed values
++                addPropertyDirect(key, value);
++            }
+         }
+     }
+     

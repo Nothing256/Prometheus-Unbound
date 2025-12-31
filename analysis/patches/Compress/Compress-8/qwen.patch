@@ -1,0 +1,89 @@
+diff --git a/src/main/java/org/apache/commons/compress/archivers/tar/TarUtils.java b/src/main/java/org/apache/commons/compress/archivers/tar/TarUtils.java
+index 31ef5368..cd477c64 100644
+--- a/src/main/java/org/apache/commons/compress/archivers/tar/TarUtils.java
++++ b/src/main/java/org/apache/commons/compress/archivers/tar/TarUtils.java
+@@ -49,6 +49,22 @@ public class TarUtils {
+      * @throws IllegalArgumentException if the trailing space/NUL is missing or if a invalid byte is detected.
+      */
+     public static long parseOctal(final byte[] buffer, final int offset, final int length) {
++        if (length < 2) {
++            throw new IllegalArgumentException("Length cannot be less than 2");
++        }
++
++        // Check if the buffer contains all NULs - this should return 0
++        boolean allNuls = true;
++        for (int j = offset; j < offset + length; j++) {
++            if (buffer[j] != 0) {
++                allNuls = false;
++                break;
++            }
++        }
++        if (allNuls) {
++            return 0L;
++        }
++
+         long    result = 0;
+         boolean stillPadding = true;
+         int     end = offset + length;
+@@ -57,32 +73,51 @@ public class TarUtils {
+         for (int i = start; i < end; i++){
+             final byte currentByte = buffer[i];
+             if (currentByte == 0) {
+-                break;
++                // NUL terminates the number, everything after should be trailers
++                for (int j = i + 1; j < end; j++) {
++                    if (buffer[j] != ' ' && buffer[j] != 0) {
++                        throw new IllegalArgumentException(
++                                exceptionMessage(buffer, offset, length, j, buffer[j]));
++                    }
++                }
++                return result;
+             }
+ 
+-        // Skip leading spaces
++            // Handle spaces and zeros
+             if (currentByte == (byte) ' ' || currentByte == '0') {
+                 if (stillPadding) {
+-                   continue;
+-            }
+-                if (currentByte == (byte) ' ') {
+-                break;
++                    // Still in leading padding phase, skip
++                    continue;
++                } else {
++                    // We're past the padding phase, this space should terminate the number
++                    // Check that everything after is trailers
++                    for (int j = i + 1; j < end; j++) {
++                        if (buffer[j] != ' ' && buffer[j] != 0) {
++                            throw new IllegalArgumentException(
++                                    exceptionMessage(buffer, offset, length, j, buffer[j]));
++                        }
++                    }
++                    return result;
+                 }
+             }
+ 
+-        // Must have trailing NUL or space
+-        // May have additional NUL or space
+-
++            // Now processing digits (this is where stillPadding becomes false for the first time)
+             stillPadding = false;
+             // CheckStyle:MagicNumber OFF
+             if (currentByte < '0' || currentByte > '7'){
+                 throw new IllegalArgumentException(
+-                        exceptionMessage(buffer, offset, length, start, currentByte));
++                        exceptionMessage(buffer, offset, length, i, currentByte));
+             }
+             result = (result << 3) + (currentByte - '0'); // convert from ASCII
+             // CheckStyle:MagicNumber ON
+         }
+ 
++        // If we got here without hitting a terminator, and we read digits, it's an error
++        if (!stillPadding) {
++            throw new IllegalArgumentException(
++                "Number not properly terminated with space or NUL: " + new String(buffer, offset, length));
++        }
++
+         return result;
+     }
+ 

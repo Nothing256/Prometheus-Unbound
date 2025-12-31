@@ -1,0 +1,81 @@
+diff --git a/src/main/java/org/jsoup/helper/DataUtil.java b/src/main/java/org/jsoup/helper/DataUtil.java
+index e921e20b..603084a4 100644
+--- a/src/main/java/org/jsoup/helper/DataUtil.java
++++ b/src/main/java/org/jsoup/helper/DataUtil.java
+@@ -107,6 +107,11 @@ public final class DataUtil {
+         fullyRead = input.read() == -1;
+         input.reset();
+ 
++        // check if content is binary before attempting to parse as text
++        if (hasBinaryContent(firstBytes)) {
++            throw new IOException("Input is binary and unsupported");
++        }
++
+         // look for BOM - overrides any other header or input
+         BomCharset bomCharset = detectCharsetFromBom(firstBytes);
+         if (bomCharset != null)
+@@ -272,4 +277,64 @@ public final class DataUtil {
+             this.offset = offset;
+         }
+     }
++
++    /**
++     * Heuristic to determine if the current buffer looks like binary content.
++     * Checks for common binary file signatures and non-printable characters
++     */
++    private static boolean hasBinaryContent(ByteBuffer byteData) {
++        if (byteData == null || byteData.remaining() == 0) return false;
++
++        // Check for common binary file signatures (magic bytes)
++        if (byteData.remaining() >= 4) {
++            byte b0 = byteData.get(0);
++            byte b1 = byteData.get(1);
++            byte b2 = byteData.get(2);
++            byte b3 = byteData.get(3);
++
++            // JPEG: 0xFF 0xD8
++            if (b0 == (byte) 0xFF && b1 == (byte) 0xD8) {
++                return true;
++            }
++
++            // PNG: 0x89 0x50 0x4E 0x47
++            if (b0 == (byte) 0x89 && b1 == (byte) 0x50 && b2 == (byte) 0x4E && b3 == (byte) 0x47) {
++                return true;
++            }
++
++            // GIF: 0x47 0x49 0x46 (GIF)
++            if (b0 == (byte) 0x47 && b1 == (byte) 0x49 && b2 == (byte) 0x46) {
++                return true;
++            }
++
++            // PDF: %PDF
++            if (b0 == (byte) 0x25 && b1 == (byte) 0x50 && b2 == (byte) 0x44 && b3 == (byte) 0x46) { // 0x25 is '%'
++                return true;
++            }
++
++            // ZIP: 0x50 0x4B
++            if (b0 == (byte) 0x50 && b1 == (byte) 0x4B) {
++                return true;
++            }
++        }
++
++        // Check for a high proportion of non-printable characters in first 128 bytes
++        int nonPrintable = 0;
++        int total = Math.min(byteData.remaining(), 128);
++        for (int i = 0; i < total; i++) {
++            byte b = byteData.get(i);
++            // Check for null bytes or other clearly binary indicators
++            if (b == 0x00) {
++                return true;  // Null byte in text file is strong indicator of binary
++            }
++            // Count characters that are typically not found in text
++            int unsignedB = b & 0xFF;
++            if (unsignedB < 0x08 || (unsignedB > 0x0D && unsignedB < 0x20) || unsignedB == 0x7F || unsignedB > 0xF0) {
++                nonPrintable++;
++            }
++        }
++
++        // If more than 30% of the characters are non-printable, consider it binary
++        return (double) nonPrintable / total > 0.30;
++    }
+ }

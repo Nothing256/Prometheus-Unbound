@@ -1,0 +1,56 @@
+diff --git a/src/main/java/org/apache/commons/cli/HelpFormatter.java b/src/main/java/org/apache/commons/cli/HelpFormatter.java
+index 3322f76..5be83e4 100644
+--- a/src/main/java/org/apache/commons/cli/HelpFormatter.java
++++ b/src/main/java/org/apache/commons/cli/HelpFormatter.java
+@@ -845,7 +845,7 @@ public class HelpFormatter
+      *
+      * @return the StringBuffer with the rendered Options contents.
+      */
+-    protected StringBuffer renderWrappedText(StringBuffer sb, int width, 
++    protected StringBuffer renderWrappedText(StringBuffer sb, int width,
+                                              int nextLineTabStop, String text)
+     {
+         int pos = findWrapPos(text, width, 0);
+@@ -869,7 +869,32 @@ public class HelpFormatter
+ 
+         while (true)
+         {
+-            text = padding + text.substring(pos).trim();
++            // Check if findWrapPos stopped at a newline character in the original text
++            // pos-1 would be the position of \n or \r if that's what caused the wrap
++            if (pos > 0 && pos <= text.length())
++            {
++                char charBeforePos = text.charAt(pos - 1);
++                if (charBeforePos == '\n' || charBeforePos == '\r')
++                {
++                    // This is a real newline from the original text, not a wrap position
++                    // Preserve the content after the newline intact (just remove the newline itself)
++                    String afterNewline = text.substring(pos);
++
++                    // Add the padding for alignment and then the content preserving its indentation
++                    text = padding + afterNewline;
++                }
++                else
++                {
++                    // This is a wrap due to width limitation, apply normal padding + trim logic
++                    text = padding + text.substring(pos).trim();
++                }
++            }
++            else
++            {
++                // Fallback to original behavior if pos is invalid
++                text = padding + text.substring(pos).trim();
++            }
++
+             pos = findWrapPos(text, width, 0);
+ 
+             if (pos == -1)
+@@ -878,7 +903,7 @@ public class HelpFormatter
+ 
+                 return sb;
+             }
+-            
++
+             if ((text.length() > width) && (pos == nextLineTabStop - 1))
+             {
+                 pos = width;

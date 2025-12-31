@@ -1,0 +1,47 @@
+--- /tmp/InstanceOf_original.java	2025-12-22 19:57:23
++++ /Users/nothing/workspace/prometheus_workdir_qwen/mockito_35_blind_auto/src/org/mockito/internal/matchers/InstanceOf.java	2025-12-22 19:56:25
+@@ -6,6 +6,7 @@
+ 
+ import org.hamcrest.Description;
+ import org.mockito.ArgumentMatcher;
++import org.mockito.internal.util.Primitives;
+ 
+ 
+ public class InstanceOf extends ArgumentMatcher<Object> {
+@@ -18,7 +19,35 @@
+     }
+ 
+     public boolean matches(Object actual) {
+-        return (actual != null) && clazz.isAssignableFrom(actual.getClass());
++        if (actual == null) {
++            return false;
++        }
++
++        Class<?> actualClass = actual.getClass();
++
++        // Standard assignability check
++        if (clazz.isAssignableFrom(actualClass)) {
++            return true;
++        }
++
++        // Enhanced primitive-wrapper compatibility handling
++        // Check if expected class is a primitive wrapper (like Integer) and actual class is corresponding primitive (like int)
++        if (Primitives.isPrimitiveWrapper(clazz)) {
++            Class<?> correspondingPrimitive = Primitives.primitiveTypeOf(clazz);
++            if (correspondingPrimitive != null && correspondingPrimitive.equals(actualClass)) {
++                return true;
++            }
++        }
++
++        // Check if actual class is a primitive wrapper (like Integer) and expected class is corresponding primitive (like int)
++        if (Primitives.isPrimitiveWrapper(actualClass)) {
++            Class<?> correspondingPrimitive = Primitives.primitiveTypeOf(actualClass);
++            if (correspondingPrimitive != null && correspondingPrimitive.equals(clazz)) {
++                return true;
++            }
++        }
++
++        return false;
+     }
+ 
+     public void describeTo(Description description) {

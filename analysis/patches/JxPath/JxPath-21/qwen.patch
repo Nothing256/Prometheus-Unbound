@@ -1,0 +1,27 @@
+diff --git a/src/java/org/apache/commons/jxpath/ri/model/beans/PropertyPointer.java b/src/java/org/apache/commons/jxpath/ri/model/beans/PropertyPointer.java
+index 52aa39a..4ef25c1 100644
+--- a/src/java/org/apache/commons/jxpath/ri/model/beans/PropertyPointer.java
++++ b/src/java/org/apache/commons/jxpath/ri/model/beans/PropertyPointer.java
+@@ -218,7 +218,12 @@ public abstract class PropertyPointer extends NodePointer {
+     }
+ 
+     public int hashCode() {
+-        return getImmediateParentPointer().hashCode() + propertyIndex + index;
++        int result = getImmediateParentPointer().hashCode();
++        result = 31 * result + propertyIndex;
++        result = 31 * result + index;
++        String propertyName = getPropertyName();
++        result = 31 * result + (propertyName != null ? propertyName.hashCode() : 0);
++        return result;
+     }
+ 
+     public boolean equals(Object object) {
+@@ -231,7 +236,7 @@ public abstract class PropertyPointer extends NodePointer {
+         }
+ 
+         PropertyPointer other = (PropertyPointer) object;
+-        if (parent != other.parent && (parent == null || !parent.equals(other.parent))) {
++        if (parent == null ? other.parent != null : !parent.equals(other.parent)) {
+             return false;
+         }
+ 

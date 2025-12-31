@@ -1,0 +1,21 @@
+diff --git a/src/main/java/org/jsoup/nodes/Element.java b/src/main/java/org/jsoup/nodes/Element.java
+index fd2b542f..742b347a 100644
+--- a/src/main/java/org/jsoup/nodes/Element.java
++++ b/src/main/java/org/jsoup/nodes/Element.java
+@@ -431,8 +431,14 @@ public class Element extends Node {
+      * @return sibling elements
+      */
+     public Elements siblingElements() {
+-
+-        return parent().children();
++        Elements siblings = parent().children();
++        Elements result = new Elements();
++        for (Element sibling : siblings) {
++            if (!sibling.equals(this)) {
++                result.add(sibling);
++            }
++        }
++        return result;
+     }
+ 
+     /**

@@ -1,0 +1,22 @@
+diff --git a/src/main/java/org/apache/commons/math/ode/nonstiff/EmbeddedRungeKuttaIntegrator.java b/src/main/java/org/apache/commons/math/ode/nonstiff/EmbeddedRungeKuttaIntegrator.java
+index 6f3e88358..1f8e503f5 100644
+--- a/src/main/java/org/apache/commons/math/ode/nonstiff/EmbeddedRungeKuttaIntegrator.java
++++ b/src/main/java/org/apache/commons/math/ode/nonstiff/EmbeddedRungeKuttaIntegrator.java
+@@ -121,7 +121,7 @@ public abstract class EmbeddedRungeKuttaIntegrator
+     this.b         = b;
+     this.prototype = prototype;
+ 
+-    exp = -1.0 / getOrder();
++    exp = -1.0 / (getOrder() - 3);
+ 
+     // set the default values of the algorithm control parameters
+     setSafety(0.9);
+@@ -159,7 +159,7 @@ public abstract class EmbeddedRungeKuttaIntegrator
+     this.b         = b;
+     this.prototype = prototype;
+ 
+-    exp = -1.0 / getOrder();
++    exp = -1.0 / (getOrder() - 3);
+ 
+     // set the default values of the algorithm control parameters
+     setSafety(0.9);

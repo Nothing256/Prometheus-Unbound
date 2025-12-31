@@ -1,0 +1,18 @@
+diff --git a/src/java/org/apache/commons/math/complex/Complex.java b/src/java/org/apache/commons/math/complex/Complex.java
+index 3571567f8..03899f012 100644
+--- a/src/java/org/apache/commons/math/complex/Complex.java
++++ b/src/java/org/apache/commons/math/complex/Complex.java
+@@ -869,6 +869,13 @@ public class Complex implements Serializable  {
+      * @since 1.2
+      */
+     protected Complex createComplex(double real, double imaginary) {
++        // Normalize signed zeros: treat -0.0 as 0.0 for consistency
++        if (real == 0.0) {
++            real = 0.0;
++        }
++        if (imaginary == 0.0) {
++            imaginary = 0.0;
++        }
+         return new Complex(real, imaginary);
+     }
+ }

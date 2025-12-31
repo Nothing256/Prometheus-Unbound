@@ -1,0 +1,19 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/type/SimpleType.java b/src/main/java/com/fasterxml/jackson/databind/type/SimpleType.java
+index eca7e8e48..34060f063 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/type/SimpleType.java
++++ b/src/main/java/com/fasterxml/jackson/databind/type/SimpleType.java
+@@ -178,8 +178,12 @@ public class SimpleType // note: until 2.6 was final
+     @Override
+     public JavaType refine(Class<?> rawType, TypeBindings bindings,
+             JavaType superClass, JavaType[] superInterfaces) {
+-        // SimpleType means something not-specialized, so:
+-        return null;
++        // For SimpleType, return new instance with refined details to preserve inheritance info
++        // This is necessary for proper handling of @JsonTypeInfo with defaultImpl
++        // where subclass type should inherit properties from parent class
++        // We use the full constructor to ensure inheritance information is preserved
++        return new SimpleType(rawType, bindings, superClass, superInterfaces,
++                _valueHandler, _typeHandler, _asStatic);
+     }
+     
+     @Override

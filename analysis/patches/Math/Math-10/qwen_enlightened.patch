@@ -1,0 +1,51 @@
+diff --git a/src/main/java/org/apache/commons/math3/analysis/differentiation/DSCompiler.java b/src/main/java/org/apache/commons/math3/analysis/differentiation/DSCompiler.java
+index bf6dd65d5..7893e86de 100644
+--- a/src/main/java/org/apache/commons/math3/analysis/differentiation/DSCompiler.java
++++ b/src/main/java/org/apache/commons/math3/analysis/differentiation/DSCompiler.java
+@@ -1383,6 +1383,37 @@ public class DSCompiler {
+                       final double[] x, final int xOffset,
+                       final double[] result, final int resultOffset) {
+ 
++        // Handle special cases for signed zeros according to IEEE 754
++        final double yValue = y[yOffset];
++        final double xValue = x[xOffset];
++
++        // Check for special signed zero cases
++        if (yValue == 0.0 && xValue == 0.0) {
++            // atan2(+0, +0) returns +0
++            // atan2(+0, -0) returns +π
++            // atan2(-0, +0) returns -0
++            // atan2(-0, -0) returns -π
++            if (1.0 / yValue > 0) { // Check if y is +0 (not -0)
++                if (1.0 / xValue > 0) { // x is +0
++                    result[resultOffset] = 0.0; // atan2(+0, +0) = +0
++                } else { // x is -0
++                    result[resultOffset] = FastMath.PI; // atan2(+0, -0) = +π
++                }
++            } else { // y is -0
++                if (1.0 / xValue > 0) { // x is +0
++                    result[resultOffset] = -0.0; // atan2(-0, +0) = -0
++                } else { // x is -0
++                    result[resultOffset] = -FastMath.PI; // atan2(-0, -0) = -π
++                }
++            }
++
++            // Set all higher order derivatives to 0
++            for (int i = 1; i < result.length; ++i) {
++                result[resultOffset + i] = 0.0;
++            }
++            return;
++        }
++
+         // compute r = sqrt(x^2+y^2)
+         double[] tmp1 = new double[getSize()];
+         multiply(x, xOffset, x, xOffset, tmp1, 0);      // x^2
+@@ -1415,8 +1446,6 @@ public class DSCompiler {
+ 
+         }
+ 
+-        // fix value to take special cases (+0/+0, +0/-0, -0/+0, -0/-0, +/-infinity) correctly
+-
+     }
+ 
+     /** Compute hyperbolic cosine of a derivative structure.

@@ -1,0 +1,41 @@
+diff --git a/src/main/java/org/apache/commons/math/complex/Complex.java b/src/main/java/org/apache/commons/math/complex/Complex.java
+index 8d28c5ffd..0e3f033b4 100644
+--- a/src/main/java/org/apache/commons/math/complex/Complex.java
++++ b/src/main/java/org/apache/commons/math/complex/Complex.java
+@@ -1063,8 +1063,36 @@ public class Complex implements FieldElement<Complex>, Serializable  {
+         if (isNaN) {
+             return NaN;
+         }
++
++        // Handle cases where real part is infinite and imaginary part is finite
++        // When real part approaches +infinity and imaginary part is finite, tanh approaches 1
++        // When real part approaches -infinity and imaginary part is finite, tanh approaches -1
++        if (Double.isInfinite(real) && Double.isFinite(imaginary)) {
++            if (real > 0) {
++                return createComplex(1.0, 0.0);
++            } else {
++                return createComplex(-1.0, 0.0);
++            }
++        }
++
+         double real2 = 2.0 * real;
+         double imaginary2 = 2.0 * imaginary;
++
++        // For large values of real2 where imaginary part is finite, we need special handling to avoid overflow
++        // When |real2| is very large and imaginary part is finite, cosh(real2) >> cos(imaginary2)
++        // So d ≈ cosh(real2), and sinh(real2)/cosh(real2) ≈ sign(real2) = ±1
++        if (FastMath.abs(real2) > 20.0 && Double.isFinite(imaginary)) { // Threshold to avoid overflow, as cosh/sinh grow exponentially
++            if (real2 > 0) {
++                // When real2 > 0 and large: sinh(real2)/cosh(real2) approaches 1
++                // The imaginary part sin(imaginary2)/cosh(real2) approaches 0
++                return createComplex(1.0, 0.0);
++            } else {
++                // When real2 < 0 and large: sinh(real2)/cosh(real2) approaches -1
++                // The imaginary part sin(imaginary2)/cosh(real2) approaches 0
++                return createComplex(-1.0, 0.0);
++            }
++        }
++
+         double d = FastMath.cosh(real2) + FastMath.cos(imaginary2);
+ 
+         return createComplex(FastMath.sinh(real2) / d,

@@ -1,0 +1,80 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/util/StdDateFormat.java b/src/main/java/com/fasterxml/jackson/databind/util/StdDateFormat.java
+index 5ea467d0d..a15b61952 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/util/StdDateFormat.java
++++ b/src/main/java/com/fasterxml/jackson/databind/util/StdDateFormat.java
+@@ -443,7 +443,30 @@ public class StdDateFormat
+                 //   for max length would be needed, we ewould need to limit to arbitrary length
+                //   like five digits (erroring out if beyond or padding to that as minimum).
+                //   Instead, let's just print number out as is and let decoder try to make sense of it.
+-            pad4(buffer, year);
++        if (year > 9999) {
++            buffer.append('+');
++            buffer.append(year);
++        } else if (year < -9999) {
++            // For very negative years (far BCE), use sign + full number
++            buffer.append('-');
++            buffer.append(Math.abs(year));
++        } else {
++            // For years in the range [-9999, 9999], use padding with proper sign handling
++            // The original pad4 and pad2 functions don't handle negative values properly,
++            // so we implement a safe version here
++            if (year >= 0) {
++                if (year == 0) {
++                    // Special case for year 0 (BCE 1) - should be "+0000"
++                    buffer.append('+');
++                }
++                pad4(buffer, year);
++            } else {
++                // For negative years [-9999, -1], add minus sign and pad absolute value
++                buffer.append('-');
++                // Use a safe version that can handle the absolute value
++                safePad4(buffer, -year);  // Pass absolute value (positive) to padding
++            }
++        }
+         buffer.append('-');
+         pad2(buffer, cal.get(Calendar.MONTH) + 1);
+         buffer.append('-');
+@@ -774,6 +797,39 @@ public class StdDateFormat
+         return cal;
+     }
+     
++    /**
++     * Safe version of pad4 that can handle positive years without
++     * the risk of passing negative values to the original pad2/pad4 functions
++     */
++    private static void safePad4(StringBuffer buffer, int value) {
++        // This method is only called with positive values (absolute values of negative years)
++        // so we can safely use the original logic without worrying about negative handling
++        int h = value / 100;
++        if (h == 0) {
++            buffer.append('0').append('0');
++        } else {
++            safePad2(buffer, h);
++            value -= (100 * h);
++        }
++        safePad2(buffer, value);
++    }
++
++    /**
++     * Safe version of pad2 that can handle positive values without
++     * the risk of creating invalid characters for negative values
++     */
++    private static void safePad2(StringBuffer buffer, int value) {
++        // This method is only called with positive values, so original logic is safe
++        int tens = value / 10;
++        if (tens == 0) {
++            buffer.append('0');
++        } else {
++            buffer.append((char) ('0' + tens));
++            value -= 10 * tens;
++        }
++        buffer.append((char) ('0' + value));
++    }
++
+     protected static <T> boolean _equals(T value1, T value2) {
+         if (value1 == value2) {
+             return true;
+         }
+         return (value1 != null) && value1.equals(value2);
+     }
+ }

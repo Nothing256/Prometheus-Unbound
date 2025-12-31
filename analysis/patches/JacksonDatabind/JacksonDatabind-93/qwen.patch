@@ -1,0 +1,41 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/jsontype/impl/SubTypeValidator.java b/src/main/java/com/fasterxml/jackson/databind/jsontype/impl/SubTypeValidator.java
+index afc7c45ba..97e6c4157 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/jsontype/impl/SubTypeValidator.java
++++ b/src/main/java/com/fasterxml/jackson/databind/jsontype/impl/SubTypeValidator.java
+@@ -71,9 +71,13 @@ public class SubTypeValidator
+         final Class<?> raw = type.getRawClass();
+         String full = raw.getName();
+ 
++        boolean wasSafeType = true;  // Assume it's safe unless proven otherwise
++
+         main_check:
+         do {
+             if (_cfgIllegalClassNames.contains(full)) {
++                // Found dangerous type
++                wasSafeType = false;
+                 break;
+             }
+ 
+@@ -87,13 +91,21 @@ public class SubTypeValidator
+                     if ("AbstractPointcutAdvisor".equals(name)
+                             // ditto  for "FileSystemXmlApplicationContext": block all ApplicationContexts
+                             || "AbstractApplicationContext".equals(name)) {
++                        // Found dangerous Spring type
++                        wasSafeType = false;
+                         break main_check;
+                     }
+                 }
+             }
+-            return;
++            // If we reach here without setting wasSafeType=false, it's a safe type
++            // wasSafeType is already true, so we just break to continue with normal return
+         } while (false);
+ 
++        if (wasSafeType) {
++            return;  // Allow safe types
++        }
++
++        // Throw exception for unsafe types
+         throw JsonMappingException.from(ctxt,
+                 String.format("Illegal type (%s) to deserialize: prevented for security reasons", full));
+     }

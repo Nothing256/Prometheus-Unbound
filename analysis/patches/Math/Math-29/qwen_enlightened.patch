@@ -1,0 +1,26 @@
+diff --git a/src/main/java/org/apache/commons/math3/linear/OpenMapRealVector.java b/src/main/java/org/apache/commons/math3/linear/OpenMapRealVector.java
+index 821482744..33212827d 100644
+--- a/src/main/java/org/apache/commons/math3/linear/OpenMapRealVector.java
++++ b/src/main/java/org/apache/commons/math3/linear/OpenMapRealVector.java
+@@ -351,6 +351,21 @@ public class OpenMapRealVector extends SparseRealVector
+             iter.advance();
+             res.setEntry(iter.key(), iter.value() / v.getEntry(iter.key()));
+         }
++
++        // MATH-803: Also handle positions where this vector has zero entries (implicit)
++        // but v has non-zero entries. For case where both are zero, ensure result is NaN.
++        for (int i = 0; i < virtualSize; i++) {
++            if (!entries.containsKey(i)) { // i.e., this.getEntry(i) == 0.0
++                double vEntry = v.getEntry(i);
++                double result;
++                if (vEntry == 0.0) {
++                    result = Double.NaN; // 0.0 / 0.0 = NaN
++                } else {
++                    result = 0.0; // 0.0 / vEntry = 0.0 (when vEntry != 0)
++                }
++                res.setEntry(i, result);
++            }
++        }
+         return res;
+     }
+ 

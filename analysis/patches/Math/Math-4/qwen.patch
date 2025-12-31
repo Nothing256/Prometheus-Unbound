@@ -1,0 +1,16 @@
+diff --git a/src/main/java/org/apache/commons/math3/geometry/euclidean/threed/SubLine.java b/src/main/java/org/apache/commons/math3/geometry/euclidean/threed/SubLine.java
+index a146cb661..78099c11e 100644
+--- a/src/main/java/org/apache/commons/math3/geometry/euclidean/threed/SubLine.java
++++ b/src/main/java/org/apache/commons/math3/geometry/euclidean/threed/SubLine.java
+@@ -112,6 +112,11 @@ public class SubLine {
+         // compute the intersection on infinite line
+         Vector3D v1D = line.intersection(subLine.line);
+ 
++        // if the lines don't intersect, return null
++        if (v1D == null) {
++            return null;
++        }
++
+         // check location of point with respect to first sub-line
+         Location loc1 = remainingRegion.checkPoint(line.toSubSpace(v1D));
+ 

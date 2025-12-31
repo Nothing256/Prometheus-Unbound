@@ -1,0 +1,16 @@
+diff --git a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java
+index fcc1f18..a046fa4 100644
+--- a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java
++++ b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java
+@@ -778,6 +778,11 @@ public class DOMNodePointer extends NodePointer {
+             node = ((Document) node).getDocumentElement();
+         }
+ 
++        // Only Element nodes can have namespace URIs
++        if (!(node instanceof Element)) {
++            return null;
++        }
++
+         Element element = (Element) node;
+ 
+         String uri = element.getNamespaceURI();

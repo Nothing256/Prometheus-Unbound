@@ -1,0 +1,44 @@
+diff --git a/src/java/org/apache/commons/codec/binary/Base64.java b/src/java/org/apache/commons/codec/binary/Base64.java
+index c00fbe5e..b24345e7 100644
+--- a/src/java/org/apache/commons/codec/binary/Base64.java
++++ b/src/java/org/apache/commons/codec/binary/Base64.java
+@@ -197,6 +197,13 @@ public class Base64 implements BinaryEncoder, BinaryDecoder {
+      */
+     private int x;
+ 
++    /**
++     * Flag to indicate whether any real data has been processed for encoding.
++     * Used to handle empty input correctly by not adding line separators when
++     * no actual encoding work took place.
++     */
++    private boolean dataProcessed;
++
+     /**
+      * Sets state for decoding and encoding.
+      * <p>
+@@ -304,6 +311,7 @@ public class Base64 implements BinaryEncoder, BinaryDecoder {
+             throw new IllegalArgumentException("lineSeperator must not contain base64 characters: [" + sep + "]");
+         }
+         this.encodeTable = urlSafe ? URL_SAFE_ENCODE_TABLE : STANDARD_ENCODE_TABLE;
++        this.dataProcessed = false;
+     }
+ 
+     /**
+@@ -443,7 +451,8 @@ public class Base64 implements BinaryEncoder, BinaryDecoder {
+                     }
+                     break;
+             }
+-            if (lineLength > 0) {
++            // Only add line separator if actual data was processed
++            if (lineLength > 0 && dataProcessed) {
+                 System.arraycopy(lineSeparator, 0, buf, pos, lineSeparator.length);
+                 pos += lineSeparator.length;
+             }
+@@ -456,6 +465,7 @@ public class Base64 implements BinaryEncoder, BinaryDecoder {
+                 int b = in[inPos++];
+                 if (b < 0) { b += 256; }
+                 x = (x << 8) + b;
++                dataProcessed = true;  // Mark that we're processing actual data
+                 if (0 == modulus) {
+                     buf[pos++] = encodeTable[(x >> 18) & MASK_6BITS];
+                     buf[pos++] = encodeTable[(x >> 12) & MASK_6BITS];

@@ -1,0 +1,80 @@
+diff --git a/src/main/java/com/fasterxml/jackson/core/base/GeneratorBase.java b/src/main/java/com/fasterxml/jackson/core/base/GeneratorBase.java
+index a4148391..7e727cce 100644
+--- a/src/main/java/com/fasterxml/jackson/core/base/GeneratorBase.java
++++ b/src/main/java/com/fasterxml/jackson/core/base/GeneratorBase.java
+@@ -47,9 +47,10 @@ public abstract class GeneratorBase extends JsonGenerator
+      * in "plain" (non-engineering) notation; intent is to prevent asymmetric
+      * attack whereupon simple eng-notation with big scale is used to generate
+      * huge "plain" serialization. See [core#315] for details.
+-     * 
++     *
+      * @since 2.7.7
+      */
++    protected final static int MAX_BIG_DECIMAL_SCALE = 9999;
+     
+     /*
+     /**********************************************************
+@@ -454,4 +455,17 @@ public abstract class GeneratorBase extends JsonGenerator
+         int c = 0x10000 + ((surr1 - SURR1_FIRST) << 10) + (surr2 - SURR2_FIRST);
+         return c;
+     }
++
++    /**
++     * Helper method to validate if BigDecimal scale is within allowed range
++     * when using plain format to prevent DoS vulnerability.
++     *
++     * @since 2.7.7
++     */
++    protected void _validateBigDecimalScale(BigDecimal value) throws IOException {
++        int scale = value.scale();
++        if (scale > MAX_BIG_DECIMAL_SCALE || scale < -MAX_BIG_DECIMAL_SCALE) {
++            _reportError("Attempt to write plain `java.math.BigDecimal` ("+value+ ") with illegal scale: " + scale);
++        }
++    }
+ }
+diff --git a/src/main/java/com/fasterxml/jackson/core/json/UTF8JsonGenerator.java b/src/main/java/com/fasterxml/jackson/core/json/UTF8JsonGenerator.java
+index cf6ca3a6..b4667f4f 100644
+--- a/src/main/java/com/fasterxml/jackson/core/json/UTF8JsonGenerator.java
++++ b/src/main/java/com/fasterxml/jackson/core/json/UTF8JsonGenerator.java
+@@ -907,9 +907,16 @@ public class UTF8JsonGenerator
+         if (value == null) {
+             _writeNull();
+         } else  if (_cfgNumbersAsStrings) {
+-            String raw = Feature.WRITE_BIGDECIMAL_AS_PLAIN.enabledIn(_features) ? value.toPlainString() : value.toString();
+-            _writeQuotedRaw(raw);
++            if (Feature.WRITE_BIGDECIMAL_AS_PLAIN.enabledIn(_features)) {
++                _validateBigDecimalScale(value);
++                String raw = value.toPlainString();
++                _writeQuotedRaw(raw);
++            } else {
++                String raw = value.toString();
++                _writeQuotedRaw(raw);
++            }
+         } else if (Feature.WRITE_BIGDECIMAL_AS_PLAIN.enabledIn(_features)) {
++            _validateBigDecimalScale(value);
+             writeRaw(value.toPlainString());
+         } else {
+             writeRaw(_asString(value));
+diff --git a/src/main/java/com/fasterxml/jackson/core/json/WriterBasedJsonGenerator.java b/src/main/java/com/fasterxml/jackson/core/json/WriterBasedJsonGenerator.java
+index 156d997b..cffc610a 100644
+--- a/src/main/java/com/fasterxml/jackson/core/json/WriterBasedJsonGenerator.java
++++ b/src/main/java/com/fasterxml/jackson/core/json/WriterBasedJsonGenerator.java
+@@ -684,9 +684,16 @@ public final class WriterBasedJsonGenerator
+         if (value == null) {
+             _writeNull();
+         } else  if (_cfgNumbersAsStrings) {
+-            String raw = isEnabled(Feature.WRITE_BIGDECIMAL_AS_PLAIN) ? value.toPlainString() : value.toString();
+-            _writeQuotedRaw(raw);
++            if (isEnabled(Feature.WRITE_BIGDECIMAL_AS_PLAIN)) {
++                _validateBigDecimalScale(value);
++                String raw = value.toPlainString();
++                _writeQuotedRaw(raw);
++            } else {
++                String raw = value.toString();
++                _writeQuotedRaw(raw);
++            }
+         } else if (isEnabled(Feature.WRITE_BIGDECIMAL_AS_PLAIN)) {
++            _validateBigDecimalScale(value);
+             writeRaw(value.toPlainString());
+         } else {
+             writeRaw(_asString(value));

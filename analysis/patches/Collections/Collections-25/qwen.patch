@@ -1,0 +1,51 @@
+diff --git a/src/main/java/org/apache/commons/collections4/IteratorUtils.java b/src/main/java/org/apache/commons/collections4/IteratorUtils.java
+index 40f99898..d60f495f 100644
+--- a/src/main/java/org/apache/commons/collections4/IteratorUtils.java
++++ b/src/main/java/org/apache/commons/collections4/IteratorUtils.java
+@@ -29,6 +29,7 @@ import java.util.List;
+ import java.util.ListIterator;
+ import java.util.Map;
+ 
++import org.apache.commons.collections4.comparators.ComparableComparator;
+ import org.apache.commons.collections4.functors.EqualPredicate;
+ import org.apache.commons.collections4.iterators.ArrayIterator;
+ import org.apache.commons.collections4.iterators.ArrayListIterator;
+@@ -602,7 +603,11 @@ public class IteratorUtils {
+     public static <E> Iterator<E> collatedIterator(final Comparator<? super E> comparator,
+                                                    final Iterator<? extends E> iterator1,
+                                                    final Iterator<? extends E> iterator2) {
+-        return new CollatingIterator<E>(comparator, iterator1, iterator2);
++        // When comparator is null, use natural ordering by passing the natural comparator
++        @SuppressWarnings("unchecked")
++        final Comparator<? super E> actualComparator = comparator == null ?
++            (Comparator) ComparableComparator.comparableComparator() : comparator;
++        return new CollatingIterator<E>(actualComparator, iterator1, iterator2);
+     }
+ 
+     /**
+@@ -623,7 +628,11 @@ public class IteratorUtils {
+      */
+     public static <E> Iterator<E> collatedIterator(final Comparator<? super E> comparator,
+                                                    final Iterator<? extends E>... iterators) {
+-        return new CollatingIterator<E>(comparator, iterators);
++        // When comparator is null, use natural ordering by passing the natural comparator
++        @SuppressWarnings("unchecked")
++        final Comparator<? super E> actualComparator = comparator == null ?
++            (Comparator) ComparableComparator.comparableComparator() : comparator;
++        return new CollatingIterator<E>(actualComparator, iterators);
+     }
+ 
+     /**
+@@ -645,7 +654,11 @@ public class IteratorUtils {
+      */
+     public static <E> Iterator<E> collatedIterator(final Comparator<? super E> comparator,
+                                                    final Collection<Iterator<? extends E>> iterators) {
+-        return new CollatingIterator<E>(comparator, iterators);
++        // When comparator is null, use natural ordering by passing the natural comparator
++        @SuppressWarnings("unchecked")
++        final Comparator<? super E> actualComparator = comparator == null ?
++            (Comparator) ComparableComparator.comparableComparator() : comparator;
++        return new CollatingIterator<E>(actualComparator, iterators);
+     }
+ 
+     // Object Graph

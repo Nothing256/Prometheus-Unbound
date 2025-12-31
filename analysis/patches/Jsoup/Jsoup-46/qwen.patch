@@ -1,0 +1,20 @@
+diff --git a/src/main/java/org/jsoup/nodes/Entities.java b/src/main/java/org/jsoup/nodes/Entities.java
+index 6ccb84ed..f38482cb 100644
+--- a/src/main/java/org/jsoup/nodes/Entities.java
++++ b/src/main/java/org/jsoup/nodes/Entities.java
+@@ -112,10 +112,13 @@ public class Entities {
+                         accum.append("&amp;");
+                         break;
+                     case 0xA0:
+-                        if (escapeMode != EscapeMode.xhtml)
++                        if (escapeMode != EscapeMode.xhtml) {
+                             accum.append("&nbsp;");
+-                        else
++                        } else if (canEncode(coreCharset, c, encoder)) {
+                             accum.append(c);
++                        } else {
++                            accum.append("&#x").append(Integer.toHexString(codePoint)).append(';');
++                        }
+                         break;
+                     case '<':
+                         if (!inAttribute)

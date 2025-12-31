@@ -1,0 +1,19 @@
+diff --git a/src/main/java/org/joda/time/base/BasePeriod.java b/src/main/java/org/joda/time/base/BasePeriod.java
+index 679b734a..e8a975d7 100644
+--- a/src/main/java/org/joda/time/base/BasePeriod.java
++++ b/src/main/java/org/joda/time/base/BasePeriod.java
+@@ -219,7 +219,13 @@ public abstract class BasePeriod
+      * @param duration  the duration, in milliseconds
+      */
+     protected BasePeriod(long duration) {
+-        this(duration, null, null);
++        super();
++        PeriodType type = checkPeriodType(null);
++        // Use UTC chronology to avoid timezone effects when converting duration to period
++        // Use ISOChronology.getInstanceUTC() directly to ensure timezone independence
++        Chronology chrono = ISOChronology.getInstanceUTC();
++        iType = type;
++        iValues = chrono.get(this, duration);
+         // bug [3264409]
+     }
+ 

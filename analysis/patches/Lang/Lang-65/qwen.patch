@@ -1,0 +1,44 @@
+diff --git a/src/java/org/apache/commons/lang/time/DateUtils.java b/src/java/org/apache/commons/lang/time/DateUtils.java
+index 531e73fca..86e9c4dea 100644
+--- a/src/java/org/apache/commons/lang/time/DateUtils.java
++++ b/src/java/org/apache/commons/lang/time/DateUtils.java
+@@ -628,16 +628,31 @@ public class DateUtils {
+         // Manually truncate milliseconds, seconds and minutes, rather than using
+         // Calendar methods.
+ 
+-
+-        // truncate milliseconds
+-
+-        // truncate seconds
+-
+-        // truncate minutes
+-
+-        // reset time
++        if (!round) {
++            // For truncation, manually handle time fields to avoid DST issues
++            if (field >= Calendar.MILLISECOND && field <= Calendar.MINUTE) {
++                // Set time fields directly to avoid DST transition issues
++                if (field >= Calendar.MILLISECOND) {
++                    val.set(Calendar.MILLISECOND, 0);
++                }
++                if (field >= Calendar.SECOND) {
++                    val.set(Calendar.SECOND, 0);
++                }
++                if (field >= Calendar.MINUTE) {
++                    val.set(Calendar.MINUTE, 0);
++                }
++            }
++        }
+         // ----------------- Fix for LANG-59 ----------------------- END ----------------
+ 
++        // Normalize calendar to handle DST transitions properly
++        if (!round) {
++            // Force calendar normalization to handle DST properly
++            // This ensures the calendar is in a consistent state after time field manipulation
++            long timeInMillis = val.getTimeInMillis();
++            val.setTimeInMillis(timeInMillis);
++        }
++
+         boolean roundUp = false;
+         for (int i = 0; i < fields.length; i++) {
+             for (int j = 0; j < fields[i].length; j++) {

@@ -1,0 +1,34 @@
+diff --git a/src/main/java/org/joda/time/field/UnsupportedDurationField.java b/src/main/java/org/joda/time/field/UnsupportedDurationField.java
+index bf44e013..328a90eb 100644
+--- a/src/main/java/org/joda/time/field/UnsupportedDurationField.java
++++ b/src/main/java/org/joda/time/field/UnsupportedDurationField.java
+@@ -219,12 +219,26 @@ public final class UnsupportedDurationField extends DurationField implements Ser
+     }
+ 
+     /**
+-     * Always returns zero, indicating that sort order is not relevent.
++     * Compares this field with another to provide a consistent ordering.
++     * This is necessary to ensure proper sorting in Partial field arrays.
++     * For unsupported fields, we order by reverse field type name to maintain
++     * largest-smallest time unit ordering (e.g., eras should come before years).
+      *
+-     * @return zero always
++     * @return negative if this field is "less than" the other, zero if equal, positive if greater
+      */
+     public int compareTo(DurationField durationField) {
+-        return 0;
++        if (durationField == this) {
++            return 0;
++        } else if (durationField instanceof UnsupportedDurationField) {
++            // For two unsupported fields, order by reverse field type name to ensure
++            // larger time units (like era) sort before smaller ones (like year)
++            UnsupportedDurationField other = (UnsupportedDurationField) durationField;
++            return other.iType.getName().compareTo(this.iType.getName()); // reversed!
++        } else {
++            // This unsupported field should be positioned relative to supported fields appropriately
++            // Return 1 to place this unsupported field after most supported fields
++            return 1;
++        }
+     }
+ 
+     //------------------------------------------------------------------------

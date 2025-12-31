@@ -1,0 +1,21 @@
+--- a/src/main/java/com/fasterxml/jackson/databind/ser/BeanPropertyWriter.java
++++ b/src/main/java/com/fasterxml/jackson/databind/ser/BeanPropertyWriter.java
+@@ -447,11 +447,14 @@
+      */
+     Object readResolve() {
+         if (_member instanceof AnnotatedField) {
+             _accessorMethod = null;
+             _field = (Field) _member.getMember();
+         } else if (_member instanceof AnnotatedMethod) {
+             _accessorMethod = (Method) _member.getMember();
+             _field = null;
++        } else {
++            // 01-Dec-2014, tatu: Used to be illegal, but now explicitly allowed for virtual props
++            _accessorMethod = null;
++            _field = null;
+         }
+         if (_serializer == null) {
+             _dynamicSerializers = PropertySerializerMap.emptyForProperties();
+         }
+         return this;
+     }

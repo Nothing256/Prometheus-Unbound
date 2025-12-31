@@ -1,0 +1,75 @@
+diff --git a/src/main/java/com/fasterxml/jackson/core/json/ReaderBasedJsonParser.java b/src/main/java/com/fasterxml/jackson/core/json/ReaderBasedJsonParser.java
+index 12af5fb0..abde353e 100644
+--- a/src/main/java/com/fasterxml/jackson/core/json/ReaderBasedJsonParser.java
++++ b/src/main/java/com/fasterxml/jackson/core/json/ReaderBasedJsonParser.java
+@@ -946,6 +946,14 @@ public final class ReaderBasedJsonParser
+                 }
+             }
+             // Got it all: let's add to text buffer for parsing, access
++            // Check that the character following the number is a valid separator
++            if (ptr < _inputEnd || loadMore()) {
++                char c = _inputBuffer[ptr]; // The character after the number
++                if (c != ']' && c != '}' && c != ',' && c > ' ') { // Not a valid separator
++                    _inputPtr = ptr;
++                    reportUnexpectedNumberChar(c, "expected space");
++                }
++            }
+             --ptr; // need to push back following separator
+             _inputPtr = ptr;
+             // As per #105, need separating space between root values; check here
+@@ -1077,6 +1085,11 @@ public final class ReaderBasedJsonParser
+ 
+         // Ok; unless we hit end-of-input, need to push last char read back
+         if (!eof) {
++            // Check that the character following the number is a valid separator
++            char nextChar = _inputBuffer[_inputPtr-1]; // The character after the number
++            if (nextChar != ']' && nextChar != '}' && nextChar != ',' && nextChar > ' ') { // Not a valid separator
++                reportUnexpectedNumberChar(nextChar, "expected space");
++            }
+             --_inputPtr;
+         }
+         _textBuffer.setCurrentLength(outPtr);
+diff --git a/src/main/java/com/fasterxml/jackson/core/json/UTF8StreamJsonParser.java b/src/main/java/com/fasterxml/jackson/core/json/UTF8StreamJsonParser.java
+index 15faeb8b..fa437a6e 100644
+--- a/src/main/java/com/fasterxml/jackson/core/json/UTF8StreamJsonParser.java
++++ b/src/main/java/com/fasterxml/jackson/core/json/UTF8StreamJsonParser.java
+@@ -1238,6 +1238,13 @@ public final class UTF8StreamJsonParser
+             return _parseFloat(outBuf, outPtr, c, negative, intLen);
+         }
+         
++        // Check that the character following the number is a valid separator
++        if (_inputPtr < _inputEnd || loadMore()) {
++            int ch = (int) _inputBuffer[_inputPtr-1] & 0xFF; // The character after the number
++            if (ch != ']' && ch != '}' && ch != ',' && ch > ' ') { // Not a valid separator
++                reportUnexpectedNumberChar(ch, "expected space");
++            }
++        }
+         --_inputPtr; // to push back trailing char (comma etc)
+         _textBuffer.setCurrentLength(outPtr);
+         // As per #105, need separating space between root values; check here
+@@ -1274,6 +1281,13 @@ public final class UTF8StreamJsonParser
+             outBuf[outPtr++] = (char) c;
+             ++intPartLength;
+         }
++        // Check that the character following the number is a valid separator
++        if (_inputPtr < _inputEnd || loadMore()) {
++            int ch = (int) _inputBuffer[_inputPtr-1] & 0xFF; // The character after the number
++            if (ch != ']' && ch != '}' && ch != ',' && ch > ' ') { // Not a valid separator
++                reportUnexpectedNumberChar(ch, "expected space");
++            }
++        }
+         --_inputPtr; // to push back trailing char (comma etc)
+         _textBuffer.setCurrentLength(outPtr);
+         // As per #105, need separating space between root values; check here
+@@ -1402,6 +1416,11 @@ public final class UTF8StreamJsonParser
+ 
+         // Ok; unless we hit end-of-input, need to push last char read back
+         if (!eof) {
++            // Check that the character following the number is a valid separator
++            int ch = (int) _inputBuffer[_inputPtr-1] & 0xFF; // The character after the number
++            if (ch != ']' && ch != '}' && ch != ',' && ch > ' ') { // Not a valid separator
++                reportUnexpectedNumberChar(ch, "expected space");
++            }
+             --_inputPtr;
+             // As per #105, need separating space between root values; check here
+         }

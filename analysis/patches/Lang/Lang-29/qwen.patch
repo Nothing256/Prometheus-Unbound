@@ -1,0 +1,29 @@
+--- a/src/main/java/org/apache/commons/lang3/SystemUtils.java
++++ b/src/main/java/org/apache/commons/lang3/SystemUtils.java
+@@ -1672,7 +1672,7 @@
+      * Patch releases are not reported.
+      * </p>
+      * <p>
+-     * 
++     *
+      * This method is package private instead of private to support unit test invocation.
+      * </p>
+      * 
+@@ -1680,7 +1680,7 @@
+      * This method is package private instead of private to support unit test invocation.
+      * </p>
+      * 
+      * @return the version, for example 131 for Java 1.3.1
+      */
+-    static float toJavaVersionInt(String version) {
++    static int toJavaVersionInt(String version) {
+         return toVersionInt(toJavaVersionIntArray(version, JAVA_VERSION_TRIM_SIZE));
+     }
+ 
+@@ -1716,7 +1716,7 @@ private static int[] toJavaVersionIntArray(String version, int limit) {
+         if (version == null) {
+-            return ArrayUtils.EMPTY_INT_ARRAY;
++            return new int[0];
+         }
+         String[] strings = Pattern.compile("[^\\d]").split(version);
+         int[] ints = new int[Math.min(limit, strings.length)];

@@ -1,0 +1,14 @@
+diff --git a/src/main/java/org/apache/commons/math/ode/nonstiff/EmbeddedRungeKuttaIntegrator.java b/src/main/java/org/apache/commons/math/ode/nonstiff/EmbeddedRungeKuttaIntegrator.java
+index 0840ac1cc..5d4555649 100644
+--- a/src/main/java/org/apache/commons/math/ode/nonstiff/EmbeddedRungeKuttaIntegrator.java
++++ b/src/main/java/org/apache/commons/math/ode/nonstiff/EmbeddedRungeKuttaIntegrator.java
+@@ -297,6 +297,9 @@ public abstract class EmbeddedRungeKuttaIntegrator
+                   // it is so small (much probably exactly 0 due to limited accuracy)
+                   // that the code above would fail handling it.
+                   // So we set up an artificial 0 size step by copying states
++                  // However, we still need to ensure that the event is processed properly
++                  // by making sure stepSize is set to dt so the next step starts at the event time
++                  stepSize = dt;
+                   loop     = false;
+               } else {
+                   // reject the step to match exactly the next switch time

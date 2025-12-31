@@ -1,0 +1,24 @@
+diff --git a/src/java/org/apache/commons/codec/binary/Base64.java b/src/java/org/apache/commons/codec/binary/Base64.java
+index e4d1276c..7e72af02 100644
+--- a/src/java/org/apache/commons/codec/binary/Base64.java
++++ b/src/java/org/apache/commons/codec/binary/Base64.java
+@@ -469,6 +469,7 @@ public class Base64 implements BinaryEncoder, BinaryDecoder {
+                         buffer[pos++] = PAD;
+                         buffer[pos++] = PAD;
+                     }
++                    currentLinePos += 4;
+                     break;
+ 
+                 case 2 :
+@@ -479,9 +480,10 @@ public class Base64 implements BinaryEncoder, BinaryDecoder {
+                     if (encodeTable == STANDARD_ENCODE_TABLE) {
+                         buffer[pos++] = PAD;
+                     }
++                    currentLinePos += 4;
+                     break;
+             }
+-            if (lineLength > 0 && pos > 0) {
++            if (lineLength > 0 && currentLinePos > 0) {
+                 System.arraycopy(lineSeparator, 0, buffer, pos, lineSeparator.length);
+                 pos += lineSeparator.length;
+             }

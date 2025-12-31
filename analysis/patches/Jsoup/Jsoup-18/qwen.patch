@@ -1,0 +1,114 @@
+diff --git a/src/main/java/org/jsoup/parser/CharacterReader.java b/src/main/java/org/jsoup/parser/CharacterReader.java
+index a9a26831..8197887a 100644
+--- a/src/main/java/org/jsoup/parser/CharacterReader.java
++++ b/src/main/java/org/jsoup/parser/CharacterReader.java
+@@ -59,14 +59,24 @@ class CharacterReader {
+     }
+ 
+     String consumeTo(char c) {
+-        int offset = input.indexOf(c, pos);
+-        if (offset != -1) {
+-            String consumed = input.substring(pos, offset);
+-            pos += consumed.length();
+-            return consumed;
+-        } else {
+-            return consumeToEnd();
++        int start = pos;
++        while (!isEmpty()) {
++            char currentChar = input.charAt(pos);
++            // Handle carriage return as line feed for specific cases
++            if (c == '\n' && currentChar == '\r') {
++                // Found \r which should be treated as \n - like original, return up to but not including,
++                // but leave position at the \r (which will be treated as \n when accessed)
++                String consumed = input.substring(start, pos);
++                // Don't advance position - leave it pointing to the \r (like original indexOf behavior)
++                return consumed;
++            } else if (currentChar == c) {
++                String consumed = input.substring(start, pos);
++                // Don't advance position - leave it pointing to the found character
++                return consumed;
++            }
++            pos++;
+         }
++        return consumeToEnd();
+     }
+ 
+     String consumeTo(String seq) {
+@@ -84,9 +94,12 @@ class CharacterReader {
+         int start = pos;
+ 
+         OUTER: while (!isEmpty()) {
+-            char c = input.charAt(pos);
++            char currentChar = input.charAt(pos);
+             for (char seek : seq) {
+-                if (seek == c)
++                // Handle carriage return as line feed for \n comparisons
++                if (seek == '\n' && currentChar == '\r')
++                    break OUTER;
++                if (seek == currentChar)
+                     break OUTER;
+             }
+             pos++;
+@@ -96,9 +109,29 @@ class CharacterReader {
+     }
+ 
+     String consumeToEnd() {
+-        String data = input.substring(pos, input.length() - 1);
++        String data = input.substring(pos);
+         pos = input.length();
+-        return data;
++        // Normalize line endings: \r\n -> \n, \r -> \n
++        return normalizeLineEndings(data);
++    }
++
++    private String normalizeLineEndings(String s) {
++        StringBuilder sb = new StringBuilder(s.length());
++        for (int i = 0; i < s.length(); i++) {
++            char c = s.charAt(i);
++            if (c == '\r') {
++                // Check if followed by \n
++                if (i + 1 < s.length() && s.charAt(i + 1) == '\n') {
++                    sb.append('\n');  // \r\n becomes \n
++                    i++;  // skip the \n as it's been processed
++                } else {
++                    sb.append('\n');  // standalone \r becomes \n
++                }
++            } else {
++                sb.append(c);
++            }
++        }
++        return sb.toString();
+     }
+ 
+     String consumeLetterSequence() {
+@@ -139,8 +172,13 @@ class CharacterReader {
+     }
+ 
+     boolean matches(char c) {
+-        return !isEmpty() && input.charAt(pos) == c;
+-
++        if (isEmpty())
++            return false;
++        char currentChar = input.charAt(pos);
++        // Handle carriage return as line feed for \n comparisons
++        if (c == '\n' && currentChar == '\r')
++            return true;
++        return currentChar == c;
+     }
+ 
+     boolean matches(String seq) {
+@@ -155,9 +193,12 @@ class CharacterReader {
+         if (isEmpty())
+             return false;
+ 
+-        char c = input.charAt(pos);
++        char currentChar = input.charAt(pos);
+         for (char seek : seq) {
+-            if (seek == c)
++            // Handle carriage return as line feed for \n comparisons
++            if (seek == '\n' && currentChar == '\r')
++                return true;
++            if (seek == currentChar)
+                 return true;
+         }
+         return false;

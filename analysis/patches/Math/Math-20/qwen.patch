@@ -1,0 +1,33 @@
+diff --git a/src/main/java/org/apache/commons/math3/optimization/direct/CMAESOptimizer.java b/src/main/java/org/apache/commons/math3/optimization/direct/CMAESOptimizer.java
+index 4b7dbf6bb..a7cbe9f97 100644
+--- a/src/main/java/org/apache/commons/math3/optimization/direct/CMAESOptimizer.java
++++ b/src/main/java/org/apache/commons/math3/optimization/direct/CMAESOptimizer.java
+@@ -919,7 +919,7 @@ public class CMAESOptimizer
+          */
+         public double[] repairAndDecode(final double[] x) {
+             return
+-                decode(x);
++                decode(repair(x));
+         }
+ 
+         /**
+@@ -945,10 +945,15 @@ public class CMAESOptimizer
+         public double value(final double[] point) {
+             double value;
+             if (boundaries != null && isRepairMode) {
+-                double[] repaired = repair(point);
+-                value = CMAESOptimizer.this
+-                        .computeObjectiveValue(decode(repaired)) +
+-                        penalty(point, repaired);
++                if (isFeasible(point)) {
++                    value = CMAESOptimizer.this
++                            .computeObjectiveValue(decode(point));
++                } else {
++                    double[] repaired = repair(point);
++                    value = CMAESOptimizer.this
++                            .computeObjectiveValue(decode(repaired)) +
++                            penalty(point, repaired);
++                }
+             } else {
+                 value = CMAESOptimizer.this
+                         .computeObjectiveValue(decode(point));

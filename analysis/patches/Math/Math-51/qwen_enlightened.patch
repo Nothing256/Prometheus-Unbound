@@ -1,0 +1,26 @@
+diff --git a/src/main/java/org/apache/commons/math/analysis/solvers/BaseSecantSolver.java b/src/main/java/org/apache/commons/math/analysis/solvers/BaseSecantSolver.java
+index e258c68c6..2c5008c2d 100644
+--- a/src/main/java/org/apache/commons/math/analysis/solvers/BaseSecantSolver.java
++++ b/src/main/java/org/apache/commons/math/analysis/solvers/BaseSecantSolver.java
+@@ -176,16 +176,19 @@ public abstract class BaseSecantSolver
+                 inverted = !inverted;
+             } else {
+                 switch (method) {
++                case REGULA_FALSI:
++                    // Dowell-Jarratt modification to prevent convergence stalling
++                    f0 *= 0.5;
++                    break;
+                 case ILLINOIS:
+                     f0 *= 0.5;
+                     break;
+                 case PEGASUS:
+                     f0 *= f1 / (f1 + fx);
+                     break;
+-                        // Update formula cannot make any progress: Update the
+-                        // search interval.
+                 default:
+                     // Should never happen.
++                    throw new MathInternalError();
+                 }
+             }
+             // Update from [x0, x1] to [x0, x].

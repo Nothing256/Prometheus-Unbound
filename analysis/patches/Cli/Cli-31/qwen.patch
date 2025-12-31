@@ -1,0 +1,51 @@
+diff --git a/src/main/java/org/apache/commons/cli/HelpFormatter.java b/src/main/java/org/apache/commons/cli/HelpFormatter.java
+index 1debaf6..beedcb3 100644
+--- a/src/main/java/org/apache/commons/cli/HelpFormatter.java
++++ b/src/main/java/org/apache/commons/cli/HelpFormatter.java
+@@ -649,11 +649,42 @@ public class HelpFormatter
+             buff.append("--").append(option.getLongOpt());
+         }
+         
+-        // if the Option has a value and a non blank argname
+-        if (option.hasArg() && option.hasArgName())
++        // if the Option has a value
++        if (option.hasArg())
+         {
+-            buff.append(option.getOpt() == null ? longOptSeparator : " ");
+-            buff.append("<").append(option.getArgName()).append(">");
++            String argName = option.getArgName();
++            if (argName != null && argName.length() == 0)
++            {
++                // if the option has a blank argname
++                buff.append(' ');
++            }
++            else if (argName != null)
++            {
++                // check if this is the default arg name from OptionBuilder
++                // if so, and if the formatter has a different default, use the formatter's
++                if (DEFAULT_ARG_NAME.equals(argName) && !DEFAULT_ARG_NAME.equals(getArgName()) && getArgName() != null)
++                {
++                    // use the formatter's default arg name instead of OptionBuilder's default
++                    buff.append(option.getOpt() == null ? longOptSeparator : " ");
++                    buff.append("<").append(getArgName()).append(">");
++                }
++                else
++                {
++                    // use the option's specific arg name (or OptionBuilder's default if unchanged)
++                    buff.append(option.getOpt() == null ? longOptSeparator : " ");
++                    buff.append("<").append(argName).append(">");
++                }
++            }
++            else
++            {
++                // use the formatter's default arg name
++                String defaultArgName = getArgName();
++                if (defaultArgName != null && !defaultArgName.isEmpty())
++                {
++                    buff.append(option.getOpt() == null ? longOptSeparator : " ");
++                    buff.append("<").append(defaultArgName).append(">");
++                }
++            }
+         }
+         
+         // if the Option is not a required option

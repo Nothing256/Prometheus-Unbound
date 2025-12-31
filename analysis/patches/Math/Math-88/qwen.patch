@@ -1,0 +1,22 @@
+diff --git a/src/java/org/apache/commons/math/optimization/linear/SimplexTableau.java b/src/java/org/apache/commons/math/optimization/linear/SimplexTableau.java
+index 3bcb17f2a..8ba2d3c3a 100644
+--- a/src/java/org/apache/commons/math/optimization/linear/SimplexTableau.java
++++ b/src/java/org/apache/commons/math/optimization/linear/SimplexTableau.java
+@@ -154,7 +154,7 @@ class SimplexTableau implements Serializable {
+                     int row = getNumObjectiveFunctions() + i;
+ 
+                     // decision variable coefficients
+-                    copyArray(constraint.getCoefficients().getData(), matrix[row], 1);
++                    copyArray(constraint.getCoefficients().getData(), matrix[row], getNumObjectiveFunctions());
+ 
+                     // x-
+                     if (!restrictToNonNegative) {
+@@ -311,7 +311,7 @@ class SimplexTableau implements Serializable {
+      */
+     private void copyArray(final double[] src, final double[] dest,
+                            final int destPos) {
+-        System.arraycopy(src, 0, dest, getNumObjectiveFunctions(), src.length); 
++        System.arraycopy(src, 0, dest, destPos, src.length);
+     }
+ 
+     /**

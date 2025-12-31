@@ -1,0 +1,24 @@
+diff --git a/src/main/java/com/fasterxml/jackson/databind/jsontype/impl/StdSubtypeResolver.java b/src/main/java/com/fasterxml/jackson/databind/jsontype/impl/StdSubtypeResolver.java
+index a12a878f3..01da931af 100644
+--- a/src/main/java/com/fasterxml/jackson/databind/jsontype/impl/StdSubtypeResolver.java
++++ b/src/main/java/com/fasterxml/jackson/databind/jsontype/impl/StdSubtypeResolver.java
+@@ -270,7 +270,18 @@ public class StdSubtypeResolver
+     protected Collection<NamedType> _combineNamedAndUnnamed(Class<?> rawBase,
+             Set<Class<?>> typesHandled, Map<String,NamedType> byName)
+     {
+-        ArrayList<NamedType> result = new ArrayList<NamedType>(byName.values());
++        ArrayList<NamedType> result = new ArrayList<NamedType>();
++
++        // Add named types, but filter out abstract base type even if it has an assigned name
++        for (NamedType t : byName.values()) {
++            Class<?> cls = t.getType();
++            // 27-Apr-2017, tatu: [databind#1616] Do not add base type itself unless
++            //     it is concrete (or has explicit type name)
++            if ((cls == rawBase) && Modifier.isAbstract(cls.getModifiers())) {
++                continue;
++            }
++            result.add(t);
++        }
+ 
+         // Ok, so... we will figure out which classes have no explicitly assigned name,
+         // by removing Classes from Set. And for remaining classes, add an anonymous

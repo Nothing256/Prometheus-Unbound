@@ -1,0 +1,97 @@
+--- a/src/main/java/org/apache/commons/lang3/StringUtils.java
++++ b/src/main/java/org/apache/commons/lang3/StringUtils.java
+@@ -1673,33 +1673,83 @@
+     public static boolean containsNone(CharSequence cs, char[] searchChars) {
+         if (cs == null || searchChars == null) {
+             return true;
+         }
+-        int csLen = cs.length();
+-        for (int i = 0; i < csLen; i++) {
+-            char ch = cs.charAt(i);
+-            for (int j = 0; j < searchLen; j++) {
+-                if (searchChars[j] == ch) {
+-                    // missing low surrogate, fine, like String.indexOf(String)
+-                    // ch is in the Basic Multilingual Plane
+-                    return false;
+-                }
+-            }
+-        }
+-        return true;
++        int csLen = cs.length();
++        int searchLen = searchChars.length;
++
++        // Check if searchChars contains complete supplementary characters (consecutive high-low pairs)
++        boolean hasCompleteSearchChars = false;
++        for (int j = 0; j < searchLen - 1; j++) {
++            if (Character.isHighSurrogate(searchChars[j]) && Character.isLowSurrogate(searchChars[j + 1])) {
++                hasCompleteSearchChars = true;
++                break;
++            }
++        }
++
++        if (hasCompleteSearchChars) {
++            // If searchChars contains complete supplementary characters,
++            // only return false if we find complete matches, not individual surrogates
++            for (int i = 0; i < csLen; ) {
++                char ch = cs.charAt(i);
++
++                if (i + 1 < csLen && Character.isHighSurrogate(ch) && Character.isLowSurrogate(cs.charAt(i + 1))) {
++                    // Found a complete supplementary character in the source string
++                    int sourceCodePoint = Character.toCodePoint(ch, cs.charAt(i + 1));
++
++                    // Check if any complete supplementary character in searchChars matches this one
++                    for (int j = 0; j < searchLen - 1; j++) {
++                        if (Character.isHighSurrogate(searchChars[j]) && Character.isLowSurrogate(searchChars[j + 1])) {
++                            int searchCodePoint = Character.toCodePoint(searchChars[j], searchChars[j + 1]);
++                            if (sourceCodePoint == searchCodePoint) {
++                                return false; // Found complete matching supplementary character
++                            }
++                        }
++                    }
++
++                    i += 2; // Skip the complete supplementary character
++                } else {
++                    // Regular BMP character or unpaired surrogate
++                    // For this case with complete search chars, we need to be careful
++                    // If we find a char that is part of a complete search character, it shouldn't match individually
++                    boolean foundMatch = false;
++                    for (int j = 0; j < searchLen; j++) {
++                        if (searchChars[j] == ch) {
++                            foundMatch = true;
++                            // Check if this char is part of a complete search character
++                            boolean isPartOfCompleteSearch = false;
++
++                            // Check if this is a high surrogate that's part of a complete character in search
++                            if (Character.isHighSurrogate(ch) && j + 1 < searchLen &&
++                                Character.isLowSurrogate(searchChars[j + 1])) {
++                                isPartOfCompleteSearch = true;
++                            }
++                            // Check if this is a low surrogate that's part of a complete character in search
++                            else if (Character.isLowSurrogate(ch) && j > 0 &&
++                                     Character.isHighSurrogate(searchChars[j - 1])) {
++                                isPartOfCompleteSearch = true;
++                            }
++
++                            if (!isPartOfCompleteSearch) {
++                                // It's a standalone char match (not part of complete search char)
++                                return false;
++                            }
++                        }
++                    }
++                    i++;
++                }
++            }
++        } else {
++            // No complete supplementary characters in search, use original logic
++            for (int i = 0; i < csLen; i++) {
++                char ch = cs.charAt(i);
++                for (int j = 0; j < searchLen; j++) {
++                    if (searchChars[j] == ch) {
++                        return false;
++                    }
++                }
++            }
++        }
++
++        return true;
+     }

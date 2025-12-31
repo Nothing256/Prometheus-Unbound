@@ -1,0 +1,20 @@
+--- a/src/main/java/org/jsoup/helper/DataUtil.java
++++ b/src/main/java/org/jsoup/helper/DataUtil.java
+@@ -167,8 +167,16 @@
+                 throw e.ioException();
+             }
+             Charset charset = Charset.forName(charsetName);
++            // some charsets can read but not encode; switch to an encodable charset and update the meta el
++            if (!charset.canEncode()) {
++                charset = Charset.forName(defaultCharset);
++                // Update the meta charset tag to reflect the fallback charset
++                Elements metaElements = doc.select("meta[charset]");
++                for (Element meta : metaElements) {
++                    meta.attr("charset", charset.name());
++                }
++            }
+             doc.outputSettings().charset(charset);
+-                // some charsets can read but not encode; switch to an encodable charset and update the meta el
+         }
+         input.close();
+         return doc;

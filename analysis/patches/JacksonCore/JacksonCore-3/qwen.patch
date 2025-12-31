@@ -1,0 +1,52 @@
+diff --git a/src/main/java/com/fasterxml/jackson/core/json/UTF8StreamJsonParser.java b/src/main/java/com/fasterxml/jackson/core/json/UTF8StreamJsonParser.java
+index f89e661d..27b864e9 100644
+--- a/src/main/java/com/fasterxml/jackson/core/json/UTF8StreamJsonParser.java
++++ b/src/main/java/com/fasterxml/jackson/core/json/UTF8StreamJsonParser.java
+@@ -103,6 +103,13 @@ public class UTF8StreamJsonParser
+      * buffer.
+      */
+     protected boolean _bufferRecyclable;
++
++    /**
++     * The initial offset used when the parser was created, needed to
++     * adjust location calculations to be relative to the effective start
++     * of the input rather than the original buffer start.
++     */
++    protected int _initialOffsetForLocation;
+     
+     /*
+     /**********************************************************
+@@ -123,6 +130,7 @@ public class UTF8StreamJsonParser
+         _inputPtr = start;
+         _inputEnd = end;
+         // If we have offset, need to omit that from byte offset, so:
++        _initialOffsetForLocation = start;
+         _bufferRecyclable = bufferRecyclable;
+     }
+ 
+@@ -603,8 +611,12 @@ public class UTF8StreamJsonParser
+     @Override
+     public JsonLocation getTokenLocation()
+     {
++        // Adjust token character offset to be relative to the effective start of input (after offset)
++        // _tokenInputTotal is (absolute position - 1), we want (absolute position - start)
++        // So adjustment is: (abs_pos - start) - (abs_pos - 1) = 1 - start
++        long tokenCharOffset = getTokenCharacterOffset() + 1 - _initialOffsetForLocation;
+         return new JsonLocation(_ioContext.getSourceReference(),
+-                getTokenCharacterOffset(), -1L, // bytes, chars
++                tokenCharOffset, -1L, // bytes, chars
+                 getTokenLineNr(),
+                 getTokenColumnNr());
+     }
+@@ -614,8 +626,10 @@ public class UTF8StreamJsonParser
+     public JsonLocation getCurrentLocation()
+     {
+         int col = _inputPtr - _currInputRowStart + 1; // 1-based
++        // Adjust byte offset to be relative to the effective start of input (after offset)
++        long byteOffset = _currInputProcessed + _inputPtr - _initialOffsetForLocation;
+         return new JsonLocation(_ioContext.getSourceReference(),
+-                _currInputProcessed + _inputPtr, -1L, // bytes, chars
++                byteOffset, -1L, // bytes, chars
+                 _currInputRow, col);
+     }
+     

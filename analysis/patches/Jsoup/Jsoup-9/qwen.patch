@@ -1,0 +1,20 @@
+diff --git a/src/main/java/org/jsoup/nodes/Entities.java b/src/main/java/org/jsoup/nodes/Entities.java
+index a4c173b4..f8ff188d 100644
+--- a/src/main/java/org/jsoup/nodes/Entities.java
++++ b/src/main/java/org/jsoup/nodes/Entities.java
+@@ -81,8 +81,13 @@ public class Entities {
+                     charval = full.get(name);
+             }
+ 
+-            if (charval != -1 || charval > 0xFFFF) { // out of range
+-                String c = Character.toString((char) charval);
++            if (charval != -1) {
++                String c;
++                if (charval <= 0xFFFF) {
++                    c = Character.toString((char) charval);
++                } else {
++                    c = new String(Character.toChars(charval));
++                }
+                 m.appendReplacement(accum, Matcher.quoteReplacement(c));
+             } else {
+                 m.appendReplacement(accum, Matcher.quoteReplacement(m.group(0))); // replace with original string

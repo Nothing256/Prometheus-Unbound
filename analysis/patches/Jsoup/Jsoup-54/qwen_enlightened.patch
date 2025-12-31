@@ -1,0 +1,41 @@
+diff --git a/src/main/java/org/jsoup/helper/W3CDom.java b/src/main/java/org/jsoup/helper/W3CDom.java
+index 20aeeda0..2492cf6e 100644
+--- a/src/main/java/org/jsoup/helper/W3CDom.java
++++ b/src/main/java/org/jsoup/helper/W3CDom.java
+@@ -123,8 +123,36 @@ public class W3CDom {
+             for (Attribute attribute : source.attributes()) {
+                 // valid xml attribute names are: ^[a-zA-Z_:][-a-zA-Z0-9_:.]
+                 String key = attribute.getKey().replaceAll("[^-a-zA-Z0-9_:.]", "");
++                // Only set the attribute if the cleaned key is not empty and starts with a valid character
++                if (!key.isEmpty() && isValidXmlName(key)) {
+                     el.setAttribute(key, attribute.getValue());
++                }
++            }
++        }
++
++        /**
++         * Validates that the given string is a valid XML name.
++         * Valid XML names must start with a letter or underscore, and contain only valid name characters.
++         * @param name the name to validate
++         * @return true if the name is valid
++         */
++        private boolean isValidXmlName(String name) {
++            if (name == null || name.isEmpty()) {
++                return false;
++            }
++            // Must start with letter, underscore, or colon
++            char firstChar = name.charAt(0);
++            if (!(Character.isLetter(firstChar) || firstChar == '_' || firstChar == ':')) {
++                return false;
++            }
++            // Remaining characters must be valid name characters
++            for (int i = 1; i < name.length(); i++) {
++                char c = name.charAt(i);
++                if (!(Character.isLetterOrDigit(c) || c == '.' || c == '-' || c == '_' || c == ':')) {
++                    return false;
++                }
+             }
++            return true;
+         }
+ 
+         /**

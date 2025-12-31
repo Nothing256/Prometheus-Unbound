@@ -1,0 +1,120 @@
+diff --git a/src/main/java/com/fasterxml/jackson/core/filter/FilteringParserDelegate.java b/src/main/java/com/fasterxml/jackson/core/filter/FilteringParserDelegate.java
+index e6558fd0..0cbd949b 100644
+--- a/src/main/java/com/fasterxml/jackson/core/filter/FilteringParserDelegate.java
++++ b/src/main/java/com/fasterxml/jackson/core/filter/FilteringParserDelegate.java
+@@ -229,19 +229,23 @@ public class FilteringParserDelegate extends JsonParserDelegate
+         // 23-May-2017, tatu: To be honest, code here is rather hairy and I don't like all
+         //    conditionals; and it seems odd to return `null` but NOT considering input
+         //    as closed... would love a rewrite to simplify/clear up logic here.
+-        
++
+         // Check for _allowMultipleMatches - false and at least there is one token - which is _currToken
+         // check for no buffered context _exposedContext - null
+         // If all the conditions matches then check for scalar / non-scalar property
+         if (!_allowMultipleMatches && (_currToken != null) && (_exposedContext == null)) {
+             //if not scalar and ended successfully, and !includePath, then return null
+                 if (_currToken.isStructEnd()) {
+-                    if (_headContext.isStartHandled()) {
++                    // Only return null if we have already completed at least one match (_matchCount > 0)
++                    // and we're now trying to read beyond the matched content.
++                    // We check if the current context is the root level (no parent) and we've had matches,
++                    // which indicates we're trying to read beyond the matched structure.
++                    if (_headContext.isStartHandled() && _matchCount > 0 && _headContext.getParent() == null) {
+                         return (_currToken = null);
+                     }
+                 } else if (_currToken.isScalarValue()) {
+                     //else if scalar, and scalar not present in obj/array and !includePath and INCLUDE_ALL matched once
+-                    // then return null 
++                    // then return null
+                     if (!_headContext.isStartHandled() && (_itemFilter == TokenFilter.INCLUDE_ALL)) {
+                         return (_currToken = null);
+                     }
+@@ -303,6 +307,7 @@ public class FilteringParserDelegate extends JsonParserDelegate
+         case ID_START_ARRAY:
+             f = _itemFilter;
+             if (f == TokenFilter.INCLUDE_ALL) {
++                ++_matchCount;
+                 _headContext = _headContext.createChildArrayContext(f, true);
+                 return (_currToken = t);
+             }
+@@ -339,6 +344,7 @@ public class FilteringParserDelegate extends JsonParserDelegate
+         case ID_START_OBJECT:
+             f = _itemFilter;
+             if (f == TokenFilter.INCLUDE_ALL) {
++                ++_matchCount;
+                 _headContext = _headContext.createChildObjectContext(f, true);
+                 return (_currToken = t);
+             }
+@@ -395,6 +401,7 @@ public class FilteringParserDelegate extends JsonParserDelegate
+                 // note: this will also set 'needToHandleName'
+                 f = _headContext.setFieldName(name);
+                 if (f == TokenFilter.INCLUDE_ALL) {
++                    ++_matchCount;
+                     _itemFilter = f;
+                     if (!_includePath) {
+                         // Minor twist here: if parent NOT included, may need to induce output of
+@@ -440,8 +447,11 @@ public class FilteringParserDelegate extends JsonParserDelegate
+             }
+             if (f != null) {
+                 f = _headContext.checkValue(f);
+-                if ((f == TokenFilter.INCLUDE_ALL)
+-                        || ((f != null) && f.includeValue(delegate))) {
++                if (f == TokenFilter.INCLUDE_ALL) {
++                    ++_matchCount;
++                    return (_currToken = t);
++                }
++                if ((f != null) && f.includeValue(delegate)) {
+                     return (_currToken = t);
+                 }
+             }
+@@ -474,6 +484,7 @@ public class FilteringParserDelegate extends JsonParserDelegate
+             case ID_START_ARRAY:
+                 f = _itemFilter;
+                 if (f == TokenFilter.INCLUDE_ALL) {
++                    ++_matchCount;
+                     _headContext = _headContext.createChildArrayContext(f, true);
+                     return (_currToken = t);
+                 }
+@@ -509,6 +520,7 @@ public class FilteringParserDelegate extends JsonParserDelegate
+             case ID_START_OBJECT:
+                 f = _itemFilter;
+                 if (f == TokenFilter.INCLUDE_ALL) {
++                    ++_matchCount;
+                     _headContext = _headContext.createChildObjectContext(f, true);
+                     return (_currToken = t);
+                 }
+@@ -704,6 +716,7 @@ public class FilteringParserDelegate extends JsonParserDelegate
+                     final String name = delegate.getCurrentName();
+                     f = _headContext.setFieldName(name);
+                     if (f == TokenFilter.INCLUDE_ALL) {
++                        ++_matchCount;
+                         _itemFilter = f;
+                         return _nextBuffered(buffRoot);
+                     }
+@@ -720,6 +733,7 @@ public class FilteringParserDelegate extends JsonParserDelegate
+                     }
+                     _itemFilter = f;
+                     if (f == TokenFilter.INCLUDE_ALL) {
++                        ++_matchCount;
+                         return _nextBuffered(buffRoot);
+                     }
+                 }
+@@ -728,12 +742,16 @@ public class FilteringParserDelegate extends JsonParserDelegate
+             default: // scalar value
+                 f = _itemFilter;
+                 if (f == TokenFilter.INCLUDE_ALL) {
++                    ++_matchCount;
+                     return _nextBuffered(buffRoot);
+                 }
+                 if (f != null) {
+                     f = _headContext.checkValue(f);
+-                    if ((f == TokenFilter.INCLUDE_ALL)
+-                            || ((f != null) && f.includeValue(delegate))) {
++                    if (f == TokenFilter.INCLUDE_ALL) {
++                        ++_matchCount;
++                        return _nextBuffered(buffRoot);
++                    }
++                    if ((f != null) && f.includeValue(delegate)) {
+                         return _nextBuffered(buffRoot);
+                     }
+                 }

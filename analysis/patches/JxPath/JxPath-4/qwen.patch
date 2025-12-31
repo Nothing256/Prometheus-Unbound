@@ -1,0 +1,86 @@
+diff --git a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java
+index 5236867..3d7947e 100644
+--- a/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java
++++ b/src/java/org/apache/commons/jxpath/ri/model/dom/DOMNodePointer.java
+@@ -640,7 +640,13 @@ public class DOMNodePointer extends NodePointer {
+         }
+         if (nodeType == Node.TEXT_NODE || nodeType == Node.CDATA_SECTION_NODE) {
+             String text = node.getNodeValue();
+-            return text == null ? "" : text.trim();
++            if (text == null) {
++                return "";
++            }
++            if (shouldPreserveSpace(node)) {
++                return text;
++            }
++            return text.trim();
+         }
+         if (nodeType == Node.PROCESSING_INSTRUCTION_NODE) {
+             String text = ((ProcessingInstruction) node).getData();
+@@ -651,12 +657,20 @@ public class DOMNodePointer extends NodePointer {
+         for (int i = 0; i < list.getLength(); i++) {
+             Node child = list.item(i);
+             if (child.getNodeType() == Node.TEXT_NODE) {
+-                buf.append(child.getNodeValue());
++                if (shouldPreserveSpace(child)) {
++                    buf.append(child.getNodeValue());
++                }
++                else {
++                    buf.append(child.getNodeValue().trim());
++                }
+             }
+             else {
+             buf.append(stringValue(child));
+             }
+         }
++        if (shouldPreserveSpace(node)) {
++            return buf.toString();
++        }
+         return buf.toString().trim();
+     }
+ 
+@@ -671,6 +685,44 @@ public class DOMNodePointer extends NodePointer {
+                 : new DOMNodePointer(element, getLocale(), id);
+     }
+ 
++    private boolean shouldPreserveSpace(Node node) {
++        // Determine the starting point for checking xml:space attribute
++        // For text nodes, check parent elements (since text nodes don't have attributes)
++        // For element nodes, check the element itself first, then its ancestors
++        Node current;
++
++        if (node.getNodeType() == Node.ELEMENT_NODE) {
++            // Start with the element itself
++            current = node;
++        } else {
++            // For text nodes, CDATA sections, etc., start with the parent element
++            current = node.getParentNode();
++        }
++
++        // Traverse up the parent chain to find xml:space attribute
++        while (current != null) {
++            if (current.getNodeType() == Node.ELEMENT_NODE) {
++                Element elem = (Element) current;
++                // Check for xml:space attribute using namespace-aware access
++                String spaceAttr = elem.getAttributeNS(XML_NAMESPACE_URI, "space");
++                if (spaceAttr == null || spaceAttr.equals("")) {
++                    // Fallback to non-namespace aware access in case
++                    spaceAttr = elem.getAttribute("xml:space");
++                }
++
++                if (spaceAttr != null && spaceAttr.equals("preserve")) {
++                    return true;
++                } else if (spaceAttr != null && spaceAttr.equals("default")) {
++                    // Found xml:space="default", so don't preserve space
++                    return false;
++                }
++            }
++            current = current.getParentNode();
++        }
++        // Default behavior is to not preserve space (for backward compatibility)
++        return false;
++    }
++
+     private AbstractFactory getAbstractFactory(JXPathContext context) {
+         AbstractFactory factory = context.getFactory();
+         if (factory == null) {

@@ -1,0 +1,29 @@
+diff --git a/src/main/java/org/apache/commons/csv/Lexer.java b/src/main/java/org/apache/commons/csv/Lexer.java
+index 0a6a0902..c7cbc769 100644
+--- a/src/main/java/org/apache/commons/csv/Lexer.java
++++ b/src/main/java/org/apache/commons/csv/Lexer.java
+@@ -104,12 +104,21 @@ abstract class Lexer {
+         case TAB: // TODO is this correct? Do tabs need to be escaped?
+         case BACKSPACE: // TODO is this correct?
+             return c;
++        // Handle the case where escape character escapes itself (e.g., \\ -> \)
++        case '\\':
++        case '"': // Handle the case where escape character escapes quote (e.g., \" -> ")
++            return c; // return the escaped character itself
+         case END_OF_STREAM:
+             throw new IOException("EOF whilst processing escape sequence");
+         default:
+-            // Now check for meta-characters
+-                return c;
+-            // indicate unexpected char - available from in.getLastChar()
++            // For characters that might be delimiters, handle them specially
++            // If the escaped character is the same as our delimiter, treat it as literal
++            if (c == delimiter) {
++                return c; // return the delimiter as literal content instead of delimiter
++            }
++            // For undefined escape sequences (like \N, \a), return END_OF_STREAM to indicate that
++            // both the escape character and the following character should be preserved literally
++            return END_OF_STREAM;
+         }
+     }
+ 

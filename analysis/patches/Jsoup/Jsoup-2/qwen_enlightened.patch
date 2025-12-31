@@ -1,0 +1,25 @@
+diff --git a/src/main/java/org/jsoup/parser/Parser.java b/src/main/java/org/jsoup/parser/Parser.java
+index da4bdcea..f4a80c2a 100644
+--- a/src/main/java/org/jsoup/parser/Parser.java
++++ b/src/main/java/org/jsoup/parser/Parser.java
+@@ -145,13 +145,18 @@ public class Parser {
+         if (tag.isData()) {
+             String data = tq.chompTo("</" + tagName);
+             tq.chompTo(">");
+-            
++
+             Node dataNode;
+             if (tag.equals(titleTag) || tag.equals(textareaTag)) // want to show as text, but not contain inside tags (so not a data tag?)
+                 dataNode = TextNode.createFromEncoded(data, baseUri);
+             else
+                 dataNode = new DataNode(data, baseUri); // data not encoded but raw (for " in script)
+-            child.appendChild(dataNode);   
++            child.appendChild(dataNode);
++
++            // Pop the data tag from the stack since the closing tag is handled implicitly
++            if (!stack.isEmpty() && stack.getLast().equals(child)) {
++                stack.removeLast();
++            }
+         }
+ 
+         // <base href>: update the base uri

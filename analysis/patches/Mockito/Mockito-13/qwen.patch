@@ -1,0 +1,22 @@
+diff --git a/src/org/mockito/internal/MockHandler.java b/src/org/mockito/internal/MockHandler.java
+index 6f2e4bcfd..eba175cc0 100644
+--- a/src/org/mockito/internal/MockHandler.java
++++ b/src/org/mockito/internal/MockHandler.java
+@@ -76,11 +76,12 @@ public Object handle(Invocation invocation) throws Throwable {
+         //if verificationMode is not null then someone is doing verify()
+        if (verificationMode != null) {
+            //We need to check if verification was started on the correct mock
+            // - see VerifyingWithAnExtraCallToADifferentMockTest (bug 138)
+            if (verificationMode instanceof MockAwareVerificationMode && ((MockAwareVerificationMode) verificationMode).getMock() == invocation.getMock()) {
+                VerificationDataImpl data = new VerificationDataImpl(invocationContainerImpl, invocationMatcher);
+                verificationMode.verify(data);
+                return null;
+-                // this means there is an invocation on a different mock. Re-adding verification mode 
+-                // - see VerifyingWithAnExtraCallToADifferentMockTest (bug 138)
+            }
++            else {
++                // this means there is an invocation on a different mock. Re-adding verification mode
++                // - see VerifyingWithAnExtraCallToADifferentMockTest (bug 138)
++                mockingProgress.verificationStarted(verificationMode);
++            }
+         }

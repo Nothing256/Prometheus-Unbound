@@ -1,0 +1,74 @@
+diff --git a/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationRelationalExpression.java b/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationRelationalExpression.java
+index 1234567..89abcde 100644
+--- a/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationRelationalExpression.java
++++ b/src/java/org/apache/commons/jxpath/ri/compiler/CoreOperationRelationalExpression.java
+@@ -45,8 +45,70 @@ public abstract class CoreOperationRelationalExpression extends CoreOperation 
+     public final Object computeValue(EvalContext context) {
+-        return compute(args[0].compute(context), args[1].compute(context))
+-                ? Boolean.TRUE : Boolean.FALSE;
++        // Full implementation to avoid recursive issues in complex expressions
++        Object left = reduce(args[0].compute(context));
++        Object right = reduce(args[1].compute(context));
++
++        if (left instanceof InitialContext) {
++            ((InitialContext) left).reset();
++        }
++        if (right instanceof InitialContext) {
++            ((InitialContext) right).reset();
++        }
++        
++        // Handle iterator cases directly
++        if (left instanceof Iterator && right instanceof Iterator) {
++            Iterator lit = (Iterator) left;
++            Iterator rit = (Iterator) right;
++            java.util.HashSet<Object> lhs = new java.util.HashSet<Object>();
++            while (lit.hasNext()) {
++                lhs.add(lit.next());
++            }
++            while (rit.hasNext()) {
++                Object rightVal = rit.next();
++                for (Object leftVal : lhs) {
++                    if (compareSingleValues(leftVal, rightVal)) {
++                        return Boolean.TRUE;
++                    }
++                }
++            }
++            return Boolean.FALSE;
++        }
++        if (left instanceof Iterator) {
++            Iterator it = (Iterator) left;
++            while (it.hasNext()) {
++                if (compareSingleValues(it.next(), right)) {
++                    return Boolean.TRUE;
++                }
++            }
++            return Boolean.FALSE;
++        }
++        if (right instanceof Iterator) {
++            Iterator it = (Iterator) right;
++            while (it.hasNext()) {
++                if (compareSingleValues(left, it.next())) {
++                    return Boolean.TRUE;
++                }
++            }
++            return Boolean.FALSE;
++        }
++        
++        // Direct comparison for simple values
++        return compareSingleValues(left, right) ? Boolean.TRUE : Boolean.FALSE;
++    }
++    
++    /**
++     * Compare two single values directly without recursion
++     */
++    private boolean compareSingleValues(Object left, Object right) {
++        double ld = InfoSetUtil.doubleValue(left);
++        if (Double.isNaN(ld)) {
++            return false;
++        }
++        double rd = InfoSetUtil.doubleValue(right);
++        if (Double.isNaN(rd)) {
++            return false;
++        }
++        return evaluateCompare(ld == rd ? 0 : ld < rd ? -1 : 1);
+     }

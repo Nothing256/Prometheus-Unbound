@@ -1,0 +1,17 @@
+diff --git a/src/main/java/org/apache/commons/cli/DefaultParser.java b/src/main/java/org/apache/commons/cli/DefaultParser.java
+index 6aeaebe..9780f5c 100644
+--- a/src/main/java/org/apache/commons/cli/DefaultParser.java
++++ b/src/main/java/org/apache/commons/cli/DefaultParser.java
+@@ -230,7 +230,11 @@ public class DefaultParser implements CommandLineParser
+         {
+             skipParsing = true;
+         }
+-        else if (currentOption != null && currentOption.acceptsArg() && isArgument(token))
++        else if (currentOption != null && currentOption.acceptsArg() && isArgument(token)
++                 && !(currentOption.hasOptionalArg() && token.startsWith("-") &&
++                      (options.hasShortOption(token.substring(1)) ||
++                       options.hasLongOption(token.substring(1)) ||
++                       !options.getMatchingOptions(token).isEmpty())))
+         {
+             currentOption.addValueForProcessing(Util.stripLeadingAndTrailingQuotes(token));
+         }

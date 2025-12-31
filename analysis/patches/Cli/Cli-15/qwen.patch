@@ -1,0 +1,57 @@
+diff --git a/src/java/org/apache/commons/cli2/commandline/WriteableCommandLineImpl.java b/src/java/org/apache/commons/cli2/commandline/WriteableCommandLineImpl.java
+index 3ca952d..c591467 100644
+--- a/src/java/org/apache/commons/cli2/commandline/WriteableCommandLineImpl.java
++++ b/src/java/org/apache/commons/cli2/commandline/WriteableCommandLineImpl.java
+@@ -110,23 +110,39 @@ public class WriteableCommandLineImpl
+ 
+     public List getValues(final Option option,
+                           List defaultValues) {
+-        // initialize the return list
+-        List valueList = (List) values.get(option);
++        // Get the actual values from command line
++        List actualValues = (List) values.get(option);
++
++        // Get the option-level defaults (these are the defaults specified during argument construction)
++        List optionLevelDefaults = (List) this.defaultValues.get(option);
++
++        // Priority 1: If actual values exist, try to supplement with option defaults for remaining positions
++        if (actualValues != null && !actualValues.isEmpty()) {
++            if (optionLevelDefaults != null && !optionLevelDefaults.isEmpty()) {
++                // Start with actual values
++                List result = new ArrayList(actualValues);
++
++                // Supplement with defaults from the position after actual values
++                for (int i = actualValues.size(); i < optionLevelDefaults.size(); i++) {
++                    result.add(optionLevelDefaults.get(i));
++                }
++                return result;
++            }
++            // If no option defaults exist, just return actual values
++            return actualValues;
++        }
+ 
+-        // grab the correct default values
+-        if ((valueList == null) || valueList.isEmpty()) {
+-            valueList = defaultValues;
++        // Priority 2: If no actual values, use the method parameter defaults
++        if (defaultValues != null && !defaultValues.isEmpty()) {
++            return defaultValues;
+         }
+ 
+-        // augment the list with the default values
+-        if ((valueList == null) || valueList.isEmpty()) {
+-            valueList = (List) this.defaultValues.get(option);
++        // Priority 3: If no method parameter defaults, use option-level defaults
++        if (optionLevelDefaults != null) {
++            return optionLevelDefaults;
+         }
+-                // if there are more default values as specified, add them to
+-                // the list.
+-                    // copy the list first
+-        
+-        return valueList == null ? Collections.EMPTY_LIST : valueList;
++
++        return Collections.EMPTY_LIST;
+     }
+ 
+     public List getUndefaultedValues(Option option) {

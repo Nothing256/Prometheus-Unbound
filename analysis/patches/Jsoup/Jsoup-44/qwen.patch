@@ -1,0 +1,22 @@
+diff --git a/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java b/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java
+index 9272d089..6cd40beb 100644
+--- a/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java
++++ b/src/main/java/org/jsoup/parser/HtmlTreeBuilder.java
+@@ -675,6 +675,17 @@ class HtmlTreeBuilder extends TreeBuilder {
+         Element lastTable = getFromStack("table");
+         boolean isLastTableParent = false;
+         if (lastTable != null) {
++            // Check if we're in a table cell context (td/th) and try to preserve document order
++            Element tableParent = lastTable.parent();
++            if (tableParent != null) {
++                // If the table is directly in a cell, try to insert into the cell to maintain order
++                if ("td".equals(tableParent.nodeName()) || "th".equals(tableParent.nodeName())) {
++                    tableParent.appendChild(in);
++                    return;
++                }
++            }
++
++            // Original logic for other cases
+             if (lastTable.parent() != null) {
+                 fosterParent = lastTable.parent();
+                 isLastTableParent = true;

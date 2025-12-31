@@ -1,0 +1,10 @@
+--- /tmp/original_to_revert.java	2025-12-27 01:58:42
++++ /tmp/RectangularCholeskyDecomposition_fixed.java	2025-12-27 01:58:42
+@@ -112,7 +112,6 @@
+ 
+                 // all remaining diagonal elements are close to zero, we consider we have
+                 // found the rank of the symmetric positive semidefinite matrix
+-                ++r;
+                 loop = false;
+ 
+             } else {
