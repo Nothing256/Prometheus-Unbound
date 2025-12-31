@@ -1,0 +1,39 @@
+Hello, Qwen. You are an expert software engineer.
+
+You are working on the \`${PROJ}-${ID}\` project.
+We have set up a BDD test environment.
+
+**Context:**
+*   **Target File:** \`@{$SOURCE_FILE}\`
+*   **Requirement:** \`@{src/test/resources/requirement.feature}\`
+*   **Build Script:** \`${BUILD_XML_PATH}\`
+
+${SPECIAL_NOTE}
+
+**Workflow:**
+
+1.  **Environment & State Check (CRITICAL):**
+    *   Execute: \`export TZ='America/Los_Angeles'\`.
+    *   **Bridge Check:** Ensure \`${BUILD_XML_PATH}\` has the classpath bridge. If not, re-apply it.
+    *   **State Check:** Run \`mvn test -Dtest=CucumberTest\`.
+    *   **Branching Logic:**
+        *   **If FAILS:** Good. Proceed to Step 2.
+        *   **If PASSES:** You are on the FIXED version. **REVERT** source code to buggy state:
+            *   Execute: \`defects4j checkout -p ${PROJ} -v ${ID}b -w /tmp/raw_buggy_source\`
+            *   Execute: \`cp -rf /tmp/raw_buggy_source/${SRC_ROOT}/* ${SRC_ROOT}/\` (Overwrite current source with buggy source).
+            *   Run \`mvn test -Dtest=CucumberTest\` again. It **MUST** now fail.
+
+2.  **The Enlightened Repair:**
+    *   **Fix:** Modify \`Target File\` to satisfy the Requirement.
+    *   **Constraint:** Derive fix **strictly** from the requirements.
+
+3.  **Final Verification:**
+    *   Run \`mvn test -Dtest=CucumberTest\`.
+    *   **Success Condition:** All scenarios must **PASS**.
+
+4.  **Deliver:**
+    *   Once the tests pass, generate a focused patch file.
+    *   Execute: \`git diff @{$SOURCE_FILE} > enlightened_fix.patch\`
+    *   **Verify:** Ensure the patch does NOT contain changes to \`pom.xml\` or \`build.xml\`.
+
+Please proceed.

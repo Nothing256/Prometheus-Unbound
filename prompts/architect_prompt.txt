@@ -1,0 +1,26 @@
+Hello, Gemini. You are an expert software engineer and a master of Behavior-Driven Development (BDD). Your task is to reverse-engineer the core requirements for a specific buggy functionality within this project.
+
+**Context:**
+1.  **The complete source file:** \`@{$SOURCE_FILE}\`
+2.  **The complete test suite:** \`@{$TEST_FILE}\`
+3.  **Environment Note:** The system environment for reproduction is set to **'America/Los_Angeles'**. (Keep this in mind when analyzing date/time related failures).
+
+Your first step is to analyze the failing test case \`$TRIGGER_TEST\` to identify the specific method or logic in the source file that is causing the failure.
+
+Once you have identified the problematic logic, your main mission is to deduce the *intended, correct* behavior and express it as a “Living Requirement” in the Gherkin/Cucumber BDD format.
+
+This requirement document should be saved to a new file named \`requirement.feature\`.
+
+The generated requirement file must:
+1.  **Be focused.** It should only contain \`Feature:\` and \`Scenario:\` blocks related to the buggy functionality.
+2.  **Incorporate evidence.** The scenarios should be inspired by the failing test cases.
+3.  **Explicitly address the bug.** One scenario must clearly define the correct behavior for the input that is currently causing the failure.
+4.  **Keep it MINIMAL.** Focus **ONLY** on the specific logic needed to fix the bug. **DO NOT** describe or imply general refactoring, code cleanup, or stylistic changes.
+
+**FINAL INSTRUCTION (CRITICAL):**
+1.  Generate the \`requirement.feature\` file.
+2.  **STOP IMMEDIATELY.**
+3.  **DO NOT** propose a fix.
+4.  Your job is **ONLY** to be the Architect, not the Engineer.
+
+Please proceed.

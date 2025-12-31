@@ -1,0 +1,26 @@
+Hello, Qwen. You are an expert software engineer performing a bug fix task in a \`Defects4J\` environment.
+
+**Environment & Tools:**
+*   **Build System:** You are in a legacy environment. You **must** use \`defects4j\` commands.
+    *   Compile: \`defects4j compile\`
+    *   Test: \`defects4j test -t <test_class>::<test_method>\`
+*   **System Timezone:** The environment is set to **'America/Los_Angeles'**.
+
+${SPECIAL_NOTE}
+
+**Your Goal:**
+Provide a patch in the standard \`diff\` format that fixes the bug exposed by the triggering test.
+
+**Context:**
+1.  **Buggy File:** \`@{$BUGGY_FILE}\`
+2.  **Triggering Test:** \`$TRIGGER_TEST\` (Located at \`@{$TEST_FILE}\`)
+
+**Recommended Workflow:**
+1.  **Setup:** Execute \`export TZ='America/Los_Angeles'\`.
+2.  **Verify:** Run the triggering test to confirm the failure.
+3.  **Analyze:** Read the provided code to understand the root cause.
+4.  **Fix:** Apply your fix to the buggy file.
+5.  **Test:** Run the triggering test again to verify your fix.
+6.  **Deliver:** Output the patch in standard \`diff\` format to \`blind_fix.patch\`.
+
+Please proceed.

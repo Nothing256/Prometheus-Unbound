@@ -1,0 +1,55 @@
+Hello, Qwen. You are an expert build engineer and QA specialist.
+
+Your mission is to set up a \`Cucumber\` test environment and verify that the living documentation accurately reproduces the **original** bug.
+
+**Context:**
+*   \`@{$TEMPLATE_FILE}\` (This is the specific template for Project ${PROJ})
+*   \`@{requirement.feature}\`
+*   **Target Package:** \`${TARGET_PACKAGE_NAME}\` (Place your Cucumber runner here)
+*   **Legacy Build Script:** \`${BUILD_XML_PATH}\`
+
+${SPECIAL_NOTE}
+
+**Workflow:**
+
+1.  **Environment Setup:** \`export TZ='America/Los_Angeles'\`.
+
+2.  **Establish Baseline:**
+    *   Run \`defects4j test\`.
+    *   Observe the failure.
+
+3.  **POM Configuration:** Replace \`pom.xml\` with \`@{$TEMPLATE_FILE}\`.
+
+4.  **File Creation:**
+    *   Move \`requirement.feature\` to \`src/test/resources/\`.
+    *   Create \`${TEST_ROOT}/${TARGET_PACKAGE_DIR}/CucumberTest.java\` (JUnit runner).
+    *   Create \`${TEST_ROOT}/${TARGET_PACKAGE_DIR}/steps/StepDefs.java\` (Glue code).
+    *   **CRITICAL:** Ensure the package declaration matches \`${TARGET_PACKAGE_NAME}\`. Use \`try-catch\` for exception testing.
+
+5.  **The Temporal Bridge:**
+    *   Run \`mvn dependency:build-classpath -Dmdep.outputFile=classpath.txt\`.
+    *   Read \`classpath.txt\` and append its content to the \`d4j.tests.extras\` property in \`defects4j.build.properties\`.
+    *   **Patch Target:** \`${BUILD_XML_PATH}\`
+    *   **Action:** Add \`<pathelement path="\${d4j.tests.extras}"/>\` inside the test classpath in \`${BUILD_XML_PATH}\`.
+
+6.  **Verification Phase 1 (The Trap):**
+    *   Run \`defects4j compile\`.
+    *   Run \`mvn test -Dtest=CucumberTest\`.
+    *   **Success Condition 1:** The test run completes, and the scenarios related to the bug **FAIL**.
+
+7.  **Verification Phase 2 (The Proof - The Sandwich):**
+    *   **CRITICAL STEP:** Switch to the FIXED version to prove the requirement is correct.
+    *   Execute: \`defects4j checkout -p ${PROJ} -v ${ID}f -w /tmp/${DIR_PREFIX}_${ID}_fixed_verification\`.
+    *   Copy your \`pom.xml\`, \`src/test/resources\`, and \`${TEST_ROOT}\` to \`/tmp/${DIR_PREFIX}_${ID}_fixed_verification\`.
+    *   Navigate to \`/tmp/${DIR_PREFIX}_${ID}_fixed_verification\`.
+    *   **Re-apply The Temporal Bridge:**
+        *   **IMPORTANT:** Since this directory is outside your workspace, **DO NOT use the \`write_file\` or \`replace\` tools.** They will fail.
+        *   **MUST USE:** Use \`run_shell_command\` with \`sed\` or \`echo\` to modify \`${BUILD_XML_PATH}\` and \`defects4j.build.properties\`.
+    *   Run \`defects4j compile\` and \`mvn test -Dtest=CucumberTest\`.
+    *   **Success Condition 2:** The test run completes, and **ALL scenarios PASS**.
+
+8.  **Final Report:**
+    *   If Phase 1 fails (as expected) and Phase 2 passes, Report **SUCCESS**.
+    *   **STOP HERE.**
+
+Please proceed.
