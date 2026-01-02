@@ -58,12 +58,19 @@ Prometheus-Unbound/
 │   ├── run_architect.sh    # Step 1: Reverse Engineering Intent
 │   ├── run_engineer_fixer.sh # Step 2 & 3: RQA Verification & Repair
 │   └── optional/           # Optional scripts
+│   └── utils/              # batch processing scripts
 ├── prompts/                # System Prompts (Templates)
+│   ├── blind_prompt.txt
 │   ├── architect_prompt.txt
+│   ├── engineer_prompt.txt
 │   └── fixer_prompt.txt
 ├── analysis/               # Experimental Data & Logs
 │   ├── agent_report.md     # Cost & Efficiency Analysis
-│   └── patches/            # Showcase of "Enlightened" Patches (e.g., Math-69)
+│   ├── cost_analyzer.py    # Scripts to generate agent_report.md
+│   ├── case_studies        # Case studies of Gson-4, Lang-30...
+│   ├── behavioral_analysis # Behavioral Analysis: The Twin Stars
+│   └── patches/            # Showcase of all Patches (blind and 
+enlightened)
 └── README.md
 ```
 
@@ -81,7 +88,7 @@ Prometheus-Unbound/
 ### Installation
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/Prometheus-Unbound.git
+git clone https://github.com/[Anonymous]/Prometheus-Unbound.git
 cd Prometheus-Unbound
 ```
 
@@ -103,11 +110,32 @@ bash pipelines/run_engineer_fixer.sh Math 69
 
 ## 📝 Citation
 
-If you use this code or dataset in your research, please cite our paper:
+If you find our work useful in your research, we would be grateful if you could cite our paper:
 
 ```bibtex
 TBD
 ```
+
+## 🙏 Acknowledgments
+
+Project Prometheus stands on the shoulders of giants. We extend our deepest gratitude to:
+
+**The Theoretical Foundations:**
+*   **Dan North**, for the seminal work on [Behavior-Driven Development](https://dl.acm.org/doi/10.5555/1126767.1126780).
+*   **Zhang Gang (张刚)**, for his invaluable book *《软件设计：从专业到卓越》 (Software Design: From Professional to Excellent)*, which first illuminated the power of "Living Documentation" for us.
+
+**The Battlefield:**
+*   **René Just et al.**, for **[Defects4J](https://github.com/rjust/defects4j)**, the gold standard benchmark that made this research possible.
+
+**The Crew (Our AI Agents):**
+*   **[Gemini](https://github.com/google-gemini/gemini-cli)** (Google DeepMind): Our brilliant *Architect* and *Engineer*.
+*   **[Qwen](https://github.com/QwenLM/qwen-code)** (Alibaba Cloud): Our tireless and powerful *Fixer*.
+*   **[Jules](https://jules.google.com/)** (Google): The first AI agent we encountered, whose spark ignited the Phoenix Universe.
+
+**The Intelligence Support:**
+*   **[NotebookLM](http://notebooklm.google.com/)** & **[Antigravity](https://antigravity.google/)**: For providing deep research capabilities and forensic log analysis.
+
+---
 
 ## 📄 License
 
@@ -118,4 +146,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <p align="center">
   <i>Built with ❤️ by the Prometheus Team. Unbound for the future.</i>
 </p>
-
