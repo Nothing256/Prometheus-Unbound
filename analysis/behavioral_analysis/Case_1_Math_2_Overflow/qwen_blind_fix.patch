@@ -1,0 +1,27 @@
+--- /tmp/original_HypergeometricDistribution.java	2025-12-15 20:31:58
++++ /Users/nothing/workspace/prometheus_workdir_qwen/math_2_blind_auto/src/main/java/org/apache/commons/math3/distribution/HypergeometricDistribution.java	2025-12-15 20:32:20
+@@ -149,7 +149,7 @@
+      * @return the lowest domain value of the hypergeometric distribution.
+      */
+     private int getLowerDomain(int n, int m, int k) {
+-        return FastMath.max(0, m - (n - k));
++        return FastMath.max(0, k - (n - m));
+     }
+ 
+     /**
+@@ -300,13 +300,13 @@
+      *
+      * For population size {@code N}, number of successes {@code m}, and sample
+      * size {@code n}, the lower bound of the support is
+-     * {@code max(0, n + m - N)}.
++     * {@code max(0, n - (N - m))}.
+      *
+      * @return lower bound of the support
+      */
+     public int getSupportLowerBound() {
+         return FastMath.max(0,
+-                            getSampleSize() + getNumberOfSuccesses() - getPopulationSize());
++                            getSampleSize() - (getPopulationSize() - getNumberOfSuccesses()));
+     }
+ 
+     /**
