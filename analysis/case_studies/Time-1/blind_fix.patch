@@ -1,0 +1,21 @@
+diff --git a/src/main/java/org/joda/time/field/UnsupportedDurationField.java b/src/main/java/org/joda/time/field/UnsupportedDurationField.java
+index 7e0ce57a..91acd7d1 100644
+--- a/src/main/java/org/joda/time/field/UnsupportedDurationField.java
++++ b/src/main/java/org/joda/time/field/UnsupportedDurationField.java
+@@ -210,12 +210,13 @@ public final class UnsupportedDurationField extends DurationField implements Ser
+     }
+ 
+     /**
+-     * Always returns zero.
++     * Always returns Long.MAX_VALUE to ensure that the field appears to be
++     * larger than any supported field.
+      *
+-     * @return zero always
++     * @return Long.MAX_VALUE always
+      */
+     public long getUnitMillis() {
+-        return 0;
++        return Long.MAX_VALUE;
+     }
+ 
+     /**
