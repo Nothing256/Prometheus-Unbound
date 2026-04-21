@@ -49,7 +49,7 @@ Evaluated on **680 defects** across 16 projects in Defects4J (v3.0.1):
 
 ```text
 Prometheus-Unbound/
-├── assets/                 # Images and diagrams
+├── assets/                 # Images, diagrams, and CHALLENGES.md
 ├── dataset/                # The "Defects4J-BDD" Dataset (.feature files)
 │   ├── Lang/               # Gherkin specs for Commons Lang
 │   ├── Math/               # Gherkin specs for Commons Math
@@ -57,8 +57,8 @@ Prometheus-Unbound/
 ├── pipelines/              # Automated Multi-Agent Workflow Scripts
 │   ├── run_architect.sh    # Step 1: Reverse Engineering Intent
 │   ├── run_engineer_fixer.sh # Step 2 & 3: RQA Verification & Repair
-│   └── optional/           # Optional scripts
-│   └── utils/              # batch processing scripts
+│   ├── optional/           # Optional scripts
+│   └── utils/              # Batch processing scripts
 ├── prompts/                # System Prompts (Templates)
 │   ├── blind_prompt.txt
 │   ├── architect_prompt.txt
@@ -67,10 +67,11 @@ Prometheus-Unbound/
 ├── analysis/               # Experimental Data & Logs
 │   ├── agent_report.md     # Cost & Efficiency Analysis
 │   ├── cost_analyzer.py    # Scripts to generate agent_report.md
-│   ├── case_studies        # Case studies of Gson-4, Lang-30...
-│   ├── behavioral_analysis # Behavioral Analysis: The Twin Stars
-│   └── patches/            # Showcase of all Patches (blind and 
-enlightened)
+│   ├── BENCHMARK.md        # ⭐ Per-bug status for all 854 D4J bugs
+│   ├── benchmark_status.csv # Machine-readable CSV of all results
+│   ├── case_studies/       # Case studies of Gson-4, Lang-30...
+│   ├── behavioral_analysis/ # Behavioral Analysis: The Twin Stars
+│   └── patches/            # All patches (blind and enlightened)
 └── README.md
 ```
 
@@ -88,7 +89,7 @@ enlightened)
 ### Installation
 
 ```bash
-git clone https://github.com/[Anonymous]/Prometheus-Unbound.git
+git clone https://github.com/Nothing256/Prometheus-Unbound.git
 cd Prometheus-Unbound
 ```
 
@@ -113,7 +114,16 @@ bash pipelines/run_engineer_fixer.sh Math 69
 If you find our work useful in your research, we would be grateful if you could cite our paper:
 
 ```bibtex
-TBD
+@misc{wang2026prometheus,
+  title={Project Prometheus: Bridging the Intent Gap in Agentic Program
+         Repair via Reverse-Engineered Executable Specifications},
+  author={Yongchao Wang and Zhiqiu Huang},
+  year={2026},
+  eprint={2604.17464},
+  archivePrefix={arXiv},
+  primaryClass={cs.SE},
+  url={https://arxiv.org/abs/2604.17464}
+}
 ```
 
 ## 🙏 Acknowledgments
@@ -144,5 +154,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <p align="center">
-  <i>Built with ❤️ by the Prometheus Team. Unbound for the future.</i>
+  <i>Built with ❤️ by the Prometheus Team of <b>Phoenix Universe</b>. Unbound for the future.</i>
 </p>
