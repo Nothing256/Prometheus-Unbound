@@ -138,8 +138,8 @@ Project Prometheus stands on the shoulders of giants. We extend our deepest grat
 *   **René Just et al.**, for **[Defects4J](https://github.com/rjust/defects4j)**, the gold standard benchmark that made this research possible.
 
 **The Crew (Our AI Agents):**
-*   **[Gemini](https://github.com/google-gemini/gemini-cli)** (Google DeepMind): Our brilliant *Architect* and *Engineer*.
-*   **[Qwen](https://github.com/QwenLM/qwen-code)** (Alibaba Cloud): Our tireless and powerful *Fixer*.
+*   **[Gemini](https://github.com/google-gemini/gemini-cli)** (Google DeepMind): Our brilliant *Architect*.
+*   **[Qwen](https://github.com/QwenLM/qwen-code)** (Alibaba Cloud): Our tireless *Engineer* and powerful *Fixer*.
 *   **[Jules](https://jules.google.com/)** (Google): The first AI agent we encountered, whose spark ignited the Phoenix Universe.
 
 **The Intelligence Support:**
