@@ -39,9 +39,8 @@ Evaluated on **680 defects** across 16 projects in Defects4J (v3.0.1):
 
 | Metric             | Result     | Description                                                  |
 | :----------------- | :--------- | :----------------------------------------------------------- |
-| **Total Fix Rate** | **93.97%** | Successfully repaired 639 out of 680 bugs.                   |
 | **Rescue Rate**    | **74.4%**  | Rescued 119 "hard" bugs that failed with a strong blind baseline. |
-| **Coverage**       | **100%**   | Achieved 100% fix rate on 6 projects including Mockito, Gson, and Chart. |
+| **Enlightened Rescues** | **119** | Out of 160 defects originally failed by the blind baseline. |
 
 > *"What kind of requirement shapes what kind of code."* — Our empirical study reveals that precise intent transforms agents from aggressive refactorers into surgical instruments.
 
@@ -66,12 +65,13 @@ Prometheus-Unbound/
 │   └── fixer_prompt.txt
 ├── analysis/               # Experimental Data & Logs
 │   ├── agent_report.md     # Cost & Efficiency Analysis
-│   ├── cost_analyzer.py    # Scripts to generate agent_report.md
 │   ├── BENCHMARK.md        # ⭐ Per-bug status for all 854 D4J bugs
 │   ├── benchmark_status.csv # Machine-readable CSV of all results
 │   ├── case_studies/       # Case studies of Gson-4, Lang-30...
 │   ├── behavioral_analysis/ # Behavioral Analysis: The Twin Stars
 │   └── patches/            # All patches (blind and enlightened)
+├── micro_study_pipelines/  # Scripts for the 30-defect micro-ablation study
+├── micro_study_results/    # Extraction of patches and specs from the micro study
 └── README.md
 ```
 
@@ -85,6 +85,7 @@ Prometheus-Unbound/
 *   **CLI Tools:**
     *   `gemini-cli` (Access to Gemini-3.0-Pro)
     *   `qwen-code-cli` (Access to Qwen-3.0-Coder)
+    *   `agy` (Antigravity CLI, used for ablation control and agent instrumentation)
 
 ### Installation
 
@@ -107,6 +108,14 @@ bash pipelines/run_architect.sh Math 69
 ```bash
 # Usage: bash pipelines/run_engineer_fixer.sh <Project> <BugID>
 bash pipelines/run_engineer_fixer.sh Math 69
+```
+
+**3. Run the Micro-Ablation Study (Optional)**
+```bash
+# Scripts in `micro_study_pipelines` test 4 different ablations of specification guidance.
+# E.g., to run Group C (Static BDD Guidance without execution):
+cd micro_study_pipelines
+bash run_group_c_negative.sh Math 10
 ```
 
 ## 📝 Citation
