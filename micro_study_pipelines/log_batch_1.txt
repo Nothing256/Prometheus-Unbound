@@ -1,0 +1,1183 @@
+==========================================================
+Starting Micro-Study Batch Execution
+Bugs to process: 4
+Groups to process: 4
+Total executions: 16
+==========================================================
+
+==========================================================
+>>> Target: Lang-65
+==========================================================
+
+>>> Executing: run_group_a_blind.sh on Lang-65
+----------------------------------------------------------
+>>> [Conductor] Group A (Blind): Initializing Buggy Environment...
+Checking out 9cbf70d8 to /Users/nothing/prometheus_workdir_microstudy/lang_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Rename enum package in src................................................. OK
+Move enum package in src................................................... OK
+Rename enum package in test................................................ OK
+Move enum package in test.................................................. OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_65 OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_65 OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9cbf70d8:c62bd307..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Lang-65b........................................ OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group A: Antigravity is fixing blindly...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group A Finished.
+----------------------------------------------------------
+>>> Finished run_group_a_blind.sh on Lang-65
+
+>>> Executing: run_group_b_nl.sh on Lang-65
+----------------------------------------------------------
+>>> [Conductor] Group B (NL): Initializing Architect Environment...
+Checking out 9cbf70d8 to /Users/nothing/prometheus_workdir_microstudy/lang_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Rename enum package in src................................................. OK
+Move enum package in src................................................... OK
+Rename enum package in test................................................ OK
+Move enum package in test.................................................. OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_65 OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_65 OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9cbf70d8:c62bd307..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Lang-65b........................................ OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group B: Architect NL is inferring intent...
+>>> [Conductor] Group B (NL): Initializing Fixer Environment...
+Checking out 9cbf70d8 to /Users/nothing/prometheus_workdir_microstudy/lang_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Rename enum package in src................................................. OK
+Move enum package in src................................................... OK
+Rename enum package in test................................................ OK
+Move enum package in test.................................................. OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_65 OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_65 OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9cbf70d8:c62bd307..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Lang-65b........................................ OK
+>>> [Conductor] Group B: Fixer NL is repairing...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group B Finished.
+----------------------------------------------------------
+>>> Finished run_group_b_nl.sh on Lang-65
+
+>>> Executing: run_group_c_negative.sh on Lang-65
+----------------------------------------------------------
+Checking out 9cbf70d8 to /Users/nothing/prometheus_workdir_microstudy/lang_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Rename enum package in src................................................. OK
+Move enum package in src................................................... OK
+Rename enum package in test................................................ OK
+Move enum package in test.................................................. OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_65 OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_65 OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9cbf70d8:c62bd307..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Lang-65b........................................ OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group C: Architect is writing Gherkin...
+Checking out 9cbf70d8 to /Users/nothing/prometheus_workdir_microstudy/lang_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Rename enum package in src................................................. OK
+Move enum package in src................................................... OK
+Rename enum package in test................................................ OK
+Move enum package in test.................................................. OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_65 OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_65 OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9cbf70d8:c62bd307..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Lang-65b........................................ OK
+>>> [Conductor] Group C: Engineer is setting up negative verification...
+Checking out 9cbf70d8 to /Users/nothing/prometheus_workdir_microstudy/lang_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Rename enum package in src................................................. OK
+Move enum package in src................................................... OK
+Rename enum package in test................................................ OK
+Move enum package in test.................................................. OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_65 OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_65 OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9cbf70d8:c62bd307..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Lang-65b........................................ OK
+>>> [Conductor] Group C: Fixer is repairing based on Gherkin...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group C Finished.
+----------------------------------------------------------
+>>> Finished run_group_c_negative.sh on Lang-65
+
+>>> Executing: run_group_d_full.sh on Lang-65
+----------------------------------------------------------
+Checking out 9cbf70d8 to /Users/nothing/prometheus_workdir_microstudy/lang_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Rename enum package in src................................................. OK
+Move enum package in src................................................... OK
+Rename enum package in test................................................ OK
+Move enum package in test.................................................. OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_65 OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_65 OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9cbf70d8:c62bd307..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Lang-65b........................................ OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group D: Architect is writing Gherkin...
+Checking out 9cbf70d8 to /Users/nothing/prometheus_workdir_microstudy/lang_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Rename enum package in src................................................. OK
+Move enum package in src................................................... OK
+Rename enum package in test................................................ OK
+Move enum package in test.................................................. OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_65 OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_65 OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9cbf70d8:c62bd307..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Lang-65b........................................ OK
+>>> [Conductor] Group D: Engineer is setting up sandwich verification...
+Checking out 9cbf70d8 to /Users/nothing/prometheus_workdir_microstudy/lang_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Rename enum package in src................................................. OK
+Move enum package in src................................................... OK
+Rename enum package in test................................................ OK
+Move enum package in test.................................................. OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_65 OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_65 OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9cbf70d8:c62bd307..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Lang-65b........................................ OK
+>>> [Conductor] Group D: Fixer is repairing based on Gherkin...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group D Finished.
+----------------------------------------------------------
+>>> Finished run_group_d_full.sh on Lang-65
+
+==========================================================
+>>> Target: Math-50
+==========================================================
+
+>>> Executing: run_group_a_blind.sh on Math-50
+----------------------------------------------------------
+>>> [Conductor] Group A (Blind): Initializing Buggy Environment...
+Checking out ebc61de9 to /Users/nothing/prometheus_workdir_microstudy/math_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff ebc61de9:565b6b52..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Math-50b........................................ OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group A: Antigravity is fixing blindly...
+root agent idle; waiting for 2 background task(s) (bounded by --print-timeout)
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group A Finished.
+----------------------------------------------------------
+>>> Finished run_group_a_blind.sh on Math-50
+
+>>> Executing: run_group_b_nl.sh on Math-50
+----------------------------------------------------------
+>>> [Conductor] Group B (NL): Initializing Architect Environment...
+Checking out ebc61de9 to /Users/nothing/prometheus_workdir_microstudy/math_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff ebc61de9:565b6b52..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Math-50b........................................ OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group B: Architect NL is inferring intent...
+>>> [Conductor] Group B (NL): Initializing Fixer Environment...
+Checking out ebc61de9 to /Users/nothing/prometheus_workdir_microstudy/math_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff ebc61de9:565b6b52..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Math-50b........................................ OK
+>>> [Conductor] Group B: Fixer NL is repairing...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group B Finished.
+----------------------------------------------------------
+>>> Finished run_group_b_nl.sh on Math-50
+
+>>> Executing: run_group_c_negative.sh on Math-50
+----------------------------------------------------------
+Checking out ebc61de9 to /Users/nothing/prometheus_workdir_microstudy/math_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff ebc61de9:565b6b52..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Math-50b........................................ OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group C: Architect is writing Gherkin...
+Checking out ebc61de9 to /Users/nothing/prometheus_workdir_microstudy/math_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff ebc61de9:565b6b52..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Math-50b........................................ OK
+>>> [Conductor] Group C: Engineer is setting up negative verification...
+Checking out ebc61de9 to /Users/nothing/prometheus_workdir_microstudy/math_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff ebc61de9:565b6b52..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Math-50b........................................ OK
+>>> [Conductor] Group C: Fixer is repairing based on Gherkin...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group C Finished.
+----------------------------------------------------------
+>>> Finished run_group_c_negative.sh on Math-50
+
+>>> Executing: run_group_d_full.sh on Math-50
+----------------------------------------------------------
+Checking out ebc61de9 to /Users/nothing/prometheus_workdir_microstudy/math_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff ebc61de9:565b6b52..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Math-50b........................................ OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group D: Architect is writing Gherkin...
+Checking out ebc61de9 to /Users/nothing/prometheus_workdir_microstudy/math_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff ebc61de9:565b6b52..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Math-50b........................................ OK
+>>> [Conductor] Group D: Engineer is setting up sandwich verification...
+Checking out ebc61de9 to /Users/nothing/prometheus_workdir_microstudy/math_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff ebc61de9:565b6b52..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Math-50b........................................ OK
+>>> [Conductor] Group D: Fixer is repairing based on Gherkin...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group D Finished.
+----------------------------------------------------------
+>>> Finished run_group_d_full.sh on Math-50
+
+==========================================================
+>>> Target: Chart-12
+==========================================================
+
+>>> Executing: run_group_a_blind.sh on Chart-12
+----------------------------------------------------------
+>>> [Conductor] Group A (Blind): Initializing Buggy Environment...
+Checking out 852 to /Users/nothing/prometheus_workdir_microstudy/chart_12_g OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 852:846............................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Chart-12b....................................... OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group A: Antigravity is fixing blindly...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 1
+  - org.jfree.data.time.junit.MonthTests::testParseMonth
+>>> [Conductor] Group A Finished.
+----------------------------------------------------------
+>>> Finished run_group_a_blind.sh on Chart-12
+
+>>> Executing: run_group_b_nl.sh on Chart-12
+----------------------------------------------------------
+>>> [Conductor] Group B (NL): Initializing Architect Environment...
+Checking out 852 to /Users/nothing/prometheus_workdir_microstudy/chart_12_g OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 852:846............................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Chart-12b....................................... OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group B: Architect NL is inferring intent...
+>>> [Conductor] Group B (NL): Initializing Fixer Environment...
+Checking out 852 to /Users/nothing/prometheus_workdir_microstudy/chart_12_g OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 852:846............................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Chart-12b....................................... OK
+>>> [Conductor] Group B: Fixer NL is repairing...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 1
+  - org.jfree.data.time.junit.MonthTests::testParseMonth
+>>> [Conductor] Group B Finished.
+----------------------------------------------------------
+>>> Finished run_group_b_nl.sh on Chart-12
+
+>>> Executing: run_group_c_negative.sh on Chart-12
+----------------------------------------------------------
+Checking out 852 to /Users/nothing/prometheus_workdir_microstudy/chart_12_g OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 852:846............................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Chart-12b....................................... OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group C: Architect is writing Gherkin...
+Checking out 852 to /Users/nothing/prometheus_workdir_microstudy/chart_12_g OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 852:846............................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Chart-12b....................................... OK
+>>> [Conductor] Group C: Engineer is setting up negative verification...
+Checking out 852 to /Users/nothing/prometheus_workdir_microstudy/chart_12_g OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 852:846............................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Chart-12b....................................... OK
+>>> [Conductor] Group C: Fixer is repairing based on Gherkin...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ FAIL
+Executed command:  cd /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix && /Users/nothing/repository/defects4j/major/bin/ant -f /Users/nothing/repository/defects4j/framework/projects/defects4j.build.xml -Dd4j.home=/Users/nothing/repository/defects4j -Dd4j.dir.projects=/Users/nothing/repository/defects4j/framework/projects -Dbasedir=/Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix  compile.tests 2>&1
+Buildfile: /Users/nothing/repository/defects4j/framework/projects/defects4j.build.xml
+
+initialise:
+
+compile:
+    [javac] /Users/nothing/repository/defects4j/framework/projects/Chart/Chart.build.xml:58: warning: 'includeantruntime' was not set, defaulting to build.sysclasspath=last; set to false for repeatable builds
+
+compile-experimental:
+    [javac] /Users/nothing/repository/defects4j/framework/projects/Chart/Chart.build.xml:108: warning: 'includeantruntime' was not set, defaulting to build.sysclasspath=last; set to false for repeatable builds
+    [javac] Compiling 4 source files to /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/build
+    [javac] 警告: [options] 未与 -source 6 一起设置引导类路径
+    [javac] 警告: [options] 源值6已过时, 将在未来所有发行版中删除
+    [javac] 警告: [options] 目标值1.6已过时, 将在未来所有发行版中删除
+    [javac] 警告: [options] 要隐藏有关已过时选项的警告, 请使用 -Xlint:-options。
+    [javac] 4 个警告
+
+compile.tests:
+    [mkdir] Created dir: /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/build-tests
+    [javac] /Users/nothing/repository/defects4j/framework/projects/Chart/Chart.build.xml:126: warning: 'includeantruntime' was not set, defaulting to build.sysclasspath=last; set to false for repeatable builds
+    [javac] Compiling 357 source files to /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/build-tests
+    [javac] 警告: [options] 未与 -source 6 一起设置引导类路径
+    [javac] 警告: [options] 源值6已过时, 将在未来所有发行版中删除
+    [javac] 警告: [options] 目标值1.6已过时, 将在未来所有发行版中删除
+    [javac] 警告: [options] 要隐藏有关已过时选项的警告, 请使用 -Xlint:-options。
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/CucumberTest.java:3: 错误: 程序包io.cucumber.junit不存在
+    [javac] import io.cucumber.junit.Cucumber;
+    [javac]                         ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/CucumberTest.java:4: 错误: 程序包io.cucumber.junit不存在
+    [javac] import io.cucumber.junit.CucumberOptions;
+    [javac]                         ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/CucumberTest.java:8: 错误: 找不到符号
+    [javac] @CucumberOptions(
+    [javac]  ^
+    [javac]   符号: 类 CucumberOptions
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:3: 错误: 程序包io.cucumber.java.en不存在
+    [javac] import io.cucumber.java.en.And;
+    [javac]                           ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:4: 错误: 程序包io.cucumber.java.en不存在
+    [javac] import io.cucumber.java.en.Given;
+    [javac]                           ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:5: 错误: 程序包io.cucumber.java.en不存在
+    [javac] import io.cucumber.java.en.Then;
+    [javac]                           ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:6: 错误: 程序包io.cucumber.java.en不存在
+    [javac] import io.cucumber.java.en.When;
+    [javac]                           ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/CucumberTest.java:7: 错误: 找不到符号
+    [javac] @RunWith(Cucumber.class)
+    [javac]          ^
+    [javac]   符号: 类 Cucumber
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:19: 错误: 找不到符号
+    [javac]     @Given("a category dataset")
+    [javac]      ^
+    [javac]   符号:   类 Given
+    [javac]   位置: 类 StepDefs
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:24: 错误: 找不到符号
+    [javac]     @When("a MultiplePiePlot is created with the dataset")
+    [javac]      ^
+    [javac]   符号:   类 When
+    [javac]   位置: 类 StepDefs
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:29: 错误: 找不到符号
+    [javac]     @Then("the dataset should have the plot registered as a listener")
+    [javac]      ^
+    [javac]   符号:   类 Then
+    [javac]   位置: 类 StepDefs
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:34: 错误: 找不到符号
+    [javac]     @And("the plot should have the dataset assigned")
+    [javac]      ^
+    [javac]   符号:   类 And
+    [javac]   位置: 类 StepDefs
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:39: 错误: 找不到符号
+    [javac]     @When("a MultiplePiePlot is created with no arguments")
+    [javac]      ^
+    [javac]   符号:   类 When
+    [javac]   位置: 类 StepDefs
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:44: 错误: 找不到符号
+    [javac]     @Then("the plot should have no dataset assigned")
+    [javac]      ^
+    [javac]   符号:   类 Then
+    [javac]   位置: 类 StepDefs
+    [javac] 注: 某些输入文件使用或覆盖了已过时的 API。
+    [javac] 注: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+    [javac] 注: 某些输入文件使用了未经检查或不安全的操作。
+    [javac] 注: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+    [javac] 14 个错误
+    [javac] 4 个警告
+
+BUILD FAILED
+/Users/nothing/repository/defects4j/framework/projects/Chart/Chart.build.xml:126: Compile failed; see the compiler error output for details.
+
+Total time: 1 second
+Cannot compile tests! at /Users/nothing/repository/defects4j/framework/bin/d4j/d4j-compile line 83.
+Compilation failed in require at /Users/nothing/repository/defects4j/framework/bin/defects4j line 195.
+Running ant (compile.tests)................................................ FAIL
+Executed command:  cd /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix && /Users/nothing/repository/defects4j/major/bin/ant -f /Users/nothing/repository/defects4j/framework/projects/defects4j.build.xml -Dd4j.home=/Users/nothing/repository/defects4j -Dd4j.dir.projects=/Users/nothing/repository/defects4j/framework/projects -Dbasedir=/Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix  compile.tests 2>&1
+Buildfile: /Users/nothing/repository/defects4j/framework/projects/defects4j.build.xml
+
+initialise:
+
+compile:
+    [javac] /Users/nothing/repository/defects4j/framework/projects/Chart/Chart.build.xml:58: warning: 'includeantruntime' was not set, defaulting to build.sysclasspath=last; set to false for repeatable builds
+
+compile-experimental:
+    [javac] /Users/nothing/repository/defects4j/framework/projects/Chart/Chart.build.xml:108: warning: 'includeantruntime' was not set, defaulting to build.sysclasspath=last; set to false for repeatable builds
+
+compile.tests:
+    [javac] /Users/nothing/repository/defects4j/framework/projects/Chart/Chart.build.xml:126: warning: 'includeantruntime' was not set, defaulting to build.sysclasspath=last; set to false for repeatable builds
+    [javac] Compiling 357 source files to /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/build-tests
+    [javac] 警告: [options] 未与 -source 6 一起设置引导类路径
+    [javac] 警告: [options] 源值6已过时, 将在未来所有发行版中删除
+    [javac] 警告: [options] 目标值1.6已过时, 将在未来所有发行版中删除
+    [javac] 警告: [options] 要隐藏有关已过时选项的警告, 请使用 -Xlint:-options。
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/CucumberTest.java:3: 错误: 程序包io.cucumber.junit不存在
+    [javac] import io.cucumber.junit.Cucumber;
+    [javac]                         ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/CucumberTest.java:4: 错误: 程序包io.cucumber.junit不存在
+    [javac] import io.cucumber.junit.CucumberOptions;
+    [javac]                         ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/CucumberTest.java:8: 错误: 找不到符号
+    [javac] @CucumberOptions(
+    [javac]  ^
+    [javac]   符号: 类 CucumberOptions
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:3: 错误: 程序包io.cucumber.java.en不存在
+    [javac] import io.cucumber.java.en.And;
+    [javac]                           ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:4: 错误: 程序包io.cucumber.java.en不存在
+    [javac] import io.cucumber.java.en.Given;
+    [javac]                           ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:5: 错误: 程序包io.cucumber.java.en不存在
+    [javac] import io.cucumber.java.en.Then;
+    [javac]                           ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:6: 错误: 程序包io.cucumber.java.en不存在
+    [javac] import io.cucumber.java.en.When;
+    [javac]                           ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/CucumberTest.java:7: 错误: 找不到符号
+    [javac] @RunWith(Cucumber.class)
+    [javac]          ^
+    [javac]   符号: 类 Cucumber
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:19: 错误: 找不到符号
+    [javac]     @Given("a category dataset")
+    [javac]      ^
+    [javac]   符号:   类 Given
+    [javac]   位置: 类 StepDefs
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:24: 错误: 找不到符号
+    [javac]     @When("a MultiplePiePlot is created with the dataset")
+    [javac]      ^
+    [javac]   符号:   类 When
+    [javac]   位置: 类 StepDefs
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:29: 错误: 找不到符号
+    [javac]     @Then("the dataset should have the plot registered as a listener")
+    [javac]      ^
+    [javac]   符号:   类 Then
+    [javac]   位置: 类 StepDefs
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:34: 错误: 找不到符号
+    [javac]     @And("the plot should have the dataset assigned")
+    [javac]      ^
+    [javac]   符号:   类 And
+    [javac]   位置: 类 StepDefs
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:39: 错误: 找不到符号
+    [javac]     @When("a MultiplePiePlot is created with no arguments")
+    [javac]      ^
+    [javac]   符号:   类 When
+    [javac]   位置: 类 StepDefs
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_c_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:44: 错误: 找不到符号
+    [javac]     @Then("the plot should have no dataset assigned")
+    [javac]      ^
+    [javac]   符号:   类 Then
+    [javac]   位置: 类 StepDefs
+    [javac] 注: 某些输入文件使用或覆盖了已过时的 API。
+    [javac] 注: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+    [javac] 注: 某些输入文件使用了未经检查或不安全的操作。
+    [javac] 注: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+    [javac] 14 个错误
+    [javac] 4 个警告
+
+BUILD FAILED
+/Users/nothing/repository/defects4j/framework/projects/Chart/Chart.build.xml:126: Compile failed; see the compiler error output for details.
+
+Total time: 1 second
+Cannot compile test suite! at /Users/nothing/repository/defects4j/framework/bin/d4j/d4j-test line 134.
+Compilation failed in require at /Users/nothing/repository/defects4j/framework/bin/defects4j line 195.
+>>> [Conductor] Group C Finished.
+----------------------------------------------------------
+>>> Finished run_group_c_negative.sh on Chart-12
+
+>>> Executing: run_group_d_full.sh on Chart-12
+----------------------------------------------------------
+Checking out 852 to /Users/nothing/prometheus_workdir_microstudy/chart_12_g OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 852:846............................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Chart-12b....................................... OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group D: Architect is writing Gherkin...
+Checking out 852 to /Users/nothing/prometheus_workdir_microstudy/chart_12_g OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 852:846............................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Chart-12b....................................... OK
+>>> [Conductor] Group D: Engineer is setting up sandwich verification...
+Checking out 852 to /Users/nothing/prometheus_workdir_microstudy/chart_12_g OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 852:846............................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Chart-12b....................................... OK
+>>> [Conductor] Group D: Fixer is repairing based on Gherkin...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ FAIL
+Executed command:  cd /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix && /Users/nothing/repository/defects4j/major/bin/ant -f /Users/nothing/repository/defects4j/framework/projects/defects4j.build.xml -Dd4j.home=/Users/nothing/repository/defects4j -Dd4j.dir.projects=/Users/nothing/repository/defects4j/framework/projects -Dbasedir=/Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix  compile.tests 2>&1
+Buildfile: /Users/nothing/repository/defects4j/framework/projects/defects4j.build.xml
+
+initialise:
+
+compile:
+    [javac] /Users/nothing/repository/defects4j/framework/projects/Chart/Chart.build.xml:58: warning: 'includeantruntime' was not set, defaulting to build.sysclasspath=last; set to false for repeatable builds
+
+compile-experimental:
+    [javac] /Users/nothing/repository/defects4j/framework/projects/Chart/Chart.build.xml:108: warning: 'includeantruntime' was not set, defaulting to build.sysclasspath=last; set to false for repeatable builds
+    [javac] Compiling 4 source files to /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/build
+    [javac] 警告: [options] 未与 -source 6 一起设置引导类路径
+    [javac] 警告: [options] 源值6已过时, 将在未来所有发行版中删除
+    [javac] 警告: [options] 目标值1.6已过时, 将在未来所有发行版中删除
+    [javac] 警告: [options] 要隐藏有关已过时选项的警告, 请使用 -Xlint:-options。
+    [javac] 4 个警告
+
+compile.tests:
+    [mkdir] Created dir: /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/build-tests
+    [javac] /Users/nothing/repository/defects4j/framework/projects/Chart/Chart.build.xml:126: warning: 'includeantruntime' was not set, defaulting to build.sysclasspath=last; set to false for repeatable builds
+    [javac] Compiling 357 source files to /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/build-tests
+    [javac] 警告: [options] 未与 -source 6 一起设置引导类路径
+    [javac] 警告: [options] 源值6已过时, 将在未来所有发行版中删除
+    [javac] 警告: [options] 目标值1.6已过时, 将在未来所有发行版中删除
+    [javac] 警告: [options] 要隐藏有关已过时选项的警告, 请使用 -Xlint:-options。
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/CucumberTest.java:3: 错误: 程序包io.cucumber.junit不存在
+    [javac] import io.cucumber.junit.Cucumber;
+    [javac]                         ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/CucumberTest.java:4: 错误: 程序包io.cucumber.junit不存在
+    [javac] import io.cucumber.junit.CucumberOptions;
+    [javac]                         ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/CucumberTest.java:8: 错误: 找不到符号
+    [javac] @CucumberOptions(
+    [javac]  ^
+    [javac]   符号: 类 CucumberOptions
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:3: 错误: 程序包io.cucumber.java.en不存在
+    [javac] import io.cucumber.java.en.Given;
+    [javac]                           ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:4: 错误: 程序包io.cucumber.java.en不存在
+    [javac] import io.cucumber.java.en.When;
+    [javac]                           ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:5: 错误: 程序包io.cucumber.java.en不存在
+    [javac] import io.cucumber.java.en.Then;
+    [javac]                           ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/CucumberTest.java:7: 错误: 找不到符号
+    [javac] @RunWith(Cucumber.class)
+    [javac]          ^
+    [javac]   符号: 类 Cucumber
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:17: 错误: 找不到符号
+    [javac]     @Given("a category dataset")
+    [javac]      ^
+    [javac]   符号:   类 Given
+    [javac]   位置: 类 StepDefs
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:22: 错误: 找不到符号
+    [javac]     @When("a MultiplePiePlot is created with the category dataset")
+    [javac]      ^
+    [javac]   符号:   类 When
+    [javac]   位置: 类 StepDefs
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:27: 错误: 找不到符号
+    [javac]     @Then("the category dataset should have the MultiplePiePlot registered as a change listener")
+    [javac]      ^
+    [javac]   符号:   类 Then
+    [javac]   位置: 类 StepDefs
+    [javac] 注: 某些输入文件使用或覆盖了已过时的 API。
+    [javac] 注: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+    [javac] 注: 某些输入文件使用了未经检查或不安全的操作。
+    [javac] 注: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+    [javac] 10 个错误
+    [javac] 4 个警告
+
+BUILD FAILED
+/Users/nothing/repository/defects4j/framework/projects/Chart/Chart.build.xml:126: Compile failed; see the compiler error output for details.
+
+Total time: 1 second
+Cannot compile tests! at /Users/nothing/repository/defects4j/framework/bin/d4j/d4j-compile line 83.
+Compilation failed in require at /Users/nothing/repository/defects4j/framework/bin/defects4j line 195.
+Running ant (compile.tests)................................................ FAIL
+Executed command:  cd /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix && /Users/nothing/repository/defects4j/major/bin/ant -f /Users/nothing/repository/defects4j/framework/projects/defects4j.build.xml -Dd4j.home=/Users/nothing/repository/defects4j -Dd4j.dir.projects=/Users/nothing/repository/defects4j/framework/projects -Dbasedir=/Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix  compile.tests 2>&1
+Buildfile: /Users/nothing/repository/defects4j/framework/projects/defects4j.build.xml
+
+initialise:
+
+compile:
+    [javac] /Users/nothing/repository/defects4j/framework/projects/Chart/Chart.build.xml:58: warning: 'includeantruntime' was not set, defaulting to build.sysclasspath=last; set to false for repeatable builds
+
+compile-experimental:
+    [javac] /Users/nothing/repository/defects4j/framework/projects/Chart/Chart.build.xml:108: warning: 'includeantruntime' was not set, defaulting to build.sysclasspath=last; set to false for repeatable builds
+
+compile.tests:
+    [javac] /Users/nothing/repository/defects4j/framework/projects/Chart/Chart.build.xml:126: warning: 'includeantruntime' was not set, defaulting to build.sysclasspath=last; set to false for repeatable builds
+    [javac] Compiling 357 source files to /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/build-tests
+    [javac] 警告: [options] 未与 -source 6 一起设置引导类路径
+    [javac] 警告: [options] 源值6已过时, 将在未来所有发行版中删除
+    [javac] 警告: [options] 目标值1.6已过时, 将在未来所有发行版中删除
+    [javac] 警告: [options] 要隐藏有关已过时选项的警告, 请使用 -Xlint:-options。
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/CucumberTest.java:3: 错误: 程序包io.cucumber.junit不存在
+    [javac] import io.cucumber.junit.Cucumber;
+    [javac]                         ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/CucumberTest.java:4: 错误: 程序包io.cucumber.junit不存在
+    [javac] import io.cucumber.junit.CucumberOptions;
+    [javac]                         ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/CucumberTest.java:8: 错误: 找不到符号
+    [javac] @CucumberOptions(
+    [javac]  ^
+    [javac]   符号: 类 CucumberOptions
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:3: 错误: 程序包io.cucumber.java.en不存在
+    [javac] import io.cucumber.java.en.Given;
+    [javac]                           ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:4: 错误: 程序包io.cucumber.java.en不存在
+    [javac] import io.cucumber.java.en.When;
+    [javac]                           ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:5: 错误: 程序包io.cucumber.java.en不存在
+    [javac] import io.cucumber.java.en.Then;
+    [javac]                           ^
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/CucumberTest.java:7: 错误: 找不到符号
+    [javac] @RunWith(Cucumber.class)
+    [javac]          ^
+    [javac]   符号: 类 Cucumber
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:17: 错误: 找不到符号
+    [javac]     @Given("a category dataset")
+    [javac]      ^
+    [javac]   符号:   类 Given
+    [javac]   位置: 类 StepDefs
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:22: 错误: 找不到符号
+    [javac]     @When("a MultiplePiePlot is created with the category dataset")
+    [javac]      ^
+    [javac]   符号:   类 When
+    [javac]   位置: 类 StepDefs
+    [javac] /Users/nothing/prometheus_workdir_microstudy/chart_12_group_d_fix/tests/org/jfree/chart/plot/junit/StepDefs.java:27: 错误: 找不到符号
+    [javac]     @Then("the category dataset should have the MultiplePiePlot registered as a change listener")
+    [javac]      ^
+    [javac]   符号:   类 Then
+    [javac]   位置: 类 StepDefs
+    [javac] 注: 某些输入文件使用或覆盖了已过时的 API。
+    [javac] 注: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+    [javac] 注: 某些输入文件使用了未经检查或不安全的操作。
+    [javac] 注: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+    [javac] 10 个错误
+    [javac] 4 个警告
+
+BUILD FAILED
+/Users/nothing/repository/defects4j/framework/projects/Chart/Chart.build.xml:126: Compile failed; see the compiler error output for details.
+
+Total time: 1 second
+Cannot compile test suite! at /Users/nothing/repository/defects4j/framework/bin/d4j/d4j-test line 134.
+Compilation failed in require at /Users/nothing/repository/defects4j/framework/bin/defects4j line 195.
+>>> [Conductor] Group D Finished.
+----------------------------------------------------------
+>>> Finished run_group_d_full.sh on Chart-12
+
+==========================================================
+>>> Target: JxPath-6
+==========================================================
+
+>>> Executing: run_group_a_blind.sh on JxPath-6
+----------------------------------------------------------
+>>> [Conductor] Group A (Blind): Initializing Buggy Environment...
+Checking out 9b6406bf to /Users/nothing/prometheus_workdir_microstudy/jxpat OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9b6406bf:5e277f49..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: JxPath-6b....................................... OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group A: Antigravity is fixing blindly...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group A Finished.
+----------------------------------------------------------
+>>> Finished run_group_a_blind.sh on JxPath-6
+
+>>> Executing: run_group_b_nl.sh on JxPath-6
+----------------------------------------------------------
+>>> [Conductor] Group B (NL): Initializing Architect Environment...
+Checking out 9b6406bf to /Users/nothing/prometheus_workdir_microstudy/jxpat OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9b6406bf:5e277f49..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: JxPath-6b....................................... OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group B: Architect NL is inferring intent...
+>>> [Conductor] Group B (NL): Initializing Fixer Environment...
+Checking out 9b6406bf to /Users/nothing/prometheus_workdir_microstudy/jxpat OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9b6406bf:5e277f49..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: JxPath-6b....................................... OK
+>>> [Conductor] Group B: Fixer NL is repairing...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group B Finished.
+----------------------------------------------------------
+>>> Finished run_group_b_nl.sh on JxPath-6
+
+>>> Executing: run_group_c_negative.sh on JxPath-6
+----------------------------------------------------------
+Checking out 9b6406bf to /Users/nothing/prometheus_workdir_microstudy/jxpat OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9b6406bf:5e277f49..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: JxPath-6b....................................... OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group C: Architect is writing Gherkin...
+Checking out 9b6406bf to /Users/nothing/prometheus_workdir_microstudy/jxpat OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9b6406bf:5e277f49..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: JxPath-6b....................................... OK
+>>> [Conductor] Group C: Engineer is setting up negative verification...
+Checking out 9b6406bf to /Users/nothing/prometheus_workdir_microstudy/jxpat OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9b6406bf:5e277f49..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: JxPath-6b....................................... OK
+>>> [Conductor] Group C: Fixer is repairing based on Gherkin...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 1
+  - org.apache.commons.jxpath.ri.compiler.CucumberTest
+>>> [Conductor] Group C Finished.
+----------------------------------------------------------
+>>> Finished run_group_c_negative.sh on JxPath-6
+
+>>> Executing: run_group_d_full.sh on JxPath-6
+----------------------------------------------------------
+Checking out 9b6406bf to /Users/nothing/prometheus_workdir_microstudy/jxpat OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9b6406bf:5e277f49..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: JxPath-6b....................................... OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group D: Architect is writing Gherkin...
+Checking out 9b6406bf to /Users/nothing/prometheus_workdir_microstudy/jxpat OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9b6406bf:5e277f49..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: JxPath-6b....................................... OK
+>>> [Conductor] Group D: Engineer is setting up sandwich verification...
+Checking out 9b6406bf to /Users/nothing/prometheus_workdir_microstudy/jxpat OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9b6406bf:5e277f49..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: JxPath-6b....................................... OK
+>>> [Conductor] Group D: Fixer is repairing based on Gherkin...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 1
+  - org.apache.commons.jxpath.ri.compiler.CucumberTest
+>>> [Conductor] Group D Finished.
+----------------------------------------------------------
+>>> Finished run_group_d_full.sh on JxPath-6
+
+==========================================================
+>>> BATCH EXECUTION COMPLETE
+==========================================================

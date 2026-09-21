@@ -1,0 +1,867 @@
+==========================================================
+Starting Micro-Study Batch Execution
+Bugs to process: 4
+Groups to process: 4
+Total executions: 16
+==========================================================
+
+==========================================================
+>>> Target: Time-1
+==========================================================
+
+>>> Executing: run_group_a_blind.sh on Time-1
+----------------------------------------------------------
+>>> [Conductor] Group A (Blind): Initializing Buggy Environment...
+Checking out 9a62b06b to /Users/nothing/prometheus_workdir_microstudy/time_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Copy generated Ant build file.............................................. OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/time_1_ OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9a62b06b:8612f9e5..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Time-1b......................................... OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group A: Antigravity is fixing blindly...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group A Finished.
+----------------------------------------------------------
+>>> Finished run_group_a_blind.sh on Time-1
+
+>>> Executing: run_group_b_nl.sh on Time-1
+----------------------------------------------------------
+>>> [Conductor] Group B (NL): Initializing Architect Environment...
+Checking out 9a62b06b to /Users/nothing/prometheus_workdir_microstudy/time_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Copy generated Ant build file.............................................. OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/time_1_ OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9a62b06b:8612f9e5..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Time-1b......................................... OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group B: Architect NL is inferring intent...
+>>> [Conductor] Group B (NL): Initializing Fixer Environment...
+Checking out 9a62b06b to /Users/nothing/prometheus_workdir_microstudy/time_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Copy generated Ant build file.............................................. OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/time_1_ OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9a62b06b:8612f9e5..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Time-1b......................................... OK
+>>> [Conductor] Group B: Fixer NL is repairing...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group B Finished.
+----------------------------------------------------------
+>>> Finished run_group_b_nl.sh on Time-1
+
+>>> Executing: run_group_c_negative.sh on Time-1
+----------------------------------------------------------
+Checking out 9a62b06b to /Users/nothing/prometheus_workdir_microstudy/time_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Copy generated Ant build file.............................................. OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/time_1_ OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9a62b06b:8612f9e5..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Time-1b......................................... OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group C: Architect is writing Gherkin...
+Checking out 9a62b06b to /Users/nothing/prometheus_workdir_microstudy/time_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Copy generated Ant build file.............................................. OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/time_1_ OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9a62b06b:8612f9e5..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Time-1b......................................... OK
+>>> [Conductor] Group C: Engineer is setting up negative verification...
+Checking out 9a62b06b to /Users/nothing/prometheus_workdir_microstudy/time_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Copy generated Ant build file.............................................. OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/time_1_ OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9a62b06b:8612f9e5..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Time-1b......................................... OK
+>>> [Conductor] Group C: Fixer is repairing based on Gherkin...
+>>> [Conductor] Cleaning up BDD test artifacts for final verification...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group C Finished.
+----------------------------------------------------------
+>>> Finished run_group_c_negative.sh on Time-1
+
+>>> Executing: run_group_d_full.sh on Time-1
+----------------------------------------------------------
+Checking out 9a62b06b to /Users/nothing/prometheus_workdir_microstudy/time_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Copy generated Ant build file.............................................. OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/time_1_ OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9a62b06b:8612f9e5..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Time-1b......................................... OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group D: Architect is writing Gherkin...
+Checking out 9a62b06b to /Users/nothing/prometheus_workdir_microstudy/time_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Copy generated Ant build file.............................................. OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/time_1_ OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9a62b06b:8612f9e5..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Time-1b......................................... OK
+>>> [Conductor] Group D: Engineer is setting up sandwich verification...
+Checking out 9a62b06b to /Users/nothing/prometheus_workdir_microstudy/time_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Copy generated Ant build file.............................................. OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/time_1_ OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 9a62b06b:8612f9e5..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Time-1b......................................... OK
+>>> [Conductor] Group D: Fixer is repairing based on Gherkin...
+>>> [Conductor] Cleaning up BDD test artifacts for final verification...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group D Finished.
+----------------------------------------------------------
+>>> Finished run_group_d_full.sh on Time-1
+
+==========================================================
+>>> Target: Csv-3
+==========================================================
+
+>>> Executing: run_group_a_blind.sh on Csv-3
+----------------------------------------------------------
+>>> [Conductor] Group A (Blind): Initializing Buggy Environment...
+Checking out 2c612082 to /Users/nothing/prometheus_workdir_microstudy/csv_3 OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Copy generated Ant build file.............................................. OK
+Run post-checkout hook..................................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/csv_3_g OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 2c612082:e3198089..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Csv-3b.......................................... OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group A: Antigravity is fixing blindly...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group A Finished.
+----------------------------------------------------------
+>>> Finished run_group_a_blind.sh on Csv-3
+
+>>> Executing: run_group_b_nl.sh on Csv-3
+----------------------------------------------------------
+>>> [Conductor] Group B (NL): Initializing Architect Environment...
+Checking out 2c612082 to /Users/nothing/prometheus_workdir_microstudy/csv_3 OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Copy generated Ant build file.............................................. OK
+Run post-checkout hook..................................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/csv_3_g OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 2c612082:e3198089..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Csv-3b.......................................... OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group B: Architect NL is inferring intent...
+>>> [Conductor] Group B (NL): Initializing Fixer Environment...
+Checking out 2c612082 to /Users/nothing/prometheus_workdir_microstudy/csv_3 OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Copy generated Ant build file.............................................. OK
+Run post-checkout hook..................................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/csv_3_g OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 2c612082:e3198089..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Csv-3b.......................................... OK
+>>> [Conductor] Group B: Fixer NL is repairing...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group B Finished.
+----------------------------------------------------------
+>>> Finished run_group_b_nl.sh on Csv-3
+
+>>> Executing: run_group_c_negative.sh on Csv-3
+----------------------------------------------------------
+Checking out 2c612082 to /Users/nothing/prometheus_workdir_microstudy/csv_3 OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Copy generated Ant build file.............................................. OK
+Run post-checkout hook..................................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/csv_3_g OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 2c612082:e3198089..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Csv-3b.......................................... OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group C: Architect is writing Gherkin...
+Checking out 2c612082 to /Users/nothing/prometheus_workdir_microstudy/csv_3 OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Copy generated Ant build file.............................................. OK
+Run post-checkout hook..................................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/csv_3_g OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 2c612082:e3198089..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Csv-3b.......................................... OK
+>>> [Conductor] Group C: Engineer is setting up negative verification...
+Checking out 2c612082 to /Users/nothing/prometheus_workdir_microstudy/csv_3 OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Copy generated Ant build file.............................................. OK
+Run post-checkout hook..................................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/csv_3_g OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 2c612082:e3198089..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Csv-3b.......................................... OK
+>>> [Conductor] Group C: Fixer is repairing based on Gherkin...
+>>> [Conductor] Cleaning up BDD test artifacts for final verification...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group C Finished.
+----------------------------------------------------------
+>>> Finished run_group_c_negative.sh on Csv-3
+
+>>> Executing: run_group_d_full.sh on Csv-3
+----------------------------------------------------------
+Checking out 2c612082 to /Users/nothing/prometheus_workdir_microstudy/csv_3 OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Copy generated Ant build file.............................................. OK
+Run post-checkout hook..................................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/csv_3_g OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 2c612082:e3198089..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Csv-3b.......................................... OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group D: Architect is writing Gherkin...
+Checking out 2c612082 to /Users/nothing/prometheus_workdir_microstudy/csv_3 OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Copy generated Ant build file.............................................. OK
+Run post-checkout hook..................................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/csv_3_g OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 2c612082:e3198089..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Csv-3b.......................................... OK
+>>> [Conductor] Group D: Engineer is setting up sandwich verification...
+Checking out 2c612082 to /Users/nothing/prometheus_workdir_microstudy/csv_3 OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Copy generated Ant build file.............................................. OK
+Run post-checkout hook..................................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/csv_3_g OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 2c612082:e3198089..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Csv-3b.......................................... OK
+>>> [Conductor] Group D: Fixer is repairing based on Gherkin...
+root agent idle; waiting for 1 background task(s) (bounded by --print-timeout)
+>>> [Conductor] Cleaning up BDD test artifacts for final verification...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group D Finished.
+----------------------------------------------------------
+>>> Finished run_group_d_full.sh on Csv-3
+
+==========================================================
+>>> Target: Lang-17
+==========================================================
+
+>>> Executing: run_group_a_blind.sh on Lang-17
+----------------------------------------------------------
+>>> [Conductor] Group A (Blind): Initializing Buggy Environment...
+Checking out 2c1b5be1 to /Users/nothing/prometheus_workdir_microstudy/lang_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_17 OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 2c1b5be1:8a3e8603..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Lang-17b........................................ OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group A: Antigravity is fixing blindly...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group A Finished.
+----------------------------------------------------------
+>>> Finished run_group_a_blind.sh on Lang-17
+
+>>> Executing: run_group_b_nl.sh on Lang-17
+----------------------------------------------------------
+>>> [Conductor] Group B (NL): Initializing Architect Environment...
+Checking out 2c1b5be1 to /Users/nothing/prometheus_workdir_microstudy/lang_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_17 OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 2c1b5be1:8a3e8603..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Lang-17b........................................ OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group B: Architect NL is inferring intent...
+>>> [Conductor] Group B (NL): Initializing Fixer Environment...
+Checking out 2c1b5be1 to /Users/nothing/prometheus_workdir_microstudy/lang_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_17 OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 2c1b5be1:8a3e8603..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Lang-17b........................................ OK
+>>> [Conductor] Group B: Fixer NL is repairing...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group B Finished.
+----------------------------------------------------------
+>>> Finished run_group_b_nl.sh on Lang-17
+
+>>> Executing: run_group_c_negative.sh on Lang-17
+----------------------------------------------------------
+Checking out 2c1b5be1 to /Users/nothing/prometheus_workdir_microstudy/lang_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_17 OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 2c1b5be1:8a3e8603..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Lang-17b........................................ OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group C: Architect is writing Gherkin...
+Checking out 2c1b5be1 to /Users/nothing/prometheus_workdir_microstudy/lang_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_17 OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 2c1b5be1:8a3e8603..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Lang-17b........................................ OK
+>>> [Conductor] Group C: Engineer is setting up negative verification...
+Checking out 2c1b5be1 to /Users/nothing/prometheus_workdir_microstudy/lang_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_17 OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 2c1b5be1:8a3e8603..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Lang-17b........................................ OK
+>>> [Conductor] Group C: Fixer is repairing based on Gherkin...
+>>> [Conductor] Cleaning up BDD test artifacts for final verification...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group C Finished.
+----------------------------------------------------------
+>>> Finished run_group_c_negative.sh on Lang-17
+
+>>> Executing: run_group_d_full.sh on Lang-17
+----------------------------------------------------------
+Checking out 2c1b5be1 to /Users/nothing/prometheus_workdir_microstudy/lang_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_17 OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 2c1b5be1:8a3e8603..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Lang-17b........................................ OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group D: Architect is writing Gherkin...
+Checking out 2c1b5be1 to /Users/nothing/prometheus_workdir_microstudy/lang_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_17 OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 2c1b5be1:8a3e8603..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Lang-17b........................................ OK
+>>> [Conductor] Group D: Engineer is setting up sandwich verification...
+Checking out 2c1b5be1 to /Users/nothing/prometheus_workdir_microstudy/lang_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Apply patch................................................................ OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Backing up build file: /Users/nothing/prometheus_workdir_microstudy/lang_17 OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 2c1b5be1:8a3e8603..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Lang-17b........................................ OK
+>>> [Conductor] Group D: Fixer is repairing based on Gherkin...
+>>> [Conductor] Cleaning up BDD test artifacts for final verification...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group D Finished.
+----------------------------------------------------------
+>>> Finished run_group_d_full.sh on Lang-17
+
+==========================================================
+>>> Target: Math-10
+==========================================================
+
+>>> Executing: run_group_a_blind.sh on Math-10
+----------------------------------------------------------
+>>> [Conductor] Group A (Blind): Initializing Buggy Environment...
+Checking out 48dde378 to /Users/nothing/prometheus_workdir_microstudy/math_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 48dde378:2edd83f5..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Math-10b........................................ OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group A: Antigravity is fixing blindly...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group A Finished.
+----------------------------------------------------------
+>>> Finished run_group_a_blind.sh on Math-10
+
+>>> Executing: run_group_b_nl.sh on Math-10
+----------------------------------------------------------
+>>> [Conductor] Group B (NL): Initializing Architect Environment...
+Checking out 48dde378 to /Users/nothing/prometheus_workdir_microstudy/math_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 48dde378:2edd83f5..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Math-10b........................................ OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group B: Architect NL is inferring intent...
+>>> [Conductor] Group B (NL): Initializing Fixer Environment...
+Checking out 48dde378 to /Users/nothing/prometheus_workdir_microstudy/math_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 48dde378:2edd83f5..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Math-10b........................................ OK
+>>> [Conductor] Group B: Fixer NL is repairing...
+root agent idle; waiting for 2 background task(s) (bounded by --print-timeout)
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group B Finished.
+----------------------------------------------------------
+>>> Finished run_group_b_nl.sh on Math-10
+
+>>> Executing: run_group_c_negative.sh on Math-10
+----------------------------------------------------------
+Checking out 48dde378 to /Users/nothing/prometheus_workdir_microstudy/math_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 48dde378:2edd83f5..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Math-10b........................................ OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group C: Architect is writing Gherkin...
+Checking out 48dde378 to /Users/nothing/prometheus_workdir_microstudy/math_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 48dde378:2edd83f5..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Math-10b........................................ OK
+>>> [Conductor] Group C: Engineer is setting up negative verification...
+Checking out 48dde378 to /Users/nothing/prometheus_workdir_microstudy/math_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 48dde378:2edd83f5..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Math-10b........................................ OK
+>>> [Conductor] Group C: Fixer is repairing based on Gherkin...
+>>> [Conductor] Cleaning up BDD test artifacts for final verification...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group C Finished.
+----------------------------------------------------------
+>>> Finished run_group_c_negative.sh on Math-10
+
+>>> Executing: run_group_d_full.sh on Math-10
+----------------------------------------------------------
+Checking out 48dde378 to /Users/nothing/prometheus_workdir_microstudy/math_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 48dde378:2edd83f5..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Math-10b........................................ OK
+Running ant (export.tests.trigger)......................................... OK
+
+>>> [Conductor] Group D: Architect is writing Gherkin...
+Checking out 48dde378 to /Users/nothing/prometheus_workdir_microstudy/math_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 48dde378:2edd83f5..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Math-10b........................................ OK
+>>> [Conductor] Group D: Engineer is setting up sandwich verification...
+root agent idle; waiting for 1 background task(s) (bounded by --print-timeout)
+Checking out 48dde378 to /Users/nothing/prometheus_workdir_microstudy/math_ OK
+Init local repository...................................................... OK
+Tag post-fix revision...................................................... OK
+Run post-checkout hook..................................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Excluding broken/flaky tests............................................... OK
+Initialize fixed program version........................................... OK
+Apply patch................................................................ OK
+Initialize buggy program version........................................... OK
+Diff 48dde378:2edd83f5..................................................... OK
+Apply patch................................................................ OK
+Tag pre-fix revision....................................................... OK
+Check out program version: Math-10b........................................ OK
+>>> [Conductor] Group D: Fixer is repairing based on Gherkin...
+>>> [Conductor] Cleaning up BDD test artifacts for final verification...
+>>> [Conductor] Verifying Final Result...
+Running ant (compile)...................................................... OK
+Running ant (compile.tests)................................................ OK
+Running ant (compile.tests)................................................ OK
+Running ant (run.dev.tests)................................................ OK
+Failing tests: 0
+>>> [Conductor] Group D Finished.
+----------------------------------------------------------
+>>> Finished run_group_d_full.sh on Math-10
+
+==========================================================
+>>> BATCH EXECUTION COMPLETE
+==========================================================
