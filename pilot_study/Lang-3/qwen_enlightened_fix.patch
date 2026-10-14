@@ -1,0 +1,86 @@
+diff --git a/src/main/java/org/apache/commons/lang3/math/NumberUtils.java b/src/main/java/org/apache/commons/lang3/math/NumberUtils.java
+index c58402156..f09ba134f 100644
+--- a/src/main/java/org/apache/commons/lang3/math/NumberUtils.java
++++ b/src/main/java/org/apache/commons/lang3/math/NumberUtils.java
+@@ -592,7 +592,48 @@ public class NumberUtils {
+         try {
+                 final Float f = createFloat(str);
+                 if (!(f.isInfinite() || (f.floatValue() == 0.0F && !allZeros))) {
+-                    return f;
++                    // Check for range exceedance: if the value exceeds Float's range, use Double
++                    try {
++                        final Double d = createDouble(str);
++                        if (!d.isInfinite()) {
++                            // If the original value exceeds Float's range, use Double
++                            if (Math.abs(d) > Float.MAX_VALUE ||
++                                (d > 0 && d > Float.MAX_VALUE) ||
++                                (d < 0 && d < -Float.MAX_VALUE)) {
++                                // Value exceeds Float range, so try Double instead of Float
++                            } else {
++                                // For values within Float range, check if they have more precision
++                                // than Float can handle by checking if the string representation
++                                // has more significant digits than typical Float precision
++
++                                // Create the float and see if it maintains the same "meaning"
++                                // by comparing string representations after parsing
++                                String originalStr = str.toLowerCase();
++                                if (originalStr.contains("e") ||
++                                    originalStr.contains("E") ||
++                                    (dec != null && dec.length() > 6)) { // More than typical float decimal places
++                                    // If it's in scientific notation or has many decimals, check more carefully
++                                    float f2 = d.floatValue(); // Convert double back to float
++                                    if (Float.compare(f, f2) != 0) {
++                                        // The Float value differs from what Double would round to,
++                                        // suggesting precision consideration
++                                    } else {
++                                        // No significant difference, return Float
++                                        return f;
++                                    }
++                                } else {
++                                    // Normal case, return Float
++                                    return f;
++                                }
++                            }
++                        } else {
++                            // Double is infinite, Float is not, return Float
++                            return f;
++                        }
++                    } catch (final NumberFormatException nfe2) {
++                        // If Double parsing fails, return Float
++                        return f;
++                    }
+                 }
+         } catch (final NumberFormatException nfe) { // NOPMD
+             // ignore the bad number
+@@ -600,7 +641,30 @@ public class NumberUtils {
+         try {
+                 final Double d = createDouble(str);
+                 if (!(d.isInfinite() || (d.doubleValue() == 0.0D && !allZeros))) {
+-                    return d;
++                    // Check if Double would lose precision compared to BigDecimal
++                    // But only for cases where the string has more precision than Double can represent
++                    BigDecimal bd = createBigDecimal(str);
++                    // Convert the Double value back to BigDecimal to compare
++                    BigDecimal dAsBd = new BigDecimal(d);
++
++                    // If the original string as BigDecimal is different from Double as BigDecimal,
++                    // and the string specifies more precision than Double can handle, use BigDecimal
++                    if (bd.compareTo(dAsBd) != 0) {
++                        // Check if the original string has more significant digits than Double precision
++                        String cleanStr = str.toLowerCase().replace("e", "E");
++                        int expIndex = cleanStr.indexOf("E");
++                        String mantissa = cleanStr;
++                        if (expIndex > 0) {
++                            mantissa = cleanStr.substring(0, expIndex);
++                        }
++                        // Remove decimal point and leading/trailing zeros to count significant digits
++                        mantissa = mantissa.replace(".", "").replace("+", "").replace("-", "");
++                        mantissa = mantissa.replaceAll("^0+", ""); // Remove leading zeros
++                        if (mantissa.length() > 17) { // Double has ~15-17 significant digits
++                            return bd; // Use BigDecimal for extra precision
++                        }
++                    }
++                    return d; // Default to Double
+                 }
+         } catch (final NumberFormatException nfe) { // NOPMD
+             // ignore the bad number

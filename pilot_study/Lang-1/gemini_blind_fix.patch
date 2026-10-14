@@ -1,0 +1,25 @@
+diff --git a/src/main/java/org/apache/commons/lang3/math/NumberUtils.java b/src/main/java/org/apache/commons/lang3/math/NumberUtils.java
+index 1e6ccdc02..bddcac5a1 100644
+--- a/src/main/java/org/apache/commons/lang3/math/NumberUtils.java
++++ b/src/main/java/org/apache/commons/lang3/math/NumberUtils.java
+@@ -464,14 +464,14 @@ public class NumberUtils {
+             }
+         }
+         if (pfxLen > 0) { // we have a hex number
+-            final int hexDigits = str.length() - pfxLen;
+-            if (hexDigits > 16) { // too many for Long
+-                return createBigInteger(str);
++            BigInteger val = createBigInteger(str);
++            if (val.bitLength() <= 31) {
++                return Integer.valueOf(val.intValue());
+             }
+-            if (hexDigits > 8) { // too many for an int
+-                return createLong(str);
++            if (val.bitLength() <= 63) {
++                return Long.valueOf(val.longValue());
+             }
+-            return createInteger(str);
++            return val;
+         }
+         final char lastChar = str.charAt(str.length() - 1);
+         String mant;

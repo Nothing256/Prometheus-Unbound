@@ -1,0 +1,21 @@
+--- a/src/main/java/org/apache/commons/lang/LocaleUtils.java
++++ b/src/main/java/org/apache/commons/lang/LocaleUtils.java
+@@ -205,7 +205,7 @@
+      * time it is called.</p>
+      *
+      * @return the unmodifiable set of available locales
+      */
+-    public static Set availableLocaleSet() {
++    public static synchronized Set availableLocaleSet() {
+         Set set = cAvailableLocaleSet;
+         if (set == null) {
+             set = new HashSet(availableLocaleList());
+@@ -222,8 +222,8 @@
+      * @param locale the Locale object to check if it is available
+      * @return true if the locale is a known locale
+      */
+-    public static boolean isAvailableLocale(Locale locale) {
+-        return cAvailableLocaleSet.contains(locale);
++    public static boolean isAvailableLocale(Locale locale) {
++        return availableLocaleSet().contains(locale);
+     }

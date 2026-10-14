@@ -1,0 +1,28 @@
+--- /tmp/NumberUtils_original.java	2025-12-15 12:36:01
++++ /Users/nothing/workspace/prometheus_workdir_qwen/lang_1_blind_auto/src/main/java/org/apache/commons/lang3/math/NumberUtils.java	2025-12-15 12:34:42
+@@ -471,6 +471,25 @@
+             if (hexDigits > 8) { // too many for an int
+                 return createLong(str);
+             }
++            // For hex numbers with 8 or fewer digits, we need to check if the absolute value
++            // is too large for an int. Integer.decode correctly handles hex, but values like
++            // 0x80000000 will decode to -2147483648. The test expects positive values that
++            // would exceed Integer.MAX_VALUE to be returned as Longs
++            if (!str.startsWith("-")) {  // Only for positive hex values
++                // If the hex value has 8 digits and represents a value > 0x7FFFFFFF,
++                // it should be treated as Long to preserve its positive nature
++                if (hexDigits == 8) {
++                    // Parse the hex number to see if it exceeds Integer.MAX_VALUE
++                    try {
++                        long longValue = Long.parseLong(str.substring(pfxLen), 16);
++                        if (longValue > Integer.MAX_VALUE) {  // > 0x7FFFFFFF
++                            return createLong(str);
++                        }
++                    } catch (NumberFormatException nfe) {
++                        // If parsing fails, fall back to original behavior
++                    }
++                }
++            }
+             return createInteger(str);
+         }
+         final char lastChar = str.charAt(str.length() - 1);

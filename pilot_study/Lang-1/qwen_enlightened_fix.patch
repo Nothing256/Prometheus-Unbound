@@ -1,0 +1,45 @@
+diff --git a/src/main/java/org/apache/commons/lang3/math/NumberUtils.java b/src/main/java/org/apache/commons/lang3/math/NumberUtils.java
+index 1e6ccdc02..e39c0e2eb 100644
+--- a/src/main/java/org/apache/commons/lang3/math/NumberUtils.java
++++ b/src/main/java/org/apache/commons/lang3/math/NumberUtils.java
+@@ -468,10 +468,38 @@ public class NumberUtils {
+             if (hexDigits > 16) { // too many for Long
+                 return createBigInteger(str);
+             }
+-            if (hexDigits > 8) { // too many for an int
++            if (hexDigits > 8) { // definitely too many for an int, try as Long
++                return createLong(str);
++            }
++            // For 8 or fewer digits, we need to check if the value is within Integer range
++            // For hex numbers, if the first digit (after prefix and optional sign) is > 7 when we have 8 digits,
++            // then it exceeds Integer.MAX_VALUE (0x7FFFFFFF)
++            String hexPart = str.substring(pfxLen); // Get the hex part without the prefix
++            boolean isNegative = false;
++            if (hexPart.startsWith("-")) {
++                isNegative = true;
++                hexPart = hexPart.substring(1);
++            }
++
++            // For 8-digit hex numbers, check if it's beyond the int range
++            if (hexPart.length() == 8) {
++                // Integer.MAX_VALUE in hex is 7FFFFFFF, so if first digit > 7, it's out of range for int
++                char firstDigit = hexPart.charAt(0);
++                if (!isNegative && Character.digit(firstDigit, 16) > 7) {
++                    // This hex number with 8 digits exceeds Integer.MAX_VALUE, should be parsed as Long
++                    return createLong(str);
++                } else if (isNegative && !hexPart.equals("80000000")) {
++                    // For negative values, if it's not exactly -0x80000000, check if it's in range
++                    // -0x80000000 is the minimum integer value (-2147483648)
++                }
++            }
++
++            try {
++                return createInteger(str);
++            } catch (final NumberFormatException nfe) {
++                // If creating an Integer failed, try as Long
+                 return createLong(str);
+             }
+-            return createInteger(str);
+         }
+         final char lastChar = str.charAt(str.length() - 1);
+         String mant;

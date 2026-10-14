@@ -72,6 +72,7 @@ Prometheus-Unbound/
 │   └── patches/            # All patches (blind and enlightened)
 ├── micro_study_pipelines/  # Scripts for the 30-defect micro-ablation study
 ├── micro_study_results/    # Extraction of patches and specs from the micro study
+├── pilot_study/            # Pilot comparative study artifacts & reports across 10 defects
 └── README.md
 ```
 

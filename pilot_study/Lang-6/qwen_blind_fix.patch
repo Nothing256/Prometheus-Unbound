@@ -1,0 +1,74 @@
+diff --git a/src/main/java/org/apache/commons/lang3/StringEscapeUtils.java b/src/main/java/org/apache/commons/lang3/StringEscapeUtils.java
+index ec0b931ee..837645df6 100644
+--- a/src/main/java/org/apache/commons/lang3/StringEscapeUtils.java
++++ b/src/main/java/org/apache/commons/lang3/StringEscapeUtils.java
+@@ -140,31 +140,40 @@ public class StringEscapeUtils {
+     public static final CharSequenceTranslator ESCAPE_CSV = new CsvEscaper();
+ 
+     // TODO: Create a parent class - 'SinglePassTranslator' ?
+-    //       It would handle the index checking + length returning, 
++    //       It would handle the index checking + length returning,
+     //       and could also have an optimization check method.
+     static class CsvEscaper extends CharSequenceTranslator {
+ 
+         private static final char CSV_DELIMITER = ',';
+         private static final char CSV_QUOTE = '"';
+         private static final String CSV_QUOTE_STR = String.valueOf(CSV_QUOTE);
+-        private static final char[] CSV_SEARCH_CHARS = 
++        private static final char[] CSV_SEARCH_CHARS =
+             new char[] {CSV_DELIMITER, CSV_QUOTE, CharUtils.CR, CharUtils.LF};
+ 
+         @Override
+         public int translate(CharSequence input, int index, Writer out) throws IOException {
+-
+-            if(index != 0) {
+-                throw new IllegalStateException("CsvEscaper should never reach the [1] index");
++            // Only process the entire string when called at the first position (index 0)
++            if (index == 0) {
++                String inputStr = input.toString();
++                if (StringUtils.containsNone(inputStr, CSV_SEARCH_CHARS)) {
++                    // No special characters, just write the string as-is
++                    out.write(inputStr);
++                    // Return 1 to indicate we conceptually processed 1 complete unit (the whole string)
++                    // The main loop will then advance by the codepoint count of the first character
++                    return input.length(); // Actually return the length to skip the entire string
++                } else {
++                    // Contains special characters, wrap in quotes and escape internal quotes
++                    out.write(CSV_QUOTE);
++                    out.write(StringUtils.replace(inputStr, CSV_QUOTE_STR, CSV_QUOTE_STR + CSV_QUOTE_STR));
++                    out.write(CSV_QUOTE);
++                    // Return the original input length to skip past all original characters
++                    return input.length();
++                }
+             }
+ 
+-            if (StringUtils.containsNone(input.toString(), CSV_SEARCH_CHARS)) {
+-                out.write(input.toString());
+-            } else {
+-                out.write(CSV_QUOTE);
+-                out.write(StringUtils.replace(input.toString(), CSV_QUOTE_STR, CSV_QUOTE_STR + CSV_QUOTE_STR));
+-                out.write(CSV_QUOTE);
+-            }
+-            return input.length();
++            // For any other index, we've already processed the entire string at index 0,
++            // so return 0 to indicate no further processing is needed at this position
++            return 0;
+         }
+     }
+ 
+diff --git a/src/main/java/org/apache/commons/lang3/text/translate/CharSequenceTranslator.java b/src/main/java/org/apache/commons/lang3/text/translate/CharSequenceTranslator.java
+index 4d010eafd..9ec0ce5d9 100644
+--- a/src/main/java/org/apache/commons/lang3/text/translate/CharSequenceTranslator.java
++++ b/src/main/java/org/apache/commons/lang3/text/translate/CharSequenceTranslator.java
+@@ -89,9 +89,9 @@ public abstract class CharSequenceTranslator {
+                 pos+= c.length;
+                 continue;
+             }
+-//          // contract with translators is that they have to understand codepoints 
++//          // contract with translators is that they have to understand codepoints
+ //          // and they just took care of a surrogate pair
+-            for (int pt = 0; pt < consumed; pt++) {
++            for (int pt = 0; pt < consumed && pos < len; pt++) {
+                 pos += Character.charCount(Character.codePointAt(input, pos));
+             }
+         }

@@ -1,0 +1,38 @@
+diff --git a/src/main/java/org/apache/commons/lang3/StringUtils.java b/src/main/java/org/apache/commons/lang3/StringUtils.java
+index dd2f5cf10..da94058ab 100644
+--- a/src/main/java/org/apache/commons/lang3/StringUtils.java
++++ b/src/main/java/org/apache/commons/lang3/StringUtils.java
+@@ -1680,9 +1680,7 @@ public class StringUtils {
+             char ch = cs.charAt(i);
+             for (int j = 0; j < searchLen; j++) {
+                 if (searchChars[j] == ch) {
+-                            // missing low surrogate, fine, like String.indexOf(String)
+-                        // ch is in the Basic Multilingual Plane
+-                        return false;
++                    return false;
+                 }
+             }
+         }
+@@ -1696,6 +1694,9 @@ public class StringUtils {
+      * A <code>null</code> invalid character array will return <code>true</code>.
+      * An empty String ("") always returns true.</p>
+      *
++     * <p>Note: When searching for supplementary Unicode characters (code points > 0xFFFF),
++     * this method checks for complete string matches.</p>
++     *
+      * <pre>
+      * StringUtils.containsNone(null, *)       = true
+      * StringUtils.containsNone(*, null)       = true
+@@ -1715,7 +1716,11 @@ public class StringUtils {
+         if (cs == null || invalidChars == null) {
+             return true;
+         }
+-        return containsNone(cs, invalidChars.toCharArray());
++
++        // For string search, check if the entire invalidChars string appears as a substring in cs
++        // This handles supplementary characters properly
++        String csStr = cs.toString();
++        return !csStr.contains(invalidChars);
+     }
+ 
+     // IndexOfAny strings

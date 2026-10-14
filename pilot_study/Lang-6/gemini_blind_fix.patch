@@ -1,0 +1,13 @@
+diff --git a/src/main/java/org/apache/commons/lang3/StringEscapeUtils.java b/src/main/java/org/apache/commons/lang3/StringEscapeUtils.java
+index ec0b931ee..45ae07a21 100644
+--- a/src/main/java/org/apache/commons/lang3/StringEscapeUtils.java
++++ b/src/main/java/org/apache/commons/lang3/StringEscapeUtils.java
+@@ -164,7 +164,7 @@ public class StringEscapeUtils {
+                 out.write(StringUtils.replace(input.toString(), CSV_QUOTE_STR, CSV_QUOTE_STR + CSV_QUOTE_STR));
+                 out.write(CSV_QUOTE);
+             }
+-            return input.length();
++            return Character.codePointCount(input, 0, input.length());
+         }
+     }
+ 

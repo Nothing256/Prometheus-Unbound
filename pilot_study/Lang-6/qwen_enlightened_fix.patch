@@ -1,0 +1,22 @@
+diff --git a/src/main/java/org/apache/commons/lang3/StringEscapeUtils.java b/src/main/java/org/apache/commons/lang3/StringEscapeUtils.java
+index ec0b931ee..348d805f7 100644
+--- a/src/main/java/org/apache/commons/lang3/StringEscapeUtils.java
++++ b/src/main/java/org/apache/commons/lang3/StringEscapeUtils.java
+@@ -147,7 +147,7 @@ public class StringEscapeUtils {
+         private static final char CSV_DELIMITER = ',';
+         private static final char CSV_QUOTE = '"';
+         private static final String CSV_QUOTE_STR = String.valueOf(CSV_QUOTE);
+-        private static final char[] CSV_SEARCH_CHARS = 
++        private static final char[] CSV_SEARCH_CHARS =
+             new char[] {CSV_DELIMITER, CSV_QUOTE, CharUtils.CR, CharUtils.LF};
+ 
+         @Override
+@@ -164,7 +164,7 @@ public class StringEscapeUtils {
+                 out.write(StringUtils.replace(input.toString(), CSV_QUOTE_STR, CSV_QUOTE_STR + CSV_QUOTE_STR));
+                 out.write(CSV_QUOTE);
+             }
+-            return input.length();
++            return Character.codePointCount(input, 0, input.length());
+         }
+     }
+ 

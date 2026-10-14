@@ -1,0 +1,49 @@
+diff --git a/src/main/java/org/apache/commons/lang3/math/NumberUtils.java b/src/main/java/org/apache/commons/lang3/math/NumberUtils.java
+index c58402156..703dc33dd 100644
+--- a/src/main/java/org/apache/commons/lang3/math/NumberUtils.java
++++ b/src/main/java/org/apache/commons/lang3/math/NumberUtils.java
+@@ -590,18 +590,40 @@ public class NumberUtils {
+         //Must be a Float, Double, BigDecimal
+         final boolean allZeros = isAllZeros(mant) && isAllZeros(exp);
+         try {
+-                final Float f = createFloat(str);
+-                if (!(f.isInfinite() || (f.floatValue() == 0.0F && !allZeros))) {
++            final Float f = createFloat(str);
++            if (!(f.isInfinite() || (f.floatValue() == 0.0F && !allZeros))) {
++                float fVal = f.floatValue();
++                if (fVal == Float.MAX_VALUE || fVal == -Float.MAX_VALUE) {
++                    // check if it's really a double that got clamped
++                    Double d = createDouble(str);
++                    if (!(d.isInfinite() || (d.doubleValue() == 0.0D && !allZeros))) {
++                        // if valid double, check if it's within float range
++                        // use 3.4028235e38 as the threshold because Float.MAX_VALUE is slightly smaller
++                        // but 3.4028235e38 is the standard float max string representation
++                        if (Math.abs(d.doubleValue()) <= 3.4028235e38D) {
++                            return f;
++                        }
++                    }
++                } else {
+                     return f;
+                 }
++            }
+         } catch (final NumberFormatException nfe) { // NOPMD
+             // ignore the bad number
+         }
+         try {
+-                final Double d = createDouble(str);
+-                if (!(d.isInfinite() || (d.doubleValue() == 0.0D && !allZeros))) {
++            final Double d = createDouble(str);
++            if (!(d.isInfinite() || (d.doubleValue() == 0.0D && !allZeros))) {
++                double dVal = d.doubleValue();
++                if (dVal == Double.MAX_VALUE || dVal == -Double.MAX_VALUE) {
++                    BigDecimal bd = createBigDecimal(str);
++                    if (bd.compareTo(new BigDecimal(Double.MAX_VALUE)) <= 0 && bd.compareTo(new BigDecimal(-Double.MAX_VALUE)) >= 0) {
++                        return d;
++                    }
++                } else {
+                     return d;
+                 }
++            }
+         } catch (final NumberFormatException nfe) { // NOPMD
+             // ignore the bad number
+         }

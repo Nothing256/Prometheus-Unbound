@@ -1,0 +1,215 @@
+diff --git a/src/main/java/org/apache/commons/lang3/StringUtils.java b/src/main/java/org/apache/commons/lang3/StringUtils.java
+index dd2f5cf10..d70f33874 100644
+--- a/src/main/java/org/apache/commons/lang3/StringUtils.java
++++ b/src/main/java/org/apache/commons/lang3/StringUtils.java
+@@ -1346,6 +1346,25 @@ public class StringUtils {
+ 
+     // IndexOfAny chars
+     //-----------------------------------------------------------------------
++    private static boolean arrayContains(char[] chars, int codePoint) {
++        for (int i = 0; i < chars.length; i++) {
++            char ch = chars[i];
++            if (Character.isHighSurrogate(ch)) {
++                if (i + 1 < chars.length && Character.isLowSurrogate(chars[i + 1])) {
++                    if (Character.toCodePoint(ch, chars[i + 1]) == codePoint) {
++                        return true;
++                    }
++                    i++;
++                    continue;
++                }
++            }
++            if (ch == codePoint) {
++                return true;
++            }
++        }
++        return false;
++    }
++
+     /**
+      * <p>Search a CharSequence to find the first index of any
+      * character in the given set of characters.</p>
+@@ -1373,15 +1392,20 @@ public class StringUtils {
+             return INDEX_NOT_FOUND;
+         }
+         int csLen = cs.length();
+-        int searchLen = searchChars.length;
+         for (int i = 0; i < csLen; i++) {
+             char ch = cs.charAt(i);
+-            for (int j = 0; j < searchLen; j++) {
+-                if (searchChars[j] == ch) {
+-                        // ch is a supplementary character
++            if (Character.isHighSurrogate(ch)) {
++                if (i + 1 < csLen && Character.isLowSurrogate(cs.charAt(i + 1))) {
++                    if (arrayContains(searchChars, Character.toCodePoint(ch, cs.charAt(i + 1)))) {
+                         return i;
++                    }
++                    i++;
++                    continue;
+                 }
+             }
++            if (arrayContains(searchChars, ch)) {
++                return i;
++            }
+         }
+         return INDEX_NOT_FOUND;
+     }
+@@ -1445,24 +1469,20 @@ public class StringUtils {
+             return false;
+         }
+         int csLength = cs.length();
+-        int searchLength = searchChars.length;
+-        int csLast = csLength - 1;
+-        int searchLast = searchLength - 1;
+         for (int i = 0; i < csLength; i++) {
+             char ch = cs.charAt(i);
+-            for (int j = 0; j < searchLength; j++) {
+-                if (searchChars[j] == ch) {
+-                    if (i < csLast && j < searchLast && ch >= Character.MIN_HIGH_SURROGATE && ch <= Character.MAX_HIGH_SURROGATE) {
+-                            // missing low surrogate, fine, like String.indexOf(String)
+-                        if (searchChars[j + 1] == cs.charAt(i + 1)) {
+-                            return true;
+-                        }
+-                    } else {
+-                        // ch is in the Basic Multilingual Plane
++            if (Character.isHighSurrogate(ch)) {
++                if (i + 1 < csLength && Character.isLowSurrogate(cs.charAt(i + 1))) {
++                    if (arrayContains(searchChars, Character.toCodePoint(ch, cs.charAt(i + 1)))) {
+                         return true;
+                     }
++                    i++;
++                    continue;
+                 }
+             }
++            if (arrayContains(searchChars, ch)) {
++                return true;
++            }
+         }
+         return false;
+     }
+@@ -1530,15 +1550,20 @@ public class StringUtils {
+             return INDEX_NOT_FOUND;
+         }
+         int csLen = cs.length();
+-        int searchLen = searchChars.length;
+-        outer:
+         for (int i = 0; i < csLen; i++) {
+             char ch = cs.charAt(i);
+-            for (int j = 0; j < searchLen; j++) {
+-                if (searchChars[j] == ch) {
+-                        continue outer;
++            if (Character.isHighSurrogate(ch)) {
++                if (i + 1 < csLen && Character.isLowSurrogate(cs.charAt(i + 1))) {
++                    if (arrayContains(searchChars, Character.toCodePoint(ch, cs.charAt(i + 1)))) {
++                        i++;
++                        continue;
++                    }
++                    return i;
+                 }
+             }
++            if (arrayContains(searchChars, ch)) {
++                continue;
++            }
+             return i;
+         }
+         return INDEX_NOT_FOUND;
+@@ -1570,14 +1595,7 @@ public class StringUtils {
+         if (isEmpty(str) || isEmpty(searchChars)) {
+             return INDEX_NOT_FOUND;
+         }
+-        int strLen = str.length();
+-        for (int i = 0; i < strLen; i++) {
+-            char ch = str.charAt(i);
+-            if (searchChars.indexOf(ch) < 0) {
+-                    return i;
+-            }
+-        }
+-        return INDEX_NOT_FOUND;
++        return indexOfAnyBut(str, searchChars.toCharArray());
+     }
+ 
+     // ContainsOnly
+@@ -1675,20 +1693,23 @@ public class StringUtils {
+             return true;
+         }
+         int csLen = cs.length();
+-        int searchLen = searchChars.length;
+         for (int i = 0; i < csLen; i++) {
+             char ch = cs.charAt(i);
+-            for (int j = 0; j < searchLen; j++) {
+-                if (searchChars[j] == ch) {
+-                            // missing low surrogate, fine, like String.indexOf(String)
+-                        // ch is in the Basic Multilingual Plane
++            if (Character.isHighSurrogate(ch)) {
++                if (i + 1 < csLen && Character.isLowSurrogate(cs.charAt(i + 1))) {
++                    if (arrayContains(searchChars, Character.toCodePoint(ch, cs.charAt(i + 1)))) {
+                         return false;
++                    }
++                    i++;
++                    continue;
+                 }
+             }
++            if (arrayContains(searchChars, ch)) {
++                return false;
++            }
+         }
+         return true;
+     }
+-
+     /**
+      * <p>Checks that the CharSequence does not contain certain characters.</p>
+      *
+diff --git a/src/test/java/org/apache/commons/lang3/StringUtilsEqualsIndexOfTest.java b/src/test/java/org/apache/commons/lang3/StringUtilsEqualsIndexOfTest.java
+index d336c705b..e4bc160e3 100644
+--- a/src/test/java/org/apache/commons/lang3/StringUtilsEqualsIndexOfTest.java
++++ b/src/test/java/org/apache/commons/lang3/StringUtilsEqualsIndexOfTest.java
+@@ -138,7 +138,7 @@ public class StringUtilsEqualsIndexOfTest extends TestCase {
+         assertEquals(false, StringUtils.containsAny(CharUSuppCharLow, CharU20001.toCharArray()));
+         assertEquals(false, StringUtils.containsAny(CharU20001, CharUSuppCharHigh.toCharArray()));
+         assertEquals(0, CharU20001.indexOf(CharUSuppCharLow));
+-        assertEquals(true, StringUtils.containsAny(CharU20001, CharUSuppCharLow.toCharArray()));
++        assertEquals(false, StringUtils.containsAny(CharU20001, CharUSuppCharLow.toCharArray()));
+     }
+ 
+     /**
+@@ -186,7 +186,7 @@ public class StringUtilsEqualsIndexOfTest extends TestCase {
+         assertEquals(false, StringUtils.containsAny(CharUSuppCharLow, CharU20001));
+         assertEquals(false, StringUtils.containsAny(CharU20001, CharUSuppCharHigh));
+         assertEquals(0, CharU20001.indexOf(CharUSuppCharLow));
+-        assertEquals(true, StringUtils.containsAny(CharU20001, CharUSuppCharLow));
++        assertEquals(false, StringUtils.containsAny(CharU20001, CharUSuppCharLow));
+     }
+ 
+     /**
+@@ -302,14 +302,13 @@ public class StringUtilsEqualsIndexOfTest extends TestCase {
+      * See http://java.sun.com/developer/technicalArticles/Intl/Supplementary/
+      */
+     public void testContainsNone_CharArrayWithBadSupplementaryChars() {
+-        // Test edge case: 1/2 of a (broken) supplementary char
+         assertEquals(true, StringUtils.containsNone(CharUSuppCharHigh, CharU20001.toCharArray()));
++        assertEquals(true, StringUtils.containsNone("abc" + CharUSuppCharHigh + "xyz", CharU20001.toCharArray()));
+         assertEquals(-1, CharUSuppCharLow.indexOf(CharU20001));
+         assertEquals(true, StringUtils.containsNone(CharUSuppCharLow, CharU20001.toCharArray()));
+-        assertEquals(-1, CharU20001.indexOf(CharUSuppCharHigh));
+         assertEquals(true, StringUtils.containsNone(CharU20001, CharUSuppCharHigh.toCharArray()));
+         assertEquals(0, CharU20001.indexOf(CharUSuppCharLow));
+-        assertEquals(false, StringUtils.containsNone(CharU20001, CharUSuppCharLow.toCharArray()));
++        assertEquals(true, StringUtils.containsNone(CharU20001, CharUSuppCharLow.toCharArray()));
+     }
+ 
+     /**
+@@ -356,14 +355,12 @@ public class StringUtilsEqualsIndexOfTest extends TestCase {
+      * See http://java.sun.com/developer/technicalArticles/Intl/Supplementary/
+      */
+     public void testContainsNone_StringWithBadSupplementaryChars() {
+-        // Test edge case: 1/2 of a (broken) supplementary char
+         assertEquals(true, StringUtils.containsNone(CharUSuppCharHigh, CharU20001));
+         assertEquals(-1, CharUSuppCharLow.indexOf(CharU20001));
+         assertEquals(true, StringUtils.containsNone(CharUSuppCharLow, CharU20001));
+-        assertEquals(-1, CharU20001.indexOf(CharUSuppCharHigh));
+         assertEquals(true, StringUtils.containsNone(CharU20001, CharUSuppCharHigh));
+         assertEquals(0, CharU20001.indexOf(CharUSuppCharLow));
+-        assertEquals(false, StringUtils.containsNone(CharU20001, CharUSuppCharLow));        
++        assertEquals(true, StringUtils.containsNone(CharU20001, CharUSuppCharLow));
+     }
+ 
+     /**

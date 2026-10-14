@@ -1,0 +1,113 @@
+diff --git a/src/main/java/org/apache/commons/math/analysis/solvers/BisectionSolver.java b/src/main/java/org/apache/commons/math/analysis/solvers/BisectionSolver.java
+index 3f669271a..ac73ebb63 100644
+--- a/src/main/java/org/apache/commons/math/analysis/solvers/BisectionSolver.java
++++ b/src/main/java/org/apache/commons/math/analysis/solvers/BisectionSolver.java
+@@ -17,8 +17,10 @@
+ package org.apache.commons.math.analysis.solvers;
+ 
+ import org.apache.commons.math.FunctionEvaluationException;
++import org.apache.commons.math.MathRuntimeException;
+ import org.apache.commons.math.MaxIterationsExceededException;
+ import org.apache.commons.math.analysis.UnivariateRealFunction;
++import org.apache.commons.math.analysis.solvers.UnivariateRealSolverUtils;
+ 
+ /**
+  * Implements the <a href="http://mathworld.wolfram.com/Bisection.html">
+@@ -69,7 +71,96 @@ public class BisectionSolver extends UnivariateRealSolverImpl {
+     /** {@inheritDoc} */
+     public double solve(final UnivariateRealFunction f, double min, double max, double initial)
+         throws MaxIterationsExceededException, FunctionEvaluationException {
+-        return solve(min, max);
++
++        clearResult();
++        verifyInterval(min, max);
++        if ((initial < min) || (initial > max)) {
++            throw MathRuntimeException.createIllegalArgumentException(
++                  "invalid interval, initial value parameters:  lower={0}, initial={1}, upper={2}",
++                  min, initial, max);
++        }
++
++        // Evaluate function at initial guess
++        double yInitial = f.value(initial);
++        if (Math.abs(yInitial) <= functionValueAccuracy) {
++            // Initial guess is already a root within accuracy
++            setResult(initial, 0);
++            return initial;
++        }
++
++        // Evaluate function at endpoints
++        double yMin = f.value(min);
++        double yMax = f.value(max);
++
++        // Verify that the original interval brackets a root
++        if (yMin * yMax >= 0) {
++            throw MathRuntimeException.createIllegalArgumentException(
++                  "function values at endpoints do not have different signs.  " +
++                  "Endpoints: [{0}, {1}], Values: [{2}, {3}]",
++                  min, max, yMin, yMax);
++        }
++
++        // Use the initial guess to select a more efficient starting interval for bisection
++        // Check which subinterval contains the root based on the sign of yInitial
++
++        // If initial guess and max have opposite signs, root is in [initial, max] (narrower interval)
++        if (yInitial * yMax < 0) {
++            // Use the standard bisection algorithm but on the narrowed interval [initial, max]
++            double currentMin = initial;
++            double currentMax = max;
++            int i = 0;
++            while (i < maximalIterationCount) {
++                // This follows the same pattern as the original 2-parameter method to ensure compatibility
++                double m = UnivariateRealSolverUtils.midpoint(currentMin, currentMax);
++                double fmin = f.value(currentMin);  // Recompute as per original algorithm
++                double fm = f.value(m);
++
++                if (fm * fmin > 0.0) {
++                    // max and m bracket the root.
++                    currentMin = m;
++                } else {
++                    // min and m bracket the root.
++                    currentMax = m;
++                }
++
++                if (Math.abs(currentMax - currentMin) <= absoluteAccuracy) {
++                    m = UnivariateRealSolverUtils.midpoint(currentMin, currentMax);
++                    setResult(m, i);
++                    return m;
++                }
++                ++i;
++            }
++        }
++        // If initial guess and min have opposite signs, root is in [min, initial] (narrower interval)
++        else /* if (yInitial * yMin < 0) - this must be true since yMin and yMax have opposite signs */ {
++            // Use the standard bisection algorithm but on the narrowed interval [min, initial]
++            double currentMin = min;
++            double currentMax = initial;
++            int i = 0;
++            while (i < maximalIterationCount) {
++                // This follows the same pattern as the original 2-parameter method to ensure compatibility
++                double m = UnivariateRealSolverUtils.midpoint(currentMin, currentMax);
++                double fmin = f.value(currentMin);  // Recompute as per original algorithm
++                double fm = f.value(m);
++
++                if (fm * fmin > 0.0) {
++                    // max and m bracket the root.
++                    currentMin = m;
++                } else {
++                    // min and m bracket the root.
++                    currentMax = m;
++                }
++
++                if (Math.abs(currentMax - currentMin) <= absoluteAccuracy) {
++                    m = UnivariateRealSolverUtils.midpoint(currentMin, currentMax);
++                    setResult(m, i);
++                    return m;
++                }
++                ++i;
++            }
++        }
++
++        throw new MaxIterationsExceededException(maximalIterationCount);
+     }
+ 
+     /** {@inheritDoc} */
